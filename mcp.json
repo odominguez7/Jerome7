@@ -1,0 +1,68 @@
+{
+  "name": "jerome7",
+  "display_name": "Jerome7",
+  "description": "7 minutes a day. An act of love. AI-powered fitness accountability with daily session generation, streak tracking, pod matching, and smart nudges. Works autonomously inside any MCP-compatible agent.",
+  "version": "1.0.0",
+  "homepage": "https://jerome7.com",
+  "repository": "https://github.com/odominguez7/Jerome7",
+  "license": "MIT",
+  "author": {
+    "name": "Omar Dominguez",
+    "url": "https://github.com/odominguez7"
+  },
+  "categories": ["fitness", "productivity", "health", "accountability"],
+  "tags": ["fitness", "streaks", "daily", "accountability", "bodyweight", "7-minutes"],
+  "server": {
+    "transport": "stdio",
+    "command": "python",
+    "args": ["-m", "mcp_server.server"],
+    "env": {
+      "JEROME7_API_URL": {
+        "description": "Jerome7 API base URL",
+        "default": "https://jerome7.com",
+        "required": false
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "jerome7_daily",
+      "description": "Get today's AI-generated 7-minute session for a user. Personalized based on fitness level and feedback history."
+    },
+    {
+      "name": "jerome7_pledge",
+      "description": "Register a new user. Collects name, timezone, fitness level, age bracket, gender, and goal."
+    },
+    {
+      "name": "jerome7_log",
+      "description": "Log a completed session. Updates streak, triggers milestone messages."
+    },
+    {
+      "name": "jerome7_streak",
+      "description": "Get streak data: current streak, longest streak, 30-day chain visualization."
+    },
+    {
+      "name": "jerome7_nudge",
+      "description": "Check if a user needs an accountability nudge. Returns risk status and hours remaining."
+    },
+    {
+      "name": "jerome7_pod_match",
+      "description": "Find or create an accountability pod of 3-5 builders at the same level and timezone."
+    }
+  ],
+  "install": {
+    "npm": null,
+    "pip": "pip install httpx mcp",
+    "curl": "curl -fsSL https://raw.githubusercontent.com/odominguez7/Jerome7/main/integrations/openclaw/SKILL.md -o ~/.openclaw/skills/jerome7.md",
+    "claude_desktop": {
+      "command": "python",
+      "args": ["-m", "mcp_server.server"],
+      "env": {
+        "JEROME7_API_URL": "https://jerome7.com"
+      }
+    }
+  },
+  "compatible_with": ["claude", "gpt-4", "gemini", "openclaw", "zeroclaw"],
+  "live_api": "https://jerome7.com",
+  "api_docs": "https://jerome7.com/docs"
+}

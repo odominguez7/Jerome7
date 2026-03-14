@@ -355,12 +355,118 @@ def landing():
   }}
   .bottom-cta:hover {{ background: #ff6b1a; }}
 
+  /* --- COMPAT BAR --- */
+  .compat-bar {{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 32px;
+  }}
+  .compat-label {{
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #484f58;
+    margin-right: 4px;
+  }}
+  .compat-badge {{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    border: 1px solid #30363d;
+    font-size: 11px;
+    font-weight: 600;
+    color: #c9d1d9;
+    letter-spacing: 0.5px;
+    background: #161b22;
+  }}
+  .compat-dot {{ width: 6px; height: 6px; border-radius: 50%; }}
+  .dot-claude {{ background: #cc785c; }}
+  .dot-gpt {{ background: #10a37f; }}
+  .dot-gemini {{ background: #4285f4; }}
+  .dot-openclaw {{ background: #7ee787; }}
+  .dot-zeroclaw {{ background: #f778ba; }}
+
+  /* --- INSTALL STRIP --- */
+  .install-strip {{
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }}
+  .install-label {{
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #E85D04;
+    white-space: nowrap;
+  }}
+  .install-code {{
+    font-size: 12px;
+    color: #7ee787;
+    flex: 1;
+    word-break: break-all;
+  }}
+  .copy-btn {{
+    background: transparent;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }}
+  .copy-btn:hover {{ border-color: #E85D04; color: #E85D04; }}
+
+  /* --- GITHUB STAR --- */
+  .star-bar {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 48px;
+    padding: 20px;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    background: #161b22;
+  }}
+  .star-text {{
+    font-size: 13px;
+    color: #8b949e;
+  }}
+  .star-btn {{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #f0f6fc;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }}
+  .star-btn:hover {{ background: #30363d; border-color: #E85D04; }}
+
   /* --- RESPONSIVE --- */
   @media (max-width: 480px) {{
     .hero {{ padding: 60px 20px; }}
     h1 {{ font-size: 28px; }}
     .tagline {{ font-size: 14px; }}
     section {{ padding: 60px 16px; }}
+    .install-code {{ font-size: 10px; }}
   }}
 </style>
 </head>
@@ -373,7 +479,24 @@ def landing():
   <div class="tagline">Same session for everyone. Every day. Streak-powered accountability for builders. Free forever.</div>
   <div class="cta-row">
     <a href="https://discord.gg/5AZP8DbEJm" class="btn btn-primary">JOIN DISCORD</a>
-    <a href="https://github.com/odominguez7/Jerome7" class="btn btn-ghost">GitHub</a>
+    <a href="https://github.com/odominguez7/Jerome7" class="btn btn-ghost">⭐ GitHub</a>
+  </div>
+
+  <div class="compat-bar">
+    <span class="compat-label">WORKS WITH</span>
+    <span class="compat-badge"><span class="compat-dot dot-claude"></span>Claude</span>
+    <span class="compat-badge"><span class="compat-dot dot-gpt"></span>GPT-4</span>
+    <span class="compat-badge"><span class="compat-dot dot-gemini"></span>Gemini</span>
+    <span class="compat-badge"><span class="compat-dot dot-openclaw"></span>OpenClaw</span>
+    <span class="compat-badge"><span class="compat-dot dot-zeroclaw"></span>ZeroClaw</span>
+  </div>
+
+  <div style="max-width:580px;margin:0 auto;padding:0 20px;">
+    <div class="install-strip">
+      <span class="install-label">OPENCLAW</span>
+      <code class="install-code" id="install-cmd">curl -fsSL https://raw.githubusercontent.com/odominguez7/Jerome7/main/integrations/openclaw/SKILL.md -o ~/.openclaw/skills/jerome7.md</code>
+      <button class="copy-btn" onclick="copyInstall()">COPY</button>
+    </div>
   </div>
 </div>
 
@@ -479,6 +602,19 @@ def landing():
   <a href="/leaderboard" class="leaderboard-link">VIEW FULL LEADERBOARD →</a>
 </section>
 
+<!-- GITHUB STAR -->
+<section>
+  <div class="section-label">OPEN SOURCE</div>
+  <h2>MCP-native. Agent-ready.</h2>
+  <p>Jerome7 exposes 6 MCP tools — works inside Claude Desktop, GPT, Gemini, OpenClaw, ZeroClaw, or any agent runtime that speaks Model Context Protocol.</p>
+  <div class="star-bar">
+    <span class="star-text">If this moves you, star it.</span>
+    <a href="https://github.com/odominguez7/Jerome7" class="star-btn" target="_blank">
+      ⭐ Star on GitHub
+    </a>
+  </div>
+</section>
+
 <!-- FOOTER -->
 <div class="footer">
   <div class="footer-brand">JEROME7</div>
@@ -516,6 +652,21 @@ async function loadFeed() {{
 }}
 loadFeed();
 setInterval(loadFeed, 30000);
+
+function copyInstall() {{
+  const cmd = document.getElementById('install-cmd').textContent;
+  navigator.clipboard.writeText(cmd).then(() => {{
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'COPIED!';
+    btn.style.color = '#7ee787';
+    btn.style.borderColor = '#7ee787';
+    setTimeout(() => {{
+      btn.textContent = 'COPY';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }}, 2000);
+  }});
+}}
 </script>
 </body>
 </html>"""
