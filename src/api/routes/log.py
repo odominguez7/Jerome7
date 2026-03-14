@@ -1,4 +1,4 @@
-"""POST /log — session logging + feedback endpoints."""
+"""POST /log — session logging + feedback + status endpoints."""
 
 from datetime import datetime
 
@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session as DBSession
 
 from src.api.models import LogSessionRequest, SessionResponse, FeedbackRequest, FeedbackResponse
 from src.db.database import get_db
-from src.db.models import Session, SessionFeedback
+from src.db.models import Session, SessionFeedback, Streak, User
 from src.agents.streak import StreakAgent
 
 router = APIRouter()
@@ -49,3 +49,32 @@ def log_feedback(user_id: str, req: FeedbackRequest, db: DBSession = Depends(get
     db.commit()
 
     return FeedbackResponse(feedback_id=fb.id, stored=True)
+
+
+@router.get("/status/{user_id}")
+def user_status(user_id: str, db: DBSession = Depends(get_db)):
+    """Check if user has logged today + current streak. Used by agent nudges."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {"error": "User not found"}
+
+    today = datetime.utcnow().date()
+    logged_today = (
+        db.query(Session)
+        .filter(Session.user_id == user_id)
+        .filter(Session.logged_at >= datetime(today.year, today.month, today.day))
+        .first()
+    ) is not None
+
+    streak = db.query(Streak).filter(Streak.user_id == user_id).first()
+    current_streak = streak.current_streak if streak else 0
+    days_missed = streak.consecutive_misses if streak and hasattr(streak, 'consecutive_misses') else 0
+
+    return {
+        "user_id": user_id,
+        "name": user.name,
+        "logged_today": logged_today,
+        "current_streak": current_streak,
+        "at_risk": not logged_today and current_streak > 0,
+        "nudge": not logged_today,
+    }
