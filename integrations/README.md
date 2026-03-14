@@ -50,11 +50,24 @@ All endpoints at `https://jerome7.com`. No auth required.
 | What | Method | Endpoint | Body |
 |------|--------|----------|------|
 | Today's session | GET | `/daily` | — |
-| Join | POST | `/pledge` | `{"name": "...", "timezone": "..."}` |
+| Join | POST | `/pledge` | `{"name": "...", "timezone": "...", "source": "openclaw"}` |
 | Log session | POST | `/log/{user_id}` | `{"duration_minutes": 7}` |
 | Check streak | GET | `/streak/{user_id}` | — |
+| Check status | GET | `/status/{user_id}` | — |
 | Leaderboard | GET | `/leaderboard/data` | — |
 | Submit feedback | POST | `/log/{user_id}/feedback` | `{"difficulty": 1\|3\|5}` |
+| Analytics | GET | `/analytics/overview` | — |
+| Retention | GET | `/analytics/retention` | — |
+
+### Optional Pledge Fields
+
+| Field | Values | Notes |
+|-------|--------|-------|
+| `age_bracket` | `18-24`, `25-34`, `35-44`, `45-54`, `55+` | Optional |
+| `gender` | `male`, `female`, `other`, `skip` | Optional |
+| `country` | ISO 2-letter code | Auto-derived from timezone if omitted |
+| `source` | `discord`, `openclaw`, `zeroclaw`, `web`, `api`, `mcp` | Auto-tagged by integration |
+| `goal` | `move_more`, `build_strength`, `destress`, `just_try` | Optional |
 
 ## Links
 

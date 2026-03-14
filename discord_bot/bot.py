@@ -23,6 +23,7 @@ def _resolve_user(interaction: discord.Interaction) -> str | None:
     resp = requests.post(f"{API_URL}/pledge", json={
         "name": interaction.user.display_name,
         "discord_id": str(interaction.user.id),
+        "source": "discord",
     })
     resp.raise_for_status()
     return resp.json()["user_id"]
@@ -358,6 +359,7 @@ async def on_reaction_add(reaction, user):
         resp = requests.post(f"{API_URL}/pledge", json={
             "name": user.display_name,
             "discord_id": str(user.id),
+            "source": "discord",
         })
         resp.raise_for_status()
         user_id = resp.json()["user_id"]

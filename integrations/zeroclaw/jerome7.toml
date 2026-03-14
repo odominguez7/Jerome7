@@ -43,6 +43,10 @@ Accept = "application/json"
 [tools.request.body]
 name = "{{name}}"
 timezone = "{{timezone}}"
+source = "zeroclaw"
+age_bracket = "{{age_bracket}}"
+gender = "{{gender}}"
+goal = "{{goal}}"
 
 [[tools.parameters]]
 name = "name"
@@ -55,6 +59,24 @@ name = "timezone"
 type = "string"
 required = false
 description = "User's timezone (e.g. America/New_York)"
+
+[[tools.parameters]]
+name = "age_bracket"
+type = "string"
+required = false
+description = "Age range: 18-24, 25-34, 35-44, 45-54, 55+"
+
+[[tools.parameters]]
+name = "gender"
+type = "string"
+required = false
+description = "Gender: male, female, other, skip"
+
+[[tools.parameters]]
+name = "goal"
+type = "string"
+required = false
+description = "Goal: move_more, build_strength, destress, just_try"
 
 [[tools]]
 name = "jerome7_log"

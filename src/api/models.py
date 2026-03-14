@@ -16,6 +16,13 @@ class PledgeRequest(BaseModel):
     fitness_level: str = "beginner"  # beginner | returning | active
     available_windows: Optional[list[dict]] = None  # [{day, start_hour, end_hour}]
 
+    # Demographics — all optional, never required
+    age_bracket: Optional[str] = None   # 18-24 | 25-34 | 35-44 | 45-54 | 55+
+    gender: Optional[str] = None        # male | female | other | skip
+    country: Optional[str] = None       # auto-derived from timezone if not provided
+    source: Optional[str] = None        # discord | openclaw | zeroclaw | web | api | mcp
+    goal: Optional[str] = None          # move_more | build_strength | destress | just_try
+
 
 class LogSessionRequest(BaseModel):
     seven7_title: Optional[str] = None
@@ -49,6 +56,7 @@ class UserResponse(BaseModel):
     name: str
     pledge_confirmed: bool = True
     pod_match_eta: str = "within 24 hours"
+    country: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

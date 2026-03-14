@@ -58,6 +58,9 @@ def jerome7_pledge(
     name: str,
     timezone: str = "UTC",
     fitness_level: str = "beginner",
+    age_bracket: str = "",
+    gender: str = "",
+    goal: str = "",
 ) -> str:
     """Register (pledge) a new user to Jerome7.
 
@@ -69,18 +72,25 @@ def jerome7_pledge(
         name: Display name.
         timezone: IANA timezone string (e.g. 'America/New_York').
         fitness_level: One of 'beginner', 'returning', or 'active'.
+        age_bracket: Age range (18-24, 25-34, 35-44, 45-54, 55+). Optional.
+        gender: male, female, other, or skip. Optional.
+        goal: move_more, build_strength, destress, or just_try. Optional.
     """
+    body = {
+        "user_id": user_id,
+        "name": name,
+        "timezone": timezone,
+        "fitness_level": fitness_level,
+        "source": "mcp",
+    }
+    if age_bracket:
+        body["age_bracket"] = age_bracket
+    if gender:
+        body["gender"] = gender
+    if goal:
+        body["goal"] = goal
     try:
-        data = _api(
-            "POST",
-            "/pledge",
-            json={
-                "user_id": user_id,
-                "name": name,
-                "timezone": timezone,
-                "fitness_level": fitness_level,
-            },
-        )
+        data = _api("POST", "/pledge", json=body)
         return json.dumps(data, indent=2)
     except httpx.HTTPStatusError as exc:
         return f"API error {exc.response.status_code}: {exc.response.text}"

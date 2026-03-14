@@ -150,9 +150,27 @@ def leaderboard_data(db: DBSession = Depends(get_db)):
         .count()
     )
 
+    # Country code → flag emoji for stored country codes
+    _CODE_TO_FLAG = {
+        "US": "🇺🇸", "CA": "🇨🇦", "MX": "🇲🇽", "BR": "🇧🇷", "AR": "🇦🇷",
+        "CO": "🇨🇴", "PE": "🇵🇪", "CL": "🇨🇱", "GB": "🇬🇧", "FR": "🇫🇷",
+        "DE": "🇩🇪", "ES": "🇪🇸", "IT": "🇮🇹", "NL": "🇳🇱", "SE": "🇸🇪",
+        "NO": "🇳🇴", "CH": "🇨🇭", "IE": "🇮🇪", "PT": "🇵🇹", "PL": "🇵🇱",
+        "TR": "🇹🇷", "RU": "🇷🇺", "JP": "🇯🇵", "KR": "🇰🇷", "CN": "🇨🇳",
+        "HK": "🇭🇰", "SG": "🇸🇬", "IN": "🇮🇳", "AE": "🇦🇪", "SA": "🇸🇦",
+        "ID": "🇮🇩", "TH": "🇹🇭", "PH": "🇵🇭", "AU": "🇦🇺", "NZ": "🇳🇿",
+        "NG": "🇳🇬", "KE": "🇰🇪", "EG": "🇪🇬", "ZA": "🇿🇦",
+    }
+
+    def _resolve_flag_country(user):
+        """Use stored country code if available, fall back to timezone."""
+        if user.country and user.country in _CODE_TO_FLAG:
+            return _CODE_TO_FLAG[user.country], user.country
+        return _get_flag(user.timezone or "UTC")
+
     leaderboard = []
     for streak, user in top_streaks:
-        flag, country = _get_flag(user.timezone or "UTC")
+        flag, country = _resolve_flag_country(user)
         leaderboard.append({
             "name": user.name,
             "flag": flag,
@@ -164,7 +182,7 @@ def leaderboard_data(db: DBSession = Depends(get_db)):
 
     feed = []
     for session, user in recent:
-        flag, country = _get_flag(user.timezone or "UTC")
+        flag, country = _resolve_flag_country(user)
         streak = db.query(Streak).filter(Streak.user_id == user.id).first()
         feed.append({
             "name": user.name,

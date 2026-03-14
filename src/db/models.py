@@ -37,6 +37,37 @@ class PodMemberStatus(str, enum.Enum):
     graduated = "graduated"
 
 
+class AgeBracket(str, enum.Enum):
+    age_18_24 = "18-24"
+    age_25_34 = "25-34"
+    age_35_44 = "35-44"
+    age_45_54 = "45-54"
+    age_55_plus = "55+"
+
+
+class Gender(str, enum.Enum):
+    male = "male"
+    female = "female"
+    other = "other"
+    skip = "skip"
+
+
+class UserSource(str, enum.Enum):
+    discord = "discord"
+    openclaw = "openclaw"
+    zeroclaw = "zeroclaw"
+    web = "web"
+    api = "api"
+    mcp = "mcp"
+
+
+class UserGoal(str, enum.Enum):
+    move_more = "move_more"
+    build_strength = "build_strength"
+    destress = "destress"
+    just_try = "just_try"
+
+
 class DeliveryChannel(str, enum.Enum):
     cli = "cli"
     discord = "discord"
@@ -55,6 +86,14 @@ class User(Base):
     fitness_level = Column(Enum(FitnessLevel), nullable=False, default=FitnessLevel.beginner)
     energy_today = Column(Enum(EnergyLevel), nullable=True)
     available_windows = Column(JSON, nullable=True)  # [{day, start_hour, end_hour}]
+
+    # Demographics — collected at pledge, all optional
+    age_bracket = Column(Enum(AgeBracket), nullable=True)
+    gender = Column(Enum(Gender), nullable=True)
+    country = Column(String, nullable=True)          # auto-derived from timezone
+    source = Column(Enum(UserSource), nullable=True)  # how they found jerome7
+    goal = Column(Enum(UserGoal), nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
     last_active_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
