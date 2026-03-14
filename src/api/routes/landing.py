@@ -299,6 +299,23 @@ def landing():
     border-left: 2px solid #E85D04;
   }}
 
+  /* --- LIVE FEED --- */
+  .feed-row {{
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid #21262d;
+  }}
+  .feed-flag {{ font-size: 18px; }}
+  .feed-name {{ font-size: 13px; color: #f0f6fc; flex: 1; }}
+  .feed-streak {{ font-size: 12px; color: #E85D04; font-weight: 700; }}
+  .feed-time {{ font-size: 11px; color: #484f58; }}
+  .feed-empty {{ font-size: 13px; color: #484f58; padding: 16px 0; }}
+  .leaderboard-link {{
+    display: inline-block; margin-top: 20px;
+    font-size: 12px; color: #E85D04; text-decoration: none;
+    letter-spacing: 1px;
+  }}
+  .leaderboard-link:hover {{ text-decoration: underline; }}
+
   /* --- FOOTER --- */
   .footer {{
     text-align: center;
@@ -453,6 +470,15 @@ def landing():
   </div>
 </section>
 
+<!-- LIVE FEED -->
+<section>
+  <div class="section-label">SHOWING UP NOW</div>
+  <h2>Builders worldwide.</h2>
+  <p>Every session logged anywhere on earth, live.</p>
+  <div id="feed-list"><div class="feed-empty">Loading...</div></div>
+  <a href="/leaderboard" class="leaderboard-link">VIEW FULL LEADERBOARD →</a>
+</section>
+
 <!-- FOOTER -->
 <div class="footer">
   <div class="footer-brand">JEROME7</div>
@@ -464,6 +490,33 @@ def landing():
   <a href="https://discord.gg/5AZP8DbEJm" class="bottom-cta">START YOUR CHAIN</a>
 </div>
 
+<script>
+async function loadFeed() {{
+  try {{
+    const res = await fetch('/leaderboard/data');
+    const data = await res.json();
+    const feed = data.feed || [];
+    const el = document.getElementById('feed-list');
+    if (!feed.length) {{
+      el.innerHTML = '<div class="feed-empty">Quiet right now. Be first today.</div>';
+      return;
+    }}
+    el.innerHTML = feed.slice(0, 8).map(e =>
+      `<div class="feed-row">
+        <span class="feed-flag">${{e.flag}}</span>
+        <span class="feed-name">${{e.name}}</span>
+        <span class="feed-streak">${{e.streak}}d</span>
+        <span class="feed-time">${{e.time_ago}}</span>
+      </div>`
+    ).join('');
+  }} catch(e) {{
+    document.getElementById('feed-list').innerHTML =
+      '<div class="feed-empty">Be the first to show up today.</div>';
+  }}
+}}
+loadFeed();
+setInterval(loadFeed, 30000);
+</script>
 </body>
 </html>"""
     return HTMLResponse(content=html)
