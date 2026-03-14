@@ -22,6 +22,8 @@ aiohttp = "^3.11"
 "discord.py" = "^2.4"
 jinja2 = "^3.1"
 pillow = "^11.0"
+mcp = "^1.0"
+httpx = ">=0.27"
 
 [tool.poetry.scripts]
 jerome7 = "src.cli.main:cli"

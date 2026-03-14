@@ -1,0 +1,86 @@
+[skill]
+name = "jerome7"
+description = "Daily 7-minute accountability sessions. AI-generated. Streak-powered."
+version = "1.0.0"
+author = "omar"
+
+[skill.config]
+base_url = "https://jerome7.com"
+timer_url = "https://jerome7.com/timer"
+
+[[tools]]
+name = "jerome7_daily"
+type = "http_request"
+description = "Fetch today's daily 7-minute session"
+
+[tools.request]
+method = "GET"
+url = "https://jerome7.com/daily"
+
+[tools.request.headers]
+Accept = "application/json"
+
+[[tools]]
+name = "jerome7_pledge"
+type = "http_request"
+description = "Register a new user for Jerome7"
+
+[tools.request]
+method = "POST"
+url = "https://jerome7.com/pledge"
+
+[tools.request.headers]
+Content-Type = "application/json"
+Accept = "application/json"
+
+[tools.request.body]
+name = "{{name}}"
+email = "{{email}}"
+
+[[tools.parameters]]
+name = "name"
+type = "string"
+required = true
+description = "User's name"
+
+[[tools.parameters]]
+name = "email"
+type = "string"
+required = true
+description = "User's email address"
+
+[[tools]]
+name = "jerome7_log"
+type = "http_request"
+description = "Log a completed 7-minute session for a user"
+
+[tools.request]
+method = "POST"
+url = "https://jerome7.com/log/{{user_id}}"
+
+[tools.request.headers]
+Content-Type = "application/json"
+
+[[tools.parameters]]
+name = "user_id"
+type = "string"
+required = true
+description = "The user's Jerome7 ID"
+
+[[tools]]
+name = "jerome7_streak"
+type = "http_request"
+description = "Get a user's current streak data"
+
+[tools.request]
+method = "GET"
+url = "https://jerome7.com/streak/{{user_id}}"
+
+[tools.request.headers]
+Accept = "application/json"
+
+[[tools.parameters]]
+name = "user_id"
+type = "string"
+required = true
+description = "The user's Jerome7 ID"

@@ -1,6 +1,5 @@
 """GET /seven7/{user_id} — today's Seven 7 session."""
 
-import asyncio
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -17,7 +16,7 @@ coach = CoachAgent()
 
 
 @router.get("/seven7/{user_id}", response_model=Seven7Response)
-def get_seven7(user_id: str, db: DBSession = Depends(get_db)):
+async def get_seven7(user_id: str, db: DBSession = Depends(get_db)):
     # Check if today's session already exists
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     existing = (
@@ -40,7 +39,7 @@ def get_seven7(user_id: str, db: DBSession = Depends(get_db)):
 
     # Generate new session
     ctx = build_user_context(user_id, db)
-    session_data = asyncio.run(coach.generate(ctx, db))
+    session_data = await coach.generate(ctx, db)
 
     blocks = [Seven7Block(**b) for b in session_data.get("blocks", [])]
     return Seven7Response(
@@ -55,7 +54,7 @@ def get_seven7(user_id: str, db: DBSession = Depends(get_db)):
 
 
 @router.post("/seven7/{user_id}/checkin")
-def energy_checkin(user_id: str, req: EnergyCheckinRequest, db: DBSession = Depends(get_db)):
+async def energy_checkin(user_id: str, req: EnergyCheckinRequest, db: DBSession = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -73,7 +72,7 @@ def energy_checkin(user_id: str, req: EnergyCheckinRequest, db: DBSession = Depe
     db.commit()
 
     ctx = build_user_context(user_id, db)
-    session_data = asyncio.run(coach.generate(ctx, db))
+    session_data = await coach.generate(ctx, db)
 
     blocks = [Seven7Block(**b) for b in session_data.get("blocks", [])]
     return Seven7Response(

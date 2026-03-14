@@ -1,13 +1,13 @@
-"""POST /log — session logging endpoint."""
+"""POST /log — session logging + feedback endpoints."""
 
 from datetime import datetime
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session as DBSession
 
-from src.api.models import LogSessionRequest, SessionResponse
+from src.api.models import LogSessionRequest, SessionResponse, FeedbackRequest, FeedbackResponse
 from src.db.database import get_db
-from src.db.models import Session
+from src.db.models import Session, SessionFeedback
 from src.agents.streak import StreakAgent
 
 router = APIRouter()
@@ -34,3 +34,18 @@ def log_session(user_id: str, req: LogSessionRequest, db: DBSession = Depends(ge
         new_streak=update.new,
         milestone_reached=update.milestone_reached,
     )
+
+
+@router.post("/log/{user_id}/feedback", response_model=FeedbackResponse)
+def log_feedback(user_id: str, req: FeedbackRequest, db: DBSession = Depends(get_db)):
+    fb = SessionFeedback(
+        user_id=user_id,
+        difficulty_rating=req.difficulty,
+        enjoyment_rating=req.enjoyment,
+        body_note=req.body_note,
+        completed_blocks=req.completed_blocks,
+    )
+    db.add(fb)
+    db.commit()
+
+    return FeedbackResponse(feedback_id=fb.id, stored=True)

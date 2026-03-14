@@ -28,6 +28,20 @@ class EnergyCheckinRequest(BaseModel):
     energy: str  # low | medium | high
 
 
+class FeedbackRequest(BaseModel):
+    difficulty: Optional[int] = Field(None, ge=1, le=5)   # 1=easy, 5=hard
+    enjoyment: Optional[int] = Field(None, ge=1, le=5)    # 1=low, 5=loved it
+    body_note: Optional[str] = None                        # free text
+    completed_blocks: Optional[int] = Field(None, ge=0, le=7)
+
+
+class FeedbackResponse(BaseModel):
+    feedback_id: str
+    stored: bool = True
+
+    model_config = {"from_attributes": True}
+
+
 # --- Response schemas ---
 
 class UserResponse(BaseModel):
@@ -43,7 +57,7 @@ class Seven7Block(BaseModel):
     name: str
     duration_seconds: int
     instruction: str
-    why_today: str
+    why_today: Optional[str] = None
 
 
 class Seven7Response(BaseModel):

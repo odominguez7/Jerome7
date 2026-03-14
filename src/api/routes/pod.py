@@ -8,6 +8,7 @@ from src.db.database import get_db
 from src.db.models import User, Pod, PodMember, Streak
 from src.agents.community import CommunityMatcherAgent
 from src.agents.context import build_user_context
+from src.agents.scheduler import SchedulerAgent
 
 router = APIRouter()
 
@@ -84,4 +85,20 @@ def match_pod(user_id: str, db: DBSession = Depends(get_db)):
 
     # Create the pod
     pod = agent.form_pod(match.proposed_members, db)
+
+    # Suggest a shared session time for the pod
+    scheduler = SchedulerAgent()
+    member_contexts = []
+    for uid in match.proposed_members:
+        try:
+            member_ctx = build_user_context(uid, db)
+            member_contexts.append(member_ctx)
+        except ValueError:
+            continue
+
+    if member_contexts:
+        suggested_time = scheduler.suggest_pod_time(member_contexts)
+        pod.scheduled_time = suggested_time
+        db.commit()
+
     return _build_pod_response(pod, db)

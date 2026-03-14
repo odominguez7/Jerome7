@@ -63,6 +63,7 @@ class User(Base):
     seven7_sessions = relationship("Seven7Session", back_populates="user")
     nudges = relationship("Nudge", back_populates="user")
     pod_memberships = relationship("PodMember", back_populates="user")
+    feedback = relationship("SessionFeedback", back_populates="user")
 
 
 class Session(Base):
@@ -103,6 +104,7 @@ class Pod(Base):
     timezone = Column(String, nullable=True)
     fitness_level_range = Column(String, nullable=True)
     discord_channel_id = Column(String, nullable=True)
+    scheduled_time = Column(JSON, nullable=True)  # {"hour": int, "minute": int, "timezone": str}
     created_at = Column(DateTime, default=datetime.utcnow)
     last_active_at = Column(DateTime, default=datetime.utcnow)
 
@@ -154,6 +156,22 @@ class Nudge(Base):
     acted_on = Column(Boolean, default=False)
 
     user = relationship("User", back_populates="nudges")
+
+
+class SessionFeedback(Base):
+    __tablename__ = "session_feedback"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    session_date = Column(Date, default=date.today)
+    difficulty_rating = Column(Integer, nullable=True)   # 1-5
+    enjoyment_rating = Column(Integer, nullable=True)    # 1-5
+    body_note = Column(Text, nullable=True)              # "knees hurt", "felt great"
+    completed_blocks = Column(Integer, nullable=True)    # how many of 7 blocks done
+    skipped_phases = Column(Text, nullable=True)         # comma-separated phases skipped
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="feedback")
 
 
 class Event(Base):

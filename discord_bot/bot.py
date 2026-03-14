@@ -139,7 +139,12 @@ async def log_cmd(interaction: discord.Interaction, note: str = None):
 
         msg += f"[**Share your chain**]({share_url}) · *yu showed up.*"
 
-        await interaction.followup.send(msg)
+        log_msg = await interaction.followup.send(msg, wait=True)
+
+        # Ask for quick feedback via reactions
+        feedback_emojis = ["💪", "👍", "🔥"]  # easy=1, good=3, hard=5
+        for emoji in feedback_emojis:
+            await log_msg.add_reaction(emoji)
 
         # Post milestone to #milestones
         if milestone and interaction.guild:
@@ -323,6 +328,46 @@ async def nudge_check():
 @nudge_check.before_loop
 async def before_nudge():
     await bot.wait_until_ready()
+
+
+# --- Feedback reaction handler ---
+
+FEEDBACK_EMOJI_MAP = {"💪": 1, "👍": 3, "🔥": 5}  # maps to difficulty_rating
+
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    """Capture difficulty feedback from /log reaction emojis."""
+    if user.bot:
+        return
+    emoji = str(reaction.emoji)
+    if emoji not in FEEDBACK_EMOJI_MAP:
+        return
+
+    # Only respond to reactions on messages from the bot
+    if reaction.message.author != bot.user:
+        return
+
+    # Check that the message looks like a /log response (has "Logged" in it)
+    if "Logged" not in (reaction.message.content or ""):
+        return
+
+    difficulty = FEEDBACK_EMOJI_MAP[emoji]
+    try:
+        # Resolve user to get their internal user_id
+        resp = requests.post(f"{API_URL}/pledge", json={
+            "name": user.display_name,
+            "discord_id": str(user.id),
+        })
+        resp.raise_for_status()
+        user_id = resp.json()["user_id"]
+
+        # Store the feedback
+        requests.post(f"{API_URL}/log/{user_id}/feedback", json={
+            "difficulty": difficulty,
+        })
+    except Exception as e:
+        print(f"[Feedback] Error storing reaction feedback: {e}")
 
 
 def run():
