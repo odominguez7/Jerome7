@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ name }} — {{ current_streak }} days unbroken | YU Show Up</title>
+
+    <!-- Open Graph for social sharing -->
+    <meta property="og:title" content="{{ name }} — {{ current_streak }} days unbroken | YU Show Up">
+    <meta property="og:description" content="The Seven 7. Every morning. Unbroken.">
+    <meta property="og:image" content="/streak/{{ username }}/card.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ name }} — {{ current_streak }} days unbroken | YU Show Up">
+    <meta name="twitter:description" content="The Seven 7. Every morning. Unbroken.">
+    <meta name="twitter:image" content="/streak/{{ username }}/card.png">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0F1C2E;
+            color: #E8E8E8;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3rem 1rem;
+        }
+        .container { max-width: 600px; width: 100%; }
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .name {
+            font-size: 1.5rem;
+            color: #E85D04;
+            margin-bottom: 0.5rem;
+        }
+        .since {
+            font-size: 0.85rem;
+            color: #7A8BA0;
+        }
+        .streak-number {
+            text-align: center;
+            font-size: 5rem;
+            font-weight: bold;
+            color: #E85D04;
+            margin: 1rem 0;
+        }
+        .streak-label {
+            text-align: center;
+            font-size: 1rem;
+            color: #7A8BA0;
+            margin-bottom: 2rem;
+        }
+        .chain {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        .chain .day {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+        }
+        .chain .filled { background: #E85D04; }
+        .chain .empty { background: #1A2A3E; border: 1px solid #2A3A4E; }
+        .milestones {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        .milestone {
+            padding: 0.3rem 0.8rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .milestone.earned { background: #E85D04; color: #0F1C2E; }
+        .milestone.pending { background: #1A2A3E; color: #4A5A6A; border: 1px solid #2A3A4E; }
+        .pod-info {
+            text-align: center;
+            color: #7A8BA0;
+            margin: 1rem 0;
+            font-size: 0.85rem;
+        }
+        .cta {
+            text-align: center;
+            margin-top: 3rem;
+        }
+        .cta a {
+            display: inline-block;
+            background: #E85D04;
+            color: #0F1C2E;
+            padding: 0.8rem 2rem;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        .cta a:hover { background: #FF6D14; }
+        .wordmark {
+            text-align: center;
+            margin-top: 3rem;
+            color: #2A3A4E;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="name">{{ name }}</div>
+            <div class="since">unbroken since {{ start_date }}</div>
+        </div>
+
+        <div class="streak-number">{{ current_streak }}</div>
+        <div class="streak-label">days unbroken</div>
+
+        <div class="chain">
+            {% for day in chain %}
+            <div class="day {{ day }}"></div>
+            {% endfor %}
+        </div>
+
+        <div class="milestones">
+            {% for m in [7, 14, 30, 50, 100] %}
+            <span class="milestone {{ 'earned' if current_streak >= m else 'pending' }}">
+                {{ m }}d
+            </span>
+            {% endfor %}
+        </div>
+
+        {% if pod_name %}
+        <div class="pod-info">Pod: {{ pod_name }}</div>
+        {% endif %}
+
+        <div class="cta">
+            <a href="/pledge">Start your chain</a>
+        </div>
+
+        <div class="wordmark">YU SHOW UP</div>
+    </div>
+</body>
+</html>
