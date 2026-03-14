@@ -72,15 +72,16 @@ async def on_ready():
 ])
 async def pledge_cmd(interaction: discord.Interaction,
                      level: app_commands.Choice[str] = None):
+    await interaction.response.defer()
     try:
         _resolve_user(interaction)
-        await interaction.response.send_message(
+        await interaction.followup.send(
             f"**You're in, {interaction.user.display_name}.**\n"
             f"Type `/seven7` — your first session is waiting.\n\n"
             f"*YU SHOW UP — the chain starts now.*"
         )
     except Exception as e:
-        await interaction.response.send_message(f"Error: {e}", ephemeral=True)
+        await interaction.followup.send(f"Error: {e}", ephemeral=True)
 
 
 # --- /seven7 ---
@@ -96,7 +97,7 @@ async def seven7_cmd(interaction: discord.Interaction):
         data = resp.json()
 
         msg = _format_session(data)
-        timer_url = f"{API_URL}/session/{user_id}/timer"
+        timer_url = f"https://jerome7.com/timer"
         msg += f"\n\n👉 [**Open timer**]({timer_url}) — follow along in real time"
         msg += f"\n\nWhen you're done: `/log`"
 
