@@ -1,53 +1,67 @@
-# Jerome7 Integrations
+# Jerome7 — Agent Integrations
 
-Add Jerome7's daily 7-minute accountability sessions to your AI agent platform.
+Add Jerome7 to any AI agent. No API key needed. Free forever.
 
-## OpenClaw
+## Quick Install
 
-**File:** `openclaw/SKILL.md`
+### OpenClaw
 
-### Setup
+```bash
+# One command — paste this in your OpenClaw host terminal
+mkdir -p ~/.openclaw/skills/jerome7 && curl -sL \
+  https://raw.githubusercontent.com/odominguez7/Jerome7/main/integrations/openclaw/SKILL.md \
+  -o ~/.openclaw/skills/jerome7/SKILL.md
+```
 
-1. Copy `openclaw/SKILL.md` into your OpenClaw skills directory
-2. The skill uses `http_request` and `shell` tools — make sure both are enabled
-3. No API key required
+Then in your agent chat, just say:
+- **"jerome7"** or **"my session"** → today's session
+- **"log my session"** or **"done"** → log it
+- **"my streak"** → see your chain
+- **"leaderboard"** → who's showing up globally
+- **"sign me up"** → create your account
 
-### What it provides
+### ZeroClaw
 
-- `jerome7 daily` — Get today's session
-- `jerome7 pledge` — Register a user
-- `jerome7 log` — Log a completed session
-- `jerome7 streak` — Check streak data
-- `jerome7 timer` — Open the session timer
+```bash
+# Copy the TOML to your skills directory
+curl -sL \
+  https://raw.githubusercontent.com/odominguez7/Jerome7/main/integrations/zeroclaw/jerome7.toml \
+  -o ~/.zeroclaw/skills/jerome7.toml
+```
 
-## ZeroClaw
+### MCP (Claude, any MCP-compatible agent)
 
-**File:** `zeroclaw/jerome7.toml`
+```json
+{
+  "mcpServers": {
+    "jerome7": {
+      "command": "python",
+      "args": ["-m", "mcp_server.server"],
+      "env": { "JEROME7_API_URL": "https://jerome7.com" }
+    }
+  }
+}
+```
 
-### Setup
+## API Reference
 
-1. Copy `zeroclaw/jerome7.toml` into your ZeroClaw tools config directory
-2. The config defines HTTP-based tools that call the Jerome7 API directly
-3. No API key required
+All endpoints at `https://jerome7.com`. No auth required.
 
-### What it provides
-
-Four tools are defined:
-
-| Tool | Method | Endpoint |
-|------|--------|----------|
-| `jerome7_daily` | GET | `/daily` |
-| `jerome7_pledge` | POST | `/pledge` |
-| `jerome7_log` | POST | `/log/{user_id}` |
-| `jerome7_streak` | GET | `/streak/{user_id}` |
-
-## API Base URL
-
-All endpoints use `https://jerome7.com` as the base URL.
-
-Session timer: [https://jerome7.com/timer](https://jerome7.com/timer)
+| What | Method | Endpoint | Body |
+|------|--------|----------|------|
+| Today's session | GET | `/daily` | — |
+| Join | POST | `/pledge` | `{"name": "...", "timezone": "..."}` |
+| Log session | POST | `/log/{user_id}` | `{"duration_minutes": 7}` |
+| Check streak | GET | `/streak/{user_id}` | — |
+| Leaderboard | GET | `/leaderboard/data` | — |
+| Submit feedback | POST | `/log/{user_id}/feedback` | `{"difficulty": 1\|3\|5}` |
 
 ## Links
 
-- Site: [https://jerome7.com](https://jerome7.com)
-- Discord: [https://jerome7.com/discord](https://jerome7.com/discord)
+| | |
+|---|---|
+| Live | [jerome7.com](https://jerome7.com) |
+| Timer | [jerome7.com/timer](https://jerome7.com/timer) |
+| Leaderboard | [jerome7.com/leaderboard](https://jerome7.com/leaderboard) |
+| Discord | [discord.gg/5AZP8DbEJm](https://discord.gg/5AZP8DbEJm) |
+| GitHub | [github.com/odominguez7/Jerome7](https://github.com/odominguez7/Jerome7) |

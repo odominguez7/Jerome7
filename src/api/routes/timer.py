@@ -1,33 +1,36 @@
-"""GET /session/{user_id}/timer — live countdown timer. One move at a time."""
+"""GET /timer — live countdown timer. One move at a time. No login required."""
 
-import asyncio
 import json
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session as DBSession
 
 from src.db.database import get_db
-from src.db.models import User
 from src.agents.coach import CoachAgent
 
 router = APIRouter()
 coach = CoachAgent()
 
+# Cache daily session for timer
+_timer_cache: dict = {"date": None, "session": None}
 
-@router.get("/session/{user_id}/timer", response_class=HTMLResponse)
-def timer_page(user_id: str, db: DBSession = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
 
-    # Use today's daily session
-    data = asyncio.run(coach.generate_daily())
+@router.get("/timer", response_class=HTMLResponse)
+async def timer_page():
+    """Universal timer — no user ID needed. Uses today's daily session."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+
+    if _timer_cache["date"] == today and _timer_cache["session"]:
+        data = _timer_cache["session"]
+    else:
+        data = await coach.generate_daily()
+        _timer_cache["date"] = today
+        _timer_cache["session"] = data
 
     blocks_json = json.dumps(data.get("blocks", []))
     title = data.get("session_title", "the seven 7")
-    name = user.name
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
