@@ -4,6 +4,7 @@ Powered by Google Gemini 2.0 Flash.
 Community contributions of other API keys welcome — see CONTRIBUTING.md.
 """
 
+import asyncio
 import json
 import os
 from datetime import datetime
@@ -139,7 +140,10 @@ class CoachAgent:
             return self._fallback_session(ctx)
 
         try:
-            content = _call_gemini(COACH_SYSTEM_PROMPT, user_data, self.api_key)
+            content = await asyncio.wait_for(
+                asyncio.to_thread(_call_gemini, COACH_SYSTEM_PROMPT, user_data, self.api_key),
+                timeout=25,
+            )
             session_data = json.loads(content)
 
             total = sum(b["duration_seconds"] for b in session_data["blocks"])
@@ -148,7 +152,10 @@ class CoachAgent:
                     COACH_SYSTEM_PROMPT
                     + f"\nCRITICAL: blocks must sum to exactly 420 seconds. Previous attempt summed to {total}."
                 )
-                content = _call_gemini(retry_prompt, user_data, self.api_key)
+                content = await asyncio.wait_for(
+                    asyncio.to_thread(_call_gemini, retry_prompt, user_data, self.api_key),
+                    timeout=25,
+                )
                 session_data = json.loads(content)
                 total = sum(b["duration_seconds"] for b in session_data["blocks"])
                 if total != 420:
@@ -180,7 +187,10 @@ class CoachAgent:
         user_content = f"Today is {today}. Generate today's Daily Seven7."
 
         try:
-            content = _call_gemini(DAILY_SYSTEM_PROMPT, user_content, self.api_key)
+            content = await asyncio.wait_for(
+                asyncio.to_thread(_call_gemini, DAILY_SYSTEM_PROMPT, user_content, self.api_key),
+                timeout=25,
+            )
             session_data = json.loads(content)
             total = sum(b["duration_seconds"] for b in session_data["blocks"])
             if total != 420 or len(session_data["blocks"]) != 7:
@@ -205,7 +215,10 @@ Start with the gentlest movement possible."""
         user_data = context_to_prompt_string(ctx)
 
         try:
-            content = _call_gemini(restart_prompt, user_data, self.api_key)
+            content = await asyncio.wait_for(
+                asyncio.to_thread(_call_gemini, restart_prompt, user_data, self.api_key),
+                timeout=25,
+            )
             session_data = json.loads(content)
 
             if db:
