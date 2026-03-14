@@ -65,6 +65,7 @@ class Seven7Block(BaseModel):
     name: str
     duration_seconds: int
     instruction: str
+    phase: Optional[str] = None
     why_today: Optional[str] = None
 
 

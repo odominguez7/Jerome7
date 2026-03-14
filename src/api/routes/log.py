@@ -68,8 +68,6 @@ def user_status(user_id: str, db: DBSession = Depends(get_db)):
 
     streak = db.query(Streak).filter(Streak.user_id == user_id).first()
     current_streak = streak.current_streak if streak else 0
-    days_missed = streak.consecutive_misses if streak and hasattr(streak, 'consecutive_misses') else 0
-
     return {
         "user_id": user_id,
         "name": user.name,

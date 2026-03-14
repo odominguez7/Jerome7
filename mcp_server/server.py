@@ -201,7 +201,7 @@ def jerome7_nudge(user_id: str) -> str:
         user_id: The user to check.
     """
     try:
-        data = _api("GET", f"/nudge/{user_id}")
+        data = _api("GET", f"/status/{user_id}")
         return json.dumps(data, indent=2)
     except httpx.HTTPStatusError as exc:
         return f"API error {exc.response.status_code}: {exc.response.text}"
@@ -221,7 +221,7 @@ def jerome7_pod_match(user_id: str) -> str:
         user_id: The user looking for a pod.
     """
     try:
-        data = _api("POST", f"/pod/match", json={"user_id": user_id})
+        data = _api("POST", f"/pod/{user_id}/match")
         return json.dumps(data, indent=2)
     except httpx.HTTPStatusError as exc:
         return f"API error {exc.response.status_code}: {exc.response.text}"

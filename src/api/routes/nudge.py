@@ -15,7 +15,7 @@ nudge_agent = NudgeAgent()
 
 
 @router.get("/nudge/at-risk")
-def get_at_risk_users(db: DBSession = Depends(get_db)):
+async def get_at_risk_users(db: DBSession = Depends(get_db)):
     """Return users with active streaks who haven't logged today."""
     today = date.today()
 
@@ -58,8 +58,7 @@ def get_at_risk_users(db: DBSession = Depends(get_db)):
         try:
             ctx = build_user_context(user.id, db)
             if nudge_agent.should_nudge(ctx):
-                import asyncio
-                nudge_msg = asyncio.run(nudge_agent.generate_nudge(ctx))
+                nudge_msg = await nudge_agent.generate_nudge(ctx)
                 nudge_data = {
                     "subject": nudge_msg.subject,
                     "body": nudge_msg.body,
