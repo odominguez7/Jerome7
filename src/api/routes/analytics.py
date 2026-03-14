@@ -94,9 +94,9 @@ def analytics_overview(db: DBSession = Depends(get_db)):
         },
         "demographics": {
             "countries": {c: n for c, n in countries},
-            "sources": {str(s): n for s, n in sources},
-            "age_brackets": {str(a): n for a, n in age_brackets},
-            "goals": {str(g): n for g, n in goals},
+            "sources": {(s.value if hasattr(s, "value") else s): n for s, n in sources},
+            "age_brackets": {(a.value if hasattr(a, "value") else a): n for a, n in age_brackets},
+            "goals": {(g.value if hasattr(g, "value") else g): n for g, n in goals},
         },
         "avg_difficulty_30d": round(avg_difficulty, 1) if avg_difficulty else None,
         "streak_distribution": streak_buckets,
