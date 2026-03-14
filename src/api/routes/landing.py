@@ -19,10 +19,10 @@ PHASE_COLORS = {
 
 
 @router.get("/", response_class=HTMLResponse)
-def landing():
+async def landing():
     # Get today's session for the preview
     try:
-        data = asyncio.run(coach.generate_daily())
+        data = await coach.generate_daily()
     except Exception:
         data = None
 
@@ -460,25 +460,85 @@ def landing():
   }}
   .star-btn:hover {{ background: #30363d; border-color: #E85D04; }}
 
+  /* --- NAV BAR --- */
+  .nav {{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #21262d;
+  }}
+  .nav-brand {{
+    font-size: 13px;
+    font-weight: 800;
+    color: #E85D04;
+    letter-spacing: 2px;
+    text-decoration: none;
+  }}
+  .nav-links {{
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }}
+  .nav-links a {{
+    font-size: 12px;
+    color: #8b949e;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: color 0.2s;
+  }}
+  .nav-links a:hover {{ color: #f0f6fc; }}
+  .nav-links .nav-highlight {{
+    color: #E85D04;
+    font-weight: 700;
+    padding: 6px 14px;
+    border: 1px solid #E85D04;
+    border-radius: 100px;
+  }}
+  .nav-links .nav-highlight:hover {{ background: #E85D04; color: #fff; }}
+
   /* --- RESPONSIVE --- */
   @media (max-width: 480px) {{
-    .hero {{ padding: 60px 20px; }}
+    .hero {{ padding: 80px 20px 60px; }}
     h1 {{ font-size: 28px; }}
     .tagline {{ font-size: 14px; }}
     section {{ padding: 60px 16px; }}
     .install-code {{ font-size: 10px; }}
+    .nav-links {{ gap: 12px; }}
+    .nav-links a {{ font-size: 11px; }}
   }}
 </style>
 </head>
 <body>
 
+<!-- NAV -->
+<nav class="nav">
+  <a href="/" class="nav-brand">JEROME7</a>
+  <div class="nav-links">
+    <a href="/timer">Timer</a>
+    <a href="/leaderboard">Leaderboard</a>
+    <a href="/analytics/overview">Analytics</a>
+    <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
+    <a href="https://github.com/odominguez7/Jerome7">GitHub</a>
+    <a href="/leaderboard" class="nav-highlight">WHO'S SHOWING UP</a>
+  </div>
+</nav>
+
 <!-- HERO -->
-<div class="hero">
+<div class="hero" style="padding-top:80px;">
   <div class="brand">JEROME7</div>
   <h1><span>7</span> minutes.<br>Show up.</h1>
   <div class="tagline">Same session for everyone. Every day. Streak-powered accountability for builders. Free forever.</div>
   <div class="cta-row">
     <a href="https://discord.gg/5AZP8DbEJm" class="btn btn-primary">JOIN DISCORD</a>
+    <a href="/leaderboard" class="btn btn-primary" style="background:#161b22;border:1px solid #E85D04;color:#E85D04;">LEADERBOARD</a>
     <a href="https://github.com/odominguez7/Jerome7" class="btn btn-ghost">⭐ GitHub</a>
   </div>
 
@@ -620,6 +680,9 @@ def landing():
   <div class="footer-brand">JEROME7</div>
   <div class="footer-text">Free forever. Open source. Built at MIT.</div>
   <div class="footer-text" style="margin-top: 8px;">
+    <a href="/timer">Timer</a> ·
+    <a href="/leaderboard">Leaderboard</a> ·
+    <a href="/analytics/overview">Analytics</a> ·
     <a href="https://github.com/odominguez7/Jerome7">GitHub</a> ·
     <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
   </div>
