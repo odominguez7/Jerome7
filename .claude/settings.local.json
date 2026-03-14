@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pandoc \"YU_ShowUp_Project_Feed.docx\" -o /tmp/yu_showup.md)",
+      "Bash(python3 \"/Users/odominguez7/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/6317d85d-ef07-4607-8705-8fafd1290ab9/40755e03-720a-45d4-8cff-cce725ed11d7/skills/docx/scripts/office/unpack.py\" \"YU_ShowUp_Project_Feed.docx\" /tmp/yu_showup_unpacked/)",
+      "Bash(pip3 install:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(npm list:*)",
+      "Bash(npm install:*)",
+      "Bash(node generate_plan.js)",
+      "Bash(npm init:*)",
+      "Bash(python3 \"/Users/odominguez7/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/6317d85d-ef07-4607-8705-8fafd1290ab9/40755e03-720a-45d4-8cff-cce725ed11d7/skills/docx/scripts/office/validate.py\" \"/Users/odominguez7/Desktop/YU/the seven 7 - github/YU_ShowUp_Viral_Execution_Plan.docx\")",
+      "Bash(pandoc \"YU_ShowUp_Project_Feed.docx\" -o /tmp/feed.md)",
+      "Read(//tmp/**)",
+      "Bash(python3 -c \"from src.db.database import init_db; init_db\\(\\); print\\(''DB initialized OK''\\)\")",
+      "Bash(python3 -m scripts.seed)",
+      "Bash(timeout 5 python3 -m uvicorn src.api.main:app --port 8000)",
+      "Bash(gh auth:*)",
+      "Bash(open -a \"TextEdit\" \"/Users/odominguez7/Desktop/YU/Jerome 7 - github/.env\")"
+    ]
+  }
+}

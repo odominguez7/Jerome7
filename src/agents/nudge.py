@@ -73,9 +73,9 @@ class NudgeAgent:
             return self._default_nudge(ctx)
 
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=self.api_key)
-            model = genai.GenerativeModel(model_name="gemini-2.0-flash")
+            from google import genai
+            from google.genai import types
+            client = genai.Client(api_key=self.api_key)
 
             prompt = f"""Generate a nudge message for {ctx.name}.
 Current streak: {ctx.current_streak} days.
@@ -91,9 +91,12 @@ Rules:
 Output JSON only:
 {{"subject": "short subject line", "body": "2-3 sentences", "cta": "one specific action"}}"""
 
-            response = model.generate_content(
-                prompt,
-                generation_config={"response_mime_type": "application/json"},
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                ),
             )
             data = json.loads(response.text)
             return NudgeMessage(**data)

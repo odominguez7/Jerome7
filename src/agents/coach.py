@@ -66,15 +66,16 @@ DEFAULT_SESSION = {
 
 def _call_gemini(system_prompt: str, user_content: str, api_key: str) -> str:
     """Call Gemini 2.0 Flash and return raw text response."""
-    import google.generativeai as genai
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash",
-        system_instruction=system_prompt,
-    )
-    response = model.generate_content(
-        user_content,
-        generation_config={"response_mime_type": "application/json"},
+    from google import genai
+    from google.genai import types
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=user_content,
+        config=types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            response_mime_type="application/json",
+        ),
     )
     return response.text
 

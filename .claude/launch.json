@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "jerome7-api",
+      "runtimeExecutable": "uvicorn",
+      "runtimeArgs": ["src.api.main:app", "--reload", "--port", "8000"],
+      "port": 8000
+    },
+    {
+      "name": "jerome7-discord",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["discord_bot/bot.py"],
+      "port": 3000
+    }
+  ]
+}
