@@ -33,7 +33,8 @@ def _api(method: str, path: str, **kwargs) -> dict:
 def jerome7_daily(user_id: str = "") -> str:
     """Get today's Seven 7 session.
 
-    Returns the 7-minute session including greeting, blocks, and closing message.
+    Returns the 7-minute session including greeting, blocks, closing message,
+    a link to the live timer, and instructions to log the session when done.
     If user_id is provided and registered, returns a personalised session.
     Otherwise returns today's universal daily session (same for everyone on earth).
 
@@ -44,14 +45,41 @@ def jerome7_daily(user_id: str = "") -> str:
         if user_id:
             resp = httpx.get(f"{API_URL}/seven7/{user_id}", timeout=30)
             if resp.status_code == 404:
-                # User not registered — fall back to universal daily
                 data = _api("GET", "/daily")
             else:
                 resp.raise_for_status()
                 data = resp.json()
         else:
             data = _api("GET", "/daily")
-        return json.dumps(data, indent=2)
+
+        title = data.get("session_title", "Today's Session").title()
+        greeting = data.get("greeting", "")
+        blocks = data.get("blocks", [])
+        closing = data.get("closing", "You showed up. That's the win.")
+
+        lines = []
+        if greeting:
+            lines.append(f"{greeting}\n")
+        lines.append(f"**{title}** — 7 minutes, 7 blocks\n")
+
+        phase_emoji = {"prime": "🌅", "build": "🔨", "move": "⚡", "reset": "🫁"}
+        for i, b in enumerate(blocks, 1):
+            emoji = phase_emoji.get(b.get("phase", ""), "▸")
+            secs = b.get("duration_seconds", 60)
+            mins = f"{secs//60}:{secs%60:02d}" if secs % 60 else f"{secs//60} min"
+            lines.append(f"{emoji} **Block {i} — {b.get('name','').title()}** ({mins})")
+            lines.append(f"   {b.get('instruction', '')}\n")
+
+        lines.append(f"_{closing}_\n")
+        lines.append(f"---")
+        lines.append(f"⏱️ **[Start Timer](https://jerome7.com/timer)** — opens the live 7-minute countdown")
+        if user_id:
+            lines.append(f"✅ When done, say **done** or call `jerome7_log` with your user_id `{user_id}`")
+        else:
+            lines.append(f"✅ When done, say **done** — I'll log it for you")
+
+        return "\n".join(lines)
+
     except httpx.HTTPStatusError as exc:
         return f"API error {exc.response.status_code}: {exc.response.text}"
     except httpx.ConnectError:
