@@ -1,5 +1,9 @@
 """FastAPI application — Jerome 7 / YU Show Up."""
 
+import asyncio
+import threading
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -32,3 +36,11 @@ app.include_router(streak_page.router)
 @app.on_event("startup")
 def on_startup():
     init_db()
+    if os.getenv("DISCORD_TOKEN"):
+        t = threading.Thread(target=_run_bot, daemon=True)
+        t.start()
+
+
+def _run_bot():
+    from discord_bot.bot import run
+    run()
