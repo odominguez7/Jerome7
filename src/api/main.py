@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.db.database import init_db
-from src.api.routes import pledge, log, seven7, streak, pod, health, streak_page, timer, daily, share, nudge
+from src.api.routes import pledge, log, seven7, streak, pod, health, streak_page, timer, daily, share, nudge, landing
 
 app = FastAPI(
     title="Jerome 7 — YU Show Up",
@@ -20,6 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(landing.router)
 app.include_router(health.router)
 app.include_router(pledge.router)
 app.include_router(log.router)
