@@ -14,10 +14,7 @@ from mcp.server.fastmcp import FastMCP
 
 API_URL = os.getenv("JEROME7_API_URL", "https://jerome7.com").rstrip("/")
 
-mcp = FastMCP(
-    "jerome7",
-    description="Jerome7 — 7 minutes a day. An act of love. Tools for session generation, logging, streaks, nudges, and pod matching.",
-)
+mcp = FastMCP("jerome7")
 
 
 def _api(method: str, path: str, **kwargs) -> dict:
