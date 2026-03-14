@@ -1,7 +1,7 @@
 """Pydantic v2 schemas for request/response models."""
 
 from datetime import datetime, date
-from typing import Optional
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -26,7 +26,7 @@ class PledgeRequest(BaseModel):
 
 class LogSessionRequest(BaseModel):
     seven7_title: Optional[str] = None
-    blocks_completed: Optional[list[dict]] = None
+    blocks_completed: Optional[Union[int, list[dict]]] = None  # int (count) or list of block dicts
     duration_minutes: int = 7
     note: Optional[str] = None
 
