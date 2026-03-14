@@ -89,7 +89,9 @@ async def seven7_cmd(interaction: discord.Interaction):
                 value=f"{block['instruction']}\n*{block['why_today']}*",
                 inline=False,
             )
+        timer_url = f"{API_URL}/session/{user_id}/timer"
         embed.set_footer(text=data.get("closing", "YU SHOW UP"))
+        embed.add_field(name="Start your timer", value=f"[Open live timer]({timer_url})", inline=False)
         await interaction.followup.send(embed=embed)
     except Exception as e:
         await interaction.followup.send(f"Error: {e}", ephemeral=True)
