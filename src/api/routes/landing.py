@@ -355,7 +355,7 @@ def landing():
   <h1><span>7</span> minutes.<br>Show up.</h1>
   <div class="tagline">Same session for everyone. Every day. Streak-powered accountability for builders. Free forever.</div>
   <div class="cta-row">
-    <a href="https://discord.gg/jerome7" class="btn btn-primary">JOIN DISCORD</a>
+    <a href="https://discord.gg/5AZP8DbEJm" class="btn btn-primary">JOIN DISCORD</a>
     <a href="https://github.com/odominguez7/Jerome7" class="btn btn-ghost">GitHub</a>
   </div>
 </div>
@@ -459,9 +459,9 @@ def landing():
   <div class="footer-text">Free forever. Open source. Built at MIT.</div>
   <div class="footer-text" style="margin-top: 8px;">
     <a href="https://github.com/odominguez7/Jerome7">GitHub</a> ·
-    <a href="https://discord.gg/jerome7">Discord</a>
+    <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
   </div>
-  <a href="https://discord.gg/jerome7" class="bottom-cta">START YOUR CHAIN</a>
+  <a href="https://discord.gg/5AZP8DbEJm" class="bottom-cta">START YOUR CHAIN</a>
 </div>
 
 </body>
