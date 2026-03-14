@@ -12,7 +12,11 @@ router = APIRouter()
 
 @router.post("/pledge", response_model=UserResponse)
 def create_pledge(req: PledgeRequest, db: Session = Depends(get_db)):
-    # Check for existing user by email
+    # Check for existing user by discord_id or email
+    if req.discord_id:
+        existing = db.query(User).filter(User.discord_id == req.discord_id).first()
+        if existing:
+            return UserResponse(user_id=existing.id, name=existing.name)
     if req.email:
         existing = db.query(User).filter(User.email == req.email).first()
         if existing:
@@ -23,6 +27,7 @@ def create_pledge(req: PledgeRequest, db: Session = Depends(get_db)):
     user = User(
         name=req.name,
         email=req.email,
+        discord_id=req.discord_id,
         timezone=req.timezone,
         fitness_level=fitness,
         available_windows=req.available_windows,

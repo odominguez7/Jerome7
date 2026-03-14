@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 class PledgeRequest(BaseModel):
     name: str
     email: Optional[str] = None
+    discord_id: Optional[str] = None
     timezone: str = "UTC"
     fitness_level: str = "beginner"  # beginner | returning | active
     available_windows: Optional[list[dict]] = None  # [{day, start_hour, end_hour}]

@@ -1,7 +1,6 @@
 """Jerome 7 Discord Bot — community layer for YU Show Up."""
 
 import os
-import asyncio
 from datetime import datetime
 
 import discord
@@ -15,6 +14,19 @@ GUILD_ID = os.getenv("DISCORD_GUILD_ID")
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
+
+
+def _get_or_create_user(interaction: discord.Interaction, name: str = None,
+                        timezone: str = "UTC", level: str = "beginner") -> str | None:
+    """Pledge (or re-pledge) and return internal user_id."""
+    resp = requests.post(f"{API_URL}/pledge", json={
+        "name": name or interaction.user.display_name,
+        "discord_id": str(interaction.user.id),
+        "timezone": timezone,
+        "fitness_level": level,
+    })
+    resp.raise_for_status()
+    return resp.json()["user_id"]
 
 
 @bot.event
@@ -32,24 +44,20 @@ async def on_ready():
 # --- Slash commands ---
 
 @bot.tree.command(name="pledge", description="Take the pledge. Start your chain.")
-@app_commands.describe(name="Your name", timezone="Your timezone", level="Fitness level")
+@app_commands.describe(timezone="Your timezone (e.g. America/New_York)", level="Fitness level")
 @app_commands.choices(level=[
     app_commands.Choice(name="Beginner", value="beginner"),
     app_commands.Choice(name="Returning", value="returning"),
     app_commands.Choice(name="Active", value="active"),
 ])
-async def pledge_cmd(interaction: discord.Interaction, name: str, timezone: str = "UTC",
+async def pledge_cmd(interaction: discord.Interaction, timezone: str = "UTC",
                      level: app_commands.Choice[str] = None):
     fitness = level.value if level else "beginner"
     try:
-        resp = requests.post(f"{API_URL}/pledge", json={
-            "name": name, "timezone": timezone, "fitness_level": fitness,
-        })
-        resp.raise_for_status()
-        data = resp.json()
+        _get_or_create_user(interaction, timezone=timezone, level=fitness)
         embed = discord.Embed(
             title="You're in.",
-            description=f"Welcome, {name}. Your Seven 7 is waiting.\n"
+            description=f"Welcome, {interaction.user.display_name}. Your Seven 7 is waiting.\n"
                         f"Run `/seven7` to see today's session.",
             color=0xE85D04,
         )
@@ -60,9 +68,10 @@ async def pledge_cmd(interaction: discord.Interaction, name: str, timezone: str 
 
 
 @bot.tree.command(name="seven7", description="Get today's personalized Seven 7 session.")
-@app_commands.describe(user_id="Your user ID")
-async def seven7_cmd(interaction: discord.Interaction, user_id: str):
+async def seven7_cmd(interaction: discord.Interaction):
+    await interaction.response.defer()
     try:
+        user_id = _get_or_create_user(interaction)
         resp = requests.get(f"{API_URL}/seven7/{user_id}")
         resp.raise_for_status()
         data = resp.json()
@@ -81,15 +90,17 @@ async def seven7_cmd(interaction: discord.Interaction, user_id: str):
                 inline=False,
             )
         embed.set_footer(text=data.get("closing", "YU SHOW UP"))
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
     except Exception as e:
-        await interaction.response.send_message(f"Error: {e}", ephemeral=True)
+        await interaction.followup.send(f"Error: {e}", ephemeral=True)
 
 
 @bot.tree.command(name="log", description="Log your Seven 7 session.")
-@app_commands.describe(user_id="Your user ID", note="Optional note")
-async def log_cmd(interaction: discord.Interaction, user_id: str, note: str = None):
+@app_commands.describe(note="Optional note about today's session")
+async def log_cmd(interaction: discord.Interaction, note: str = None):
+    await interaction.response.defer()
     try:
+        user_id = _get_or_create_user(interaction)
         resp = requests.post(f"{API_URL}/log/{user_id}", json={
             "duration_minutes": 7, "note": note,
         })
@@ -114,9 +125,8 @@ async def log_cmd(interaction: discord.Interaction, user_id: str, note: str = No
             )
 
         embed.set_footer(text="YU SHOW UP")
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
-        # Announce milestone in #milestones if exists
         if milestone and interaction.guild:
             for channel in interaction.guild.text_channels:
                 if channel.name == "milestones":
@@ -126,13 +136,14 @@ async def log_cmd(interaction: discord.Interaction, user_id: str, note: str = No
                     break
 
     except Exception as e:
-        await interaction.response.send_message(f"Error: {e}", ephemeral=True)
+        await interaction.followup.send(f"Error: {e}", ephemeral=True)
 
 
 @bot.tree.command(name="streak", description="Show your streak chain.")
-@app_commands.describe(user_id="Your user ID")
-async def streak_cmd(interaction: discord.Interaction, user_id: str):
+async def streak_cmd(interaction: discord.Interaction):
+    await interaction.response.defer()
     try:
+        user_id = _get_or_create_user(interaction)
         resp = requests.get(f"{API_URL}/streak/{user_id}")
         resp.raise_for_status()
         data = resp.json()
@@ -141,30 +152,30 @@ async def streak_cmd(interaction: discord.Interaction, user_id: str):
         chain = " ".join("◉" if d == "filled" else "○" for d in chain_data[-30:])
 
         embed = discord.Embed(
-            title=f"{data.get('username', 'You')} — {data['current_streak']} days unbroken",
-            description=chain,
+            title=f"{data.get('username', interaction.user.display_name)} — {data['current_streak']} days unbroken",
+            description=chain or "No sessions yet. Run /seven7 to start.",
             color=0xE85D04,
         )
         embed.add_field(name="Current", value=str(data["current_streak"]), inline=True)
         embed.add_field(name="Longest", value=str(data["longest_streak"]), inline=True)
         embed.add_field(name="Total", value=str(data["total_sessions"]), inline=True)
-        embed.add_field(name="Next milestone", value=str(data.get("next_milestone", "?")), inline=True)
+        embed.add_field(name="Next milestone", value=str(data.get("next_milestone", 7)), inline=True)
         embed.set_footer(text="YU SHOW UP")
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
     except Exception as e:
-        await interaction.response.send_message(f"Error: {e}", ephemeral=True)
+        await interaction.followup.send(f"Error: {e}", ephemeral=True)
 
 
-@bot.tree.command(name="checkin", description="Set your energy level for today.")
-@app_commands.describe(user_id="Your user ID")
+@bot.tree.command(name="checkin", description="Set your energy level and regenerate today's session.")
 @app_commands.choices(energy=[
     app_commands.Choice(name="Low", value="low"),
     app_commands.Choice(name="Medium", value="medium"),
     app_commands.Choice(name="High", value="high"),
 ])
-async def checkin_cmd(interaction: discord.Interaction, user_id: str,
-                      energy: app_commands.Choice[str]):
+async def checkin_cmd(interaction: discord.Interaction, energy: app_commands.Choice[str]):
+    await interaction.response.defer()
     try:
+        user_id = _get_or_create_user(interaction)
         resp = requests.post(f"{API_URL}/seven7/{user_id}/checkin", json={"energy": energy.value})
         resp.raise_for_status()
         data = resp.json()
@@ -174,9 +185,9 @@ async def checkin_cmd(interaction: discord.Interaction, user_id: str,
             color=0xE85D04,
         )
         embed.set_footer(text="YU SHOW UP")
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
     except Exception as e:
-        await interaction.response.send_message(f"Error: {e}", ephemeral=True)
+        await interaction.followup.send(f"Error: {e}", ephemeral=True)
 
 
 # --- Automated daily message ---
