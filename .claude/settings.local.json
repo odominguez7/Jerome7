@@ -16,7 +16,9 @@
       "Bash(python3 -m scripts.seed)",
       "Bash(timeout 5 python3 -m uvicorn src.api.main:app --port 8000)",
       "Bash(gh auth:*)",
-      "Bash(open -a \"TextEdit\" \"/Users/odominguez7/Desktop/YU/Jerome 7 - github/.env\")"
+      "Bash(open -a \"TextEdit\" \"/Users/odominguez7/Desktop/YU/Jerome 7 - github/.env\")",
+      "Bash(curl -s https://jerome7-production.up.railway.app/health)",
+      "WebSearch"
     ]
   }
 }
