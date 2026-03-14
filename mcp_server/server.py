@@ -30,18 +30,27 @@ def _api(method: str, path: str, **kwargs) -> dict:
 
 
 @mcp.tool()
-def jerome7_daily(user_id: str) -> str:
-    """Get today's Seven 7 session for a user.
+def jerome7_daily(user_id: str = "") -> str:
+    """Get today's Seven 7 session.
 
-    Returns the personalised 7-minute session including greeting, blocks,
-    and closing message. If a session was already generated today it is
-    returned from cache.
+    Returns the 7-minute session including greeting, blocks, and closing message.
+    If user_id is provided and registered, returns a personalised session.
+    Otherwise returns today's universal daily session (same for everyone on earth).
 
     Args:
-        user_id: The unique identifier of the user.
+        user_id: Optional user identifier. Leave blank for the universal daily session.
     """
     try:
-        data = _api("GET", f"/seven7/{user_id}")
+        if user_id:
+            resp = httpx.get(f"{API_URL}/seven7/{user_id}", timeout=30)
+            if resp.status_code == 404:
+                # User not registered — fall back to universal daily
+                data = _api("GET", "/daily")
+            else:
+                resp.raise_for_status()
+                data = resp.json()
+        else:
+            data = _api("GET", "/daily")
         return json.dumps(data, indent=2)
     except httpx.HTTPStatusError as exc:
         return f"API error {exc.response.status_code}: {exc.response.text}"

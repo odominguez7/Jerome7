@@ -38,7 +38,10 @@ async def get_seven7(user_id: str, db: DBSession = Depends(get_db)):
         )
 
     # Generate new session
-    ctx = build_user_context(user_id, db)
+    try:
+        ctx = build_user_context(user_id, db)
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"User '{user_id}' not found. Use /pledge to register first.")
     session_data = await coach.generate(ctx, db)
 
     blocks = [Seven7Block(**b) for b in session_data.get("blocks", [])]
