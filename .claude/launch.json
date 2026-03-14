@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "jerome7-api",
-      "runtimeExecutable": "uvicorn",
-      "runtimeArgs": ["src.api.main:app", "--reload", "--port", "8000"],
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "uvicorn", "src.api.main:app", "--reload", "--port", "8000"],
       "port": 8000
     },
     {

@@ -1,6 +1,7 @@
 """Jerome 7 Discord Bot — community layer for YU Show Up."""
 
 import os
+from datetime import datetime, timedelta, date
 
 import discord
 from discord import app_commands
@@ -12,6 +13,7 @@ GUILD_ID = os.getenv("DISCORD_GUILD_ID")
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 PHASE_EMOJI = {"prime": "🌅", "build": "🔨", "move": "⚡", "reset": "🫁"}
@@ -58,6 +60,7 @@ async def on_ready():
     else:
         await bot.tree.sync()
     daily_message.start()
+    nudge_check.start()
 
 
 # --- /pledge ---
@@ -197,6 +200,73 @@ async def checkin_cmd(interaction: discord.Interaction, energy: app_commands.Cho
         await interaction.followup.send(f"Error: {e}", ephemeral=True)
 
 
+# --- /pod ---
+
+@bot.tree.command(name="pod", description="Find your accountability crew. 3-5 builders.")
+async def pod_cmd(interaction: discord.Interaction):
+    await interaction.response.defer()
+    try:
+        user_id = _resolve_user(interaction)
+
+        # Check for existing pod
+        resp = requests.get(f"{API_URL}/pod/{user_id}")
+        if resp.ok:
+            pod = resp.json()
+            members = ", ".join(m["name"] for m in pod["members"])
+            msg = (
+                f"**{pod['pod_name']}**\n\n"
+                f"Members: {members}\n"
+            )
+            # Show each member's streak
+            for m in pod["members"]:
+                msg += f"  `{m['current_streak']}d` {m['name']}\n"
+            msg += f"\n*Your crew. Show up together.*"
+            await interaction.followup.send(msg)
+            return
+
+        # Try to match
+        resp = requests.post(f"{API_URL}/pod/{user_id}/match")
+        if resp.ok:
+            data = resp.json()
+            if "pod_name" in data:
+                members = ", ".join(m["name"] for m in data["members"])
+                msg = (
+                    f"**{data['pod_name']}** — you're matched.\n\n"
+                    f"Members: {members}\n\n"
+                    f"*Your crew. The chain is stronger together.*"
+                )
+            else:
+                msg = data.get("message", "No matches yet — more builders coming.")
+        else:
+            msg = "No matches yet — we'll pair you when more builders join."
+
+        await interaction.followup.send(msg)
+    except Exception as e:
+        await interaction.followup.send(f"Error: {e}", ephemeral=True)
+
+
+# --- /save ---
+
+@bot.tree.command(name="save", description="Use a streak save. 1 per 30 days.")
+async def save_cmd(interaction: discord.Interaction):
+    await interaction.response.defer()
+    try:
+        user_id = _resolve_user(interaction)
+        resp = requests.post(f"{API_URL}/streak/{user_id}/save")
+        if resp.ok and resp.json().get("saved"):
+            await interaction.followup.send(
+                "**Save used.** Your chain holds for today.\n"
+                "*Life happens. The chain understands.*"
+            )
+        else:
+            await interaction.followup.send(
+                "No saves available. You get 1 every 30 days.",
+                ephemeral=True,
+            )
+    except Exception as e:
+        await interaction.followup.send(f"Error: {e}", ephemeral=True)
+
+
 # --- Daily auto-post ---
 
 @tasks.loop(hours=24)
@@ -216,6 +286,43 @@ async def daily_message():
             if channel.name == "show-up-daily":
                 await channel.send(msg)
                 break
+
+
+# --- Nudge loop — DMs users who are about to skip ---
+
+@tasks.loop(hours=4)
+async def nudge_check():
+    """Check all known users — DM those at risk of breaking their streak."""
+    try:
+        resp = requests.get(f"{API_URL}/nudge/at-risk")
+        if not resp.ok:
+            return
+        at_risk = resp.json().get("users", [])
+
+        for user_data in at_risk:
+            discord_id = user_data.get("discord_id")
+            if not discord_id:
+                continue
+            try:
+                member = await bot.fetch_user(int(discord_id))
+                if member:
+                    streak = user_data.get("current_streak", 0)
+                    nudge_text = user_data.get("nudge", {})
+                    subject = nudge_text.get("subject", f"Day {streak + 1} is waiting")
+                    body = nudge_text.get("body", "Your Seven 7 is ready. 7 minutes.")
+                    cta = nudge_text.get("cta", "Type `/seven7` in the server.")
+
+                    msg = f"**{subject}**\n\n{body}\n\n👉 {cta}"
+                    await member.send(msg)
+            except Exception:
+                continue  # Can't DM this user, skip
+    except Exception as e:
+        print(f"[Nudge] Error: {e}")
+
+
+@nudge_check.before_loop
+async def before_nudge():
+    await bot.wait_until_ready()
 
 
 def run():

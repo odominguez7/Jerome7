@@ -50,3 +50,13 @@ def get_streak(user_id: str, db: DBSession = Depends(get_db)):
         next_milestone=next_milestone,
         chain=chain,
     )
+
+
+@router.post("/streak/{user_id}/save")
+def use_save(user_id: str, db: DBSession = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    saved = streak_agent.use_save(user_id, db)
+    return {"saved": saved}

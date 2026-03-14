@@ -1,0 +1,87 @@
+"""GET /nudge/at-risk — find users whose streaks are at risk today."""
+
+from datetime import datetime, date, timedelta
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session as DBSession
+
+from src.db.database import get_db
+from src.db.models import User, Streak, Session, Nudge
+from src.agents.nudge import NudgeAgent
+from src.agents.context import build_user_context
+
+router = APIRouter()
+nudge_agent = NudgeAgent()
+
+
+@router.get("/nudge/at-risk")
+def get_at_risk_users(db: DBSession = Depends(get_db)):
+    """Return users with active streaks who haven't logged today."""
+    today = date.today()
+
+    # Get all users with active streaks
+    streaks = (
+        db.query(Streak)
+        .filter(Streak.current_streak > 0)
+        .all()
+    )
+
+    at_risk = []
+    for streak in streaks:
+        # Skip if they already logged today
+        if streak.last_session_date == today:
+            continue
+
+        user = db.query(User).filter(User.id == streak.user_id).first()
+        if not user or not user.discord_id:
+            continue
+
+        # Don't nudge if we nudged in the last 4 hours
+        last_nudge = (
+            db.query(Nudge)
+            .filter(Nudge.user_id == user.id)
+            .order_by(Nudge.sent_at.desc())
+            .first()
+        )
+        if last_nudge and last_nudge.sent_at:
+            if datetime.utcnow() - last_nudge.sent_at < timedelta(hours=4):
+                continue
+
+        # Generate nudge message
+        nudge_data = {
+            "subject": f"Day {streak.current_streak + 1} is waiting",
+            "body": f"{user.name}, your streak is at {streak.current_streak} days. Your Seven 7 is ready.",
+            "cta": "Type `/seven7` in the server.",
+        }
+
+        # Try AI-generated nudge
+        try:
+            ctx = build_user_context(user.id, db)
+            if nudge_agent.should_nudge(ctx):
+                import asyncio
+                nudge_msg = asyncio.run(nudge_agent.generate_nudge(ctx))
+                nudge_data = {
+                    "subject": nudge_msg.subject,
+                    "body": nudge_msg.body,
+                    "cta": nudge_msg.cta,
+                }
+        except Exception:
+            pass  # Fall back to default nudge
+
+        # Record the nudge
+        db.add(Nudge(
+            user_id=user.id,
+            channel="discord_dm",
+            message_text=f"{nudge_data['subject']}: {nudge_data['body']}",
+        ))
+        db.commit()
+
+        at_risk.append({
+            "user_id": user.id,
+            "discord_id": user.discord_id,
+            "name": user.name,
+            "current_streak": streak.current_streak,
+            "nudge": nudge_data,
+        })
+
+    return {"users": at_risk}
