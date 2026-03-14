@@ -1,206 +1,296 @@
-# jerome7 — YU Show Up
+# Jerome7
 
-> 7 minutes a day. An act of love. A community of builders showing up.
+**5 autonomous AI agents. 7 minutes. One daily session for everyone on earth.**
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Built with Claude](https://img.shields.io/badge/Built%20with-Claude-blueviolet)](https://anthropic.com)
-
----
-
-## You already know this feeling.
-
-You shipped something today.
-Maybe it was good.
-Maybe it was the thing you've been building toward for months.
-
-And now it's 11pm, your back hurts,
-and you haven't moved your body in three days.
-
-You told yourself you'd start when things slow down.
-
-Things don't slow down.
-You know that.
+[![Live](https://img.shields.io/badge/live-jerome7.com-E85D04?style=flat-square)](https://jerome7.com)
+[![Discord](https://img.shields.io/badge/discord-join-5865F2?style=flat-square)](https://discord.gg/5AZP8DbEJm)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square)](https://python.org)
+[![MCP](https://img.shields.io/badge/MCP-compatible-blueviolet?style=flat-square)](#mcp-server)
 
 ---
 
-## I was 80 pounds heavier than I am today.
+## What is this?
 
-Not because I didn't know better.
-Because I had decided — without ever saying it out loud —
-that working hard was the only thing that mattered.
+Jerome7 is a **multi-agent AI system** for daily physical accountability. Not a workout app. Not a chatbot wrapper. A coordination system where 5 agents observe your behavior, learn from feedback, and act autonomously — generating sessions, preventing skips, forming accountability pods, and adapting to your body over time.
 
-I gave a decade to a manufacturing career.
-I was good at it.
-The weight came slowly. The disconnection came slowly.
-The person I recognized disappeared so gradually
-I didn't notice until I looked up one day
-and didn't know who was looking back.
+One session generated per day. Same for everyone. Like Wordle, but you move.
+
+**[jerome7.com](https://jerome7.com)** · **[Leaderboard](https://jerome7.com/leaderboard)** · **[Timer](https://jerome7.com/timer)**
 
 ---
 
-## I started with 7 minutes.
+## Why Agentic (Why Not a Normal App)
 
-Not a program.
-Not a challenge.
-Not a transformation.
+| Normal fitness app | Jerome7 |
+|---|---|
+| Static exercise database | AI generates novel sessions daily via Gemini 2.5 Flash |
+| You set reminders | Nudge agent learns your skip patterns and intervenes before you break |
+| You pick your workout | Coach reads your feedback history, adapts difficulty, avoids what hurts |
+| Solo or follow influencer | Community agent matches you into pods of 3-5 by timezone + level |
+| Manual scheduling | Scheduler agent finds optimal windows from session history |
+| Binary streak (miss = reset) | Streak agent: 3-miss rule, saves, milestone tracking |
 
-Seven minutes. Walking. Every single day.
-That was the whole thing.
-
-I ended up running the Boston Marathon.
-I ended up finishing an Ironman 70.3.
-
-Not because I was exceptional.
-Because I was consistent.
-And because I stopped being alone in it.
+**The agents don't just respond — they observe, decide, and act without human intervention.** After `/pledge`, the system runs itself: generating sessions, sending nudges, forming pods, adapting to feedback.
 
 ---
 
-## Here's what nobody tells you:
-
-When you operate at your best physically,
-you don't just feel better.
-
-You have more bandwidth for the things you love.
-You write better code.
-You make clearer decisions.
-You're more present for the people around you.
-
-Showing up for your body is not self-improvement.
-It's an act of responsibility to everyone around you.
-
----
-
-## The developer community changed my life.
-
-I arrived at this world late.
-No GitHub profile. No CS degree.
-Just a person who had lost himself and was trying to build something real.
-
-The welcome I received — the curiosity, the generosity,
-the open-handed invitation to build —
-I did not expect it and I will never forget it.
-
-This repo is my way of saying thank you.
-
----
-
-## This is not a business.
-
-Jerome 7 is free. Fully, permanently, unconditionally free.
-
-There is no premium tier. No paywall. No freemium.
-No plan to monetize your streak data, your pod, or your consistency.
-
-The infrastructure costs are covered by me — Omar —
-out of my own funds, as a direct act of giving back
-to the community that changed my life.
-
-I've run the numbers. At the scale this needs to reach to matter,
-the AI and hosting costs are manageable.
-I'm committed to carrying them personally up to 10 million users a month.
-
-If we ever get there — if 10 million developers are showing up for 7 minutes a day —
-that will be the kind of problem I will be grateful to have.
-The community will figure it out together.
-
-But that's a future problem.
-Right now, my goal is one.
-
-**One person who needed this and found it.**
-**One person who shows up tomorrow because they showed up today.**
-
-That's the whole thing.
-That's why it's free.
-
----
-
-## What this is:
-
-A multi-agent AI system that orchestrates your 7 minutes.
+## Architecture
 
 ```
-Coach agent       — learns how you feel, what you need, what you've
-                    been skipping. Tells you exactly what to do today.
-Nudge agent       — learns when you're about to skip. Shows up first.
-Scheduler agent   — finds the one window where you and your crew
-                    can move together.
-Community matcher — puts you in a pod of 3-5 people who need
-                    exactly what you need.
-Streak agent      — tracks consistency, not perfection.
-                    3 misses breaks it. 1 never does.
+┌──────────────────────────────────────────────────────────┐
+│                    JEROME7 CORE ENGINE                   │
+│                                                          │
+│  ┌─────────┐  ┌─────────┐  ┌──────────┐  ┌───────────┐ │
+│  │  Coach   │  │  Nudge  │  │  Streak  │  │ Community │ │
+│  │  Agent   │  │  Agent  │  │  Agent   │  │  Matcher  │ │
+│  │         │  │         │  │         │  │           │ │
+│  │ Gemini  │  │ learns  │  │ 3-miss  │  │ timezone  │ │
+│  │ 2.5     │  │ skip    │  │ rule +  │  │ + level   │ │
+│  │ Flash   │  │ hours → │  │ saves + │  │ scoring → │ │
+│  │    ↓    │  │ preempt │  │ miles-  │  │ pods of   │ │
+│  │ adapts  │  │ DMs     │  │ tones   │  │ 3-5       │ │
+│  │ from    │  │         │  │         │  │           │ │
+│  │ feedback│  └────┬────┘  └────┬────┘  └─────┬─────┘ │
+│  └────┬────┘       │            │              │       │
+│       │      ┌─────┴────┐      │        ┌─────┴─────┐ │
+│       │      │Scheduler │      │        │ Feedback  │ │
+│       │      │  Agent   │◄─────┘        │   Loop    │ │
+│       │      │          │               │           │ │
+│       │      │ finds    │               │ difficulty│ │
+│       │      │ optimal  │               │ enjoyment │ │
+│       │      │ windows  │               │ body notes│ │
+│       │      └──────────┘               │     ↓     │ │
+│       │                                 │ feeds back│ │
+│       ◄─────────────────────────────────┤ to Coach  │ │
+│       │                                 └───────────┘ │
+│  ┌────┴───────────────────────────────────────────┐    │
+│  │              FastAPI + SQLite                  │    │
+│  │  /daily  /pledge  /log  /streak  /nudge        │    │
+│  │  /pod    /feedback  /leaderboard  /timer       │    │
+│  └─────┬──────────┬──────────┬────────────────────┘    │
+└────────┼──────────┼──────────┼─────────────────────────┘
+         │          │          │
+   ┌─────┴───┐ ┌───┴────┐ ┌──┴───────────┐
+   │ Discord │ │  MCP   │ │  OpenClaw /  │
+   │   Bot   │ │ Server │ │  ZeroClaw   │
+   │         │ │        │ │   Skills    │
+   │ /seven7 │ │ 6 tools│ │             │
+   │ /log    │ │ stdio  │ │  SKILL.md   │
+   │ /streak │ │        │ │  .toml      │
+   └─────────┘ └────────┘ └─────────────┘
 ```
 
 ---
 
-## The Seven 7.
+## The 5 Agents
 
-Not a fixed routine. Not two minutes of this and two of that.
+### Coach Agent
+Generates today's session via **Google Gemini 2.5 Flash**. Reads user context: energy level, streak state, session history, and — critically — **past feedback**. If you said "knees hurt" last session, today's session avoids impact. If completion rate is dropping, difficulty scales down. Not a prompt wrapper — a feedback-driven adaptation loop.
 
-Every morning, the Coach agent reads your data —
-how you slept, how yesterday went, what your body's been doing,
-what your streak looks like, how your pod is moving —
-and gives you exactly 7 minutes designed for today.
+```python
+# Context fed to Gemini includes:
+# - Last 5 session feedbacks (difficulty, enjoyment, body notes)
+# - Average completion rate (X/7 blocks)
+# - Skip history (which days/hours user typically misses)
+# - Current streak length and energy level
+# - Pod activity (who else showed up today)
+```
 
-Some days it's movement. Some days it's stillness.
-Some days it knows you need to breathe before you need to sweat.
+### Nudge Agent
+Analyzes session gaps to build a **skip probability model**. If you typically skip at 6pm on Wednesdays, the nudge arrives at 4pm. Rate-limited (1 per 4 hours). Never shames. Optionally generates personalized messages via Gemini.
 
-The Seven 7 is your first win of the day.
-Before Slack. Before coffee. Before the sprint.
-It's on YU. It's for YU.
+### Streak Agent
+Implements the **3-miss rule**: miss 1 day, chain holds. Miss 2, still holds. Miss 3, breaks. One save per 30 days for travel/illness. Milestones at 7, 14, 30, 50, 100, 200, 365 days. Longest streak never resets.
+
+### Community Matcher
+Scores user compatibility on **timezone overlap**, **fitness level similarity**, and **availability window intersection**. Forms pods of 3-5 with generated names. Threshold-based matching (0.4 minimum) prevents bad pairings.
+
+### Scheduler Agent
+Analyzes session timestamps to find your **habitual training window**. For pods, tallies each member's preferred hour and finds the time that works for the most people. Pure logic, no AI calls — deterministic and fast.
 
 ---
 
-## The unbroken challenge.
+## The Feedback Loop (What Makes It Learn)
 
-Start today.
-7 minutes.
-Log it publicly.
-Find your pod.
-Don't break the chain.
+```
+User does session → /log → bot asks: 💪 easy  👍 good  🔥 hard
+                                         ↓
+                              SessionFeedback stored
+                              (difficulty, body_note, completion)
+                                         ↓
+                              Next session: Coach reads last 5 feedbacks
+                              → adapts difficulty, avoids painful exercises
+                              → adjusts phase intensity
+```
 
-Come as you are.
-It doesn't have to be dark.
+This is the core agentic behavior. Each session is informed by the outcomes of previous sessions. The system doesn't just generate — it **converges** toward what works for each user.
+
+---
+
+## Daily Seven7 Structure
+
+Every session follows the same shape. 7 blocks. 60 seconds each. 420 seconds total.
+
+```
+PRIME  (60s)  — 1 block. Wake the body.
+BUILD  (180s) — 3 blocks. Strength + mobility.
+MOVE   (120s) — 2 blocks. Heart rate. Fun.
+RESET  (60s)  — 1 block. Breath. Stillness.
+```
+
+Bodyweight only. No equipment. Small space. Beginner-friendly. 10-word max instructions.
+
+---
+
+## Integrations
+
+### MCP Server
+
+Jerome7 exposes a **Model Context Protocol** server with 6 tools. Any MCP-compatible agent (Claude, OpenClaw, ZeroClaw) can call Jerome7 natively.
+
+```json
+// Claude Desktop — claude_desktop_config.json
+{
+  "mcpServers": {
+    "jerome7": {
+      "command": "python",
+      "args": ["-m", "mcp_server.server"],
+      "env": { "JEROME7_API_URL": "https://jerome7.com" }
+    }
+  }
+}
+```
+
+**Tools:** `jerome7_daily`, `jerome7_pledge`, `jerome7_log`, `jerome7_streak`, `jerome7_nudge`, `jerome7_pod_match`
+
+### OpenClaw
+
+Drop-in skill for [OpenClaw](https://github.com/openclaw/openclaw). Copy `integrations/openclaw/SKILL.md` to your OpenClaw skills directory.
+
+### ZeroClaw
+
+TOML config for [ZeroClaw](https://github.com/zeroclaw-labs/zeroclaw). HTTP-based tools that call the Jerome7 API. See `integrations/zeroclaw/jerome7.toml`.
 
 ---
 
 ## Quick Start
 
+### Join via Discord (easiest)
+```
+1. Join: discord.gg/5AZP8DbEJm
+2. Type: /pledge
+3. Type: /seven7
+4. Do the 7 minutes
+5. Type: /log
+```
+
+### Run locally
 ```bash
-pip install jerome7
-jerome7 pledge
-jerome7 seven7
-jerome7 log
-jerome7 streak
+git clone https://github.com/odominguez7/Jerome7.git
+cd Jerome7
+pip install -r requirements.txt
+
+# Set environment variables
+export GEMINI_API_KEY=your_key      # Google Gemini 2.5 Flash
+export DATABASE_URL=sqlite:///jerome7.db
+
+# Start the API
+uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+
+# (Optional) Start the Discord bot
+export DISCORD_TOKEN=your_token
+export DISCORD_GUILD_ID=your_guild
+export YU_API_URL=http://localhost:8000
+python discord_bot/bot.py
+```
+
+### API endpoints
+```
+GET  /daily                  → Today's universal session
+POST /pledge                 → Register a user
+POST /log/{user_id}          → Log a completed session
+POST /log/{user_id}/feedback → Submit session feedback
+GET  /streak/{user_id}       → Streak data + chain grid
+GET  /seven7/{user_id}       → Personalized session
+POST /pod/{user_id}/match    → Find accountability pod
+GET  /nudge/at-risk          → Users who need a nudge
+GET  /leaderboard            → Global leaderboard (HTML)
+GET  /leaderboard/data       → Leaderboard data (JSON)
+GET  /timer                  → Live countdown timer (HTML)
+GET  /share/{user_id}        → Shareable streak card (HTML)
 ```
 
 ---
 
 ## Tech Stack
 
-Python. FastAPI. Open source. Apache 2.0.
-First commit from someone who needed this badly.
-Every commit welcome.
+| Component | Technology |
+|---|---|
+| API | FastAPI + Uvicorn |
+| AI | Google Gemini 2.5 Flash |
+| Database | SQLite + SQLAlchemy |
+| Bot | discord.py v2 (slash commands) |
+| Integrations | MCP, OpenClaw, ZeroClaw |
+| Hosting | Railway |
+| Domain | jerome7.com (Cloudflare DNS) |
+
+---
+
+## The Streak Rules
+
+```
+Show up   = 7 minutes. That's it.
+Miss 1    → Chain holds.
+Miss 2    → Still holds. Life happens.
+Miss 3    → Chain breaks. Start over.
+Save      → 1 per 30 days. Use it for travel, illness, life.
+Longest   → Never resets. That's your record.
+Milestones → 7, 14, 30, 50, 100, 200, 365 days.
+```
+
+---
+
+## The Story
+
+I was 80 pounds heavier than I am today. Not because I didn't know better — because I had decided, without ever saying it out loud, that working hard was the only thing that mattered.
+
+I started with 7 minutes of walking. Every single day. That was the whole thing.
+
+I ended up running the **Boston Marathon**. I finished an **Ironman 70.3**.
+
+Not because I was exceptional. Because I was consistent. And because I stopped being alone in it.
+
+Jerome7 is that system — open sourced, free forever, for the developer community that changed my life.
 
 ---
 
 ## Why "Jerome 7"?
 
-Jerome Morrow is the character from *Gattaca* (1997) who was born "valid" —
-genetically engineered for perfection — and still failed, still fell,
-still ended up lending his identity to someone else.
+Jerome Morrow is the character from *Gattaca* (1997) — genetically engineered for perfection, and still fell. This project is for the opposite person: the one who was told they were average. The one who decides that's not the whole story.
 
-This project is for the opposite person:
-the one who was told they were average.
-That the body doesn't matter. That shipping code is enough.
-
-**Jerome 7** is for the person who decides that's not the whole story.
-
-7 minutes a day. Every morning. Unbroken.
-No algorithm tells you what you're worth.
-You show up and find out for yourself.
+7 minutes a day. Unbroken. No algorithm tells you what you're worth.
 
 ---
 
-*It's on YU. It's for YU.*
+## Contributing
+
+PRs welcome. The codebase is straightforward:
+- `src/agents/` — The 5 agent implementations
+- `src/api/routes/` — FastAPI endpoints
+- `src/db/models.py` — SQLAlchemy models
+- `discord_bot/bot.py` — Discord integration
+- `mcp_server/` — MCP server
+- `integrations/` — OpenClaw + ZeroClaw skills
+
+---
+
+## License
+
+Apache 2.0. Free forever. No premium tier. No paywall. No plan to monetize.
+
+The infrastructure costs are covered personally as an act of giving back to the community.
+
+---
+
+*Built by [Omar](https://github.com/odominguez7). It's on YU. It's for YU.*
