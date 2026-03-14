@@ -2,7 +2,7 @@
 
 import os
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text, inspect
 from sqlalchemy.orm import sessionmaker
 
 from src.db.models import Base
@@ -17,9 +17,33 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
+def _migrate_add_columns():
+    """Add new columns to existing tables if they're missing (lightweight migration)."""
+    inspector = inspect(engine)
+
+    # Columns to add to the 'users' table (name, SQL type)
+    desired_user_cols = {
+        "age_bracket": "VARCHAR",
+        "gender": "VARCHAR",
+        "country": "VARCHAR",
+        "source": "VARCHAR",
+        "goal": "VARCHAR",
+    }
+
+    if "users" in inspector.get_table_names():
+        existing = {col["name"] for col in inspector.get_columns("users")}
+        with engine.begin() as conn:
+            for col_name, col_type in desired_user_cols.items():
+                if col_name not in existing:
+                    conn.execute(text(
+                        f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"
+                    ))
+
+
 def init_db():
-    """Create all tables. Used for development; use Alembic in production."""
+    """Create all tables + run lightweight migrations."""
     Base.metadata.create_all(bind=engine)
+    _migrate_add_columns()
 
 
 def get_db():
