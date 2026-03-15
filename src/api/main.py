@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.db.database import init_db
-from src.api.routes import pledge, log, seven7, streak, pod, health, streak_page, timer, daily, share, share_card, nudge, landing, leaderboard, analytics, analytics_page, live, twitter, twin, invite
+from src.api.routes import pledge, log, seven7, streak, pod, health, streak_page, timer, daily, share, share_card, nudge, landing, leaderboard, analytics, analytics_page, live, twitter, twin, invite, voice, embed
 
 app = FastAPI(
     title="Jerome 7 — YU Show Up",
@@ -40,6 +40,8 @@ app.include_router(live.router)
 app.include_router(twitter.router)
 app.include_router(twin.router)
 app.include_router(invite.router)
+app.include_router(voice.router)
+app.include_router(embed.router)
 
 
 @app.on_event("startup")

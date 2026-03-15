@@ -1,0 +1,16 @@
+{
+  "name": "jerome7",
+  "version": "1.0.0",
+  "description": "7 minutes. Same session for everyone on earth. Right in your terminal.",
+  "bin": {
+    "jerome7": "./index.js"
+  },
+  "keywords": ["fitness", "movement", "7-minutes", "wellness", "streak", "timer", "cli"],
+  "author": "Omar Dominguez",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/odominguez7/Jerome7"
+  },
+  "homepage": "https://jerome7.com"
+}
