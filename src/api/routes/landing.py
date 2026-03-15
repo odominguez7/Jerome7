@@ -614,6 +614,7 @@ async def landing():
     <a href="/leaderboard">Leaderboard</a>
     <a href="/analytics">Analytics</a>
     <a href="/agents">Agents</a>
+    <a href="/globe">Globe</a>
     <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
     <a href="https://github.com/odominguez7/Jerome7">GitHub</a>
     <a href="/leaderboard" class="nav-highlight">WHO'S SHOWING UP</a>
@@ -782,7 +783,8 @@ async def landing():
     <a href="/leaderboard">Leaderboard</a> ·
     <a href="/analytics">Analytics</a> ·
     <a href="https://github.com/odominguez7/Jerome7">GitHub</a> ·
-    <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
+    <a href="https://discord.gg/5AZP8DbEJm">Discord</a> ·
+    <a href="/sponsor">Sponsor</a>
   </div>
   <a href="https://discord.gg/5AZP8DbEJm" class="bottom-cta">START YOUR CHAIN</a>
 </div>

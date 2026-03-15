@@ -75,7 +75,19 @@
       "Bash(pip install:*)",
       "Bash(ruff check:*)",
       "Bash(python3 -m ruff check src/ mcp_server/ --ignore E501)",
-      "Bash(python3 -m ruff check src/ mcp_server/ --ignore E501 --fix)"
+      "Bash(python3 -m ruff check src/ mcp_server/ --ignore E501 --fix)",
+      "Bash(gh label:*)",
+      "Bash(gh issue:*)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''src/api/routes/voice.py''\\).read\\(\\)\\); print\\(''Syntax OK''\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\(''src/api/routes/voice.py''\\).read\\(\\)\\); print\\(''Syntax OK''\\)\")",
+      "Bash(python3 -c \"from src.api.routes.voice import router; print\\(''✅ voice.py imports cleanly''\\)\")",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" \"https://jerome7.com/voice/generate\" -X POST)",
+      "Bash(python3 -c \"from src.api.routes.voice import router; print\\(''✅ imports clean''\\)\")",
+      "Bash(python3 -m ruff check src/api/routes/agents_observatory.py src/api/routes/coach_chat.py src/api/routes/world_report.py src/api/routes/milestones.py --ignore E501)",
+      "Bash(python3 -m ruff check src/api/routes/agents_observatory.py src/api/routes/coach_chat.py src/api/routes/world_report.py src/api/routes/milestones.py --ignore E501 --fix)",
+      "Bash(python3 -m ruff check src/agents/mesh/ src/agents/personal/ src/agents/daily_checkup/ src/agents/social/ src/api/routes/mesh_api.py --ignore E501 --fix)",
+      "Bash(python3 -m ruff check src/agents/mesh/ src/agents/personal/ src/agents/daily_checkup/ src/agents/social/ src/api/routes/mesh_api.py --ignore E501)",
+      "Bash(python3 -m ruff check src/api/routes/globe.py src/api/routes/embed.py src/api/routes/tokens.py src/api/routes/sponsor.py --ignore E501 --fix)"
     ]
   }
 }
