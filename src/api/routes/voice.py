@@ -14,8 +14,11 @@ router = APIRouter()
 # ── In-memory audio cache (keyed by date string) ────────────────────────────
 _audio_cache: dict[str, bytes] = {}
 
-ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
-ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
+def _get_api_key():
+    return os.getenv("ELEVENLABS_API_KEY", "")
+
+def _get_voice_id():
+    return os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
 
 def _build_narration(blocks: list[dict], closing: str) -> str:
@@ -42,7 +45,9 @@ def _build_narration(blocks: list[dict], closing: str) -> str:
 @router.post("/voice/generate")
 async def voice_generate():
     """Generate ElevenLabs TTS audio for today's session. Cached per day."""
-    if not ELEVENLABS_API_KEY:
+    api_key = _get_api_key()
+    voice_id = _get_voice_id()
+    if not api_key:
         return JSONResponse(
             status_code=503,
             content={"error": "ElevenLabs API key not configured. Use browser voice instead."},
@@ -56,15 +61,20 @@ async def voice_generate():
 
     # Fetch today's session
     session = await get_daily()
+    # Handle both dict and Pydantic model responses
+    if hasattr(session, "dict"):
+        session = session.dict()
+    elif hasattr(session, "model_dump"):
+        session = session.model_dump()
     blocks = session.get("blocks", [])
     closing = session.get("closing", "You showed up. That is the win.")
 
     script = _build_narration(blocks, closing)
 
     # Call ElevenLabs TTS
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
     headers = {
-        "xi-api-key": ELEVENLABS_API_KEY,
+        "xi-api-key": api_key,
         "Content-Type": "application/json",
         "Accept": "audio/mpeg",
     }
@@ -97,6 +107,15 @@ async def voice_generate():
 
 
 # ── GET /voice/audio ────────────────────────────────────────────────────────
+
+@router.head("/voice/audio")
+async def voice_audio_head():
+    """Check if today's audio exists."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if today in _audio_cache:
+        return Response(status_code=200, headers={"Content-Type": "audio/mpeg"})
+    return Response(status_code=404)
+
 
 @router.get("/voice/audio")
 async def voice_audio():
