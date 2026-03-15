@@ -2,20 +2,18 @@
 
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
-from sqlalchemy.orm import Session as DBSession
 
-from src.db.database import get_db
 from src.api.routes.daily import get_daily
 
 router = APIRouter()
 
 
 @router.get("/voice", response_class=HTMLResponse)
-async def voice_session(db: DBSession = Depends(get_db)):
+async def voice_session():
     """Voice-guided session — browser reads each block aloud. Hands-free."""
-    session = await get_daily(db)
+    session = await get_daily()
     blocks = session.get("blocks", [])
     title = session.get("session_title", "the seven 7")
 

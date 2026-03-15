@@ -24,7 +24,7 @@ async def embed_session(db: DBSession = Depends(get_db)):
     Returns minimal payload — blocks, title, total time.
     No authentication required. Free forever.
     """
-    session = await get_daily(db)
+    session = await get_daily()
     blocks = session.get("blocks", [])
 
     return {
