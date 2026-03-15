@@ -71,11 +71,11 @@ Each session is informed by the outcomes of previous sessions. The system doesn'
 
 ## Why Agentic (Why Not a Normal App)
 
-| Normal fitness app | Jerome7 |
+| Normal app | Jerome7 |
 |---|---|
 | Static exercise database | AI generates novel sessions daily via Gemini 2.5 Flash |
 | You set reminders | Nudge agent learns your skip patterns and intervenes before you break |
-| You pick your workout | Coach reads your feedback history, adapts difficulty, avoids what hurts |
+| You pick your session | Coach reads your feedback history, adapts difficulty, avoids what hurts |
 | Solo or follow influencer | Community agent matches you into pods of 3-5 by timezone + level |
 | Manual scheduling | Scheduler agent finds optimal windows from session history |
 | Binary streak (miss = reset) | Streak agent: 3-miss rule, saves, milestone tracking |

@@ -168,7 +168,7 @@ def _default_projection(data: dict) -> dict:
                 "consistency": min(consistency + 30, 100),
                 "energy": min(60 + cs, 95),
                 "habit_strength": min(base_habit + 55, 100),
-                "narrative": "One year. Movement is identity, not effort. Mobility, energy, and resilience are transformed."
+                "narrative": "One year. Movement is identity, not effort. Mobility, energy, and resilience — all momentum."
             },
         ],
         "insight": "The hardest part is already behind you. Showing up is the skill — and you're building it."

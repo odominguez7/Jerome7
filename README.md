@@ -19,7 +19,7 @@ I was 80 pounds heavier than I am today. I started with 7 minutes of walking. Ev
 
 - **One AI-generated session per day.** Same for everyone. Like Wordle, but you move.
 - **5 agents that learn from you.** They adapt difficulty, prevent skips, form accountability pods, and track streaks — autonomously.
-- **Bodyweight only. 7 blocks. 60 seconds each.** No equipment. No excuses.
+- **Bodyweight only. 7 blocks. 60 seconds each.** No equipment. Life happens — 3 misses, then the chain breaks.
 
 ---
 

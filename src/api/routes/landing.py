@@ -610,7 +610,7 @@ async def landing():
 <section>
   <div class="section-label">UNDER THE HOOD</div>
   <h2>5 AI agents. One mission.</h2>
-  <p>Jerome isn't a workout app. It's a system of agents that learn how you move, when you skip, and who you need beside you.</p>
+  <p>Jerome isn't a fitness app. It's a coordination system — agents that learn how you move, when you skip, and who you need beside you.</p>
 
   <div class="agents">
     <div class="agent">
