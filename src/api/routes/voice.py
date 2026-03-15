@@ -563,31 +563,21 @@ async def voice_session():
     return m + ':' + sec.toString().padStart(2, '0');
   }}
 
-  // ── Block sync (AI mode) ────────────────────────────────────────────
-  // Estimate block timing: the narration has an intro (~8s), then each
-  // block is roughly (duration / total_duration) of the audio length.
-  // We approximate evenly since each block is ~60s in the session.
-  function syncBlocksWithAudio() {{
-    if (!aiAudio || !aiAudio.duration) return;
-    const totalBlocks = blocks.length;
-    // Rough: intro takes ~5% of audio, rest divided evenly among blocks
-    const introFraction = 0.05;
-    const blockFraction = (1 - introFraction - 0.03) / totalBlocks; // 3% for closing
-    const t = aiAudio.currentTime / aiAudio.duration;
-
-    let estimated = 0;
-    if (t < introFraction) {{
-      estimated = 0;
-    }} else {{
-      estimated = Math.floor((t - introFraction) / blockFraction);
-      estimated = Math.min(estimated, totalBlocks - 1);
-      estimated = Math.max(estimated, 0);
+  // ── AI mode: narration timestamps per block ─────────────────────────
+  // We estimate where each block starts in the narration audio.
+  // Intro ~5s, each block instruction ~8-12s, closing ~5s.
+  function getBlockAudioTimestamps() {{
+    if (!aiAudio || !aiAudio.duration) return null;
+    const dur = aiAudio.duration;
+    const introSec = 5;
+    const closingSec = 5;
+    const bodyDur = dur - introSec - closingSec;
+    const perBlock = bodyDur / blocks.length;
+    const timestamps = [];
+    for (let i = 0; i < blocks.length; i++) {{
+      timestamps.push(introSec + i * perBlock);
     }}
-
-    if (estimated !== currentBlock) {{
-      currentBlock = estimated;
-      showBlock(currentBlock);
-    }}
+    return {{ timestamps, perBlock }};
   }}
 
   // ── Browser speech ──────────────────────────────────────────────────
@@ -645,7 +635,7 @@ async def voice_session():
       const pct = ((total - remaining) / total) * 100;
       document.getElementById('progressFill').style.width = pct + '%';
 
-      if (remaining === 5 && voiceMode === 'browser') {{
+      if (remaining === 5) {{
         speak('5 seconds');
       }}
 
@@ -663,9 +653,34 @@ async def voice_session():
       return;
     }}
     showBlock(currentBlock);
-    if (voiceMode === 'browser') {{
+    if (voiceMode === 'ai') {{
+      playBlockNarration(currentBlock, () => {{
+        runTimer(blocks[currentBlock].duration || 60, nextBlock);
+      }});
+    }} else {{
       runTimer(blocks[currentBlock].duration || 60, nextBlock);
     }}
+  }}
+
+  // Play just the narration for one block, then call onDone
+  function playBlockNarration(index, onDone) {{
+    if (!aiAudio || !aiAudioReady) {{ onDone(); return; }}
+    const ts = getBlockAudioTimestamps();
+    if (!ts) {{ onDone(); return; }}
+
+    const startTime = ts.timestamps[index];
+    const endTime = index < blocks.length - 1 ? ts.timestamps[index + 1] : aiAudio.duration - 3;
+
+    aiAudio.currentTime = startTime;
+    aiAudio.play();
+
+    const checkEnd = setInterval(() => {{
+      if (aiAudio.currentTime >= endTime || aiAudio.paused) {{
+        clearInterval(checkEnd);
+        aiAudio.pause();
+        onDone();
+      }}
+    }}, 100);
   }}
 
   function finishSession() {{
@@ -674,9 +689,15 @@ async def voice_session():
     document.getElementById('closingText').textContent = closing;
     document.getElementById('voicePulse').classList.remove('active');
     aiSessionActive = false;
-    if (voiceMode === 'browser') {{
-      speak('Session complete. ' + closing);
+    if (voiceMode === 'ai' && aiAudio) {{
+      // Play closing portion of narration
+      const dur = aiAudio.duration || 0;
+      if (dur > 5) {{
+        aiAudio.currentTime = dur - 5;
+        aiAudio.play();
+      }}
     }}
+    speak('Session complete. ' + closing);
   }}
 
   // ── Start session ───────────────────────────────────────────────────
@@ -687,15 +708,12 @@ async def voice_session():
     currentBlock = 0;
 
     if (voiceMode === 'ai' && aiAudio && aiAudioReady) {{
-      // AI mode — play audio, sync blocks visually
+      // AI mode — play block narration, then 60s timer, repeat
       aiSessionActive = true;
-      aiAudio.currentTime = 0;
-      aiAudio.play();
       showBlock(0);
-      // Use audio-driven timing: the audio timeupdate handles block sync
-      // Also run a visual timer that matches total session time
-      const totalDuration = blocks.reduce((s, b) => s + (b.duration || 60), 0);
-      runTimer(totalDuration, finishSession);
+      playBlockNarration(0, () => {{
+        runTimer(blocks[0].duration || 60, nextBlock);
+      }});
     }} else {{
       // Browser voice mode
       speak("Starting today's Jerome 7. " + blocks[0].name);
