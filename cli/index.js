@@ -4,9 +4,10 @@
  * jerome7 — 7 minutes. Same session for everyone on earth. In your terminal.
  *
  * Usage:
- *   npx jerome7          → start today's session
- *   npx jerome7 --peek   → preview blocks without starting timer
- *   npx jerome7 --json   → output session as JSON for piping to other tools
+ *   npx jerome7              → start today's session
+ *   npx jerome7 --wellness   → start today's wellness session (breathwork/meditation/reflection/preparation)
+ *   npx jerome7 --peek       → preview blocks without starting timer
+ *   npx jerome7 --json       → output session as JSON for piping to other tools
  */
 
 const https = require("https");
@@ -26,6 +27,22 @@ const PHASE_COLOR = {
   build: "\x1b[38;2;232;93;4m",
   move: "\x1b[38;2;63;185;80m",
   reset: "\x1b[38;2;210;168;255m",
+  // Wellness session phases
+  welcome: "\x1b[38;2;88;166;255m",
+  intention: "\x1b[38;2;210;168;255m",
+  breathwork: "\x1b[38;2;78;205;196m",
+  cooldown: "\x1b[38;2;126;231;135m",
+  closing: "\x1b[38;2;139;148;158m",
+  grounding: "\x1b[38;2;88;166;255m",
+  meditation: "\x1b[38;2;78;205;196m",
+  gratitude: "\x1b[38;2;232;93;4m",
+  prompt: "\x1b[38;2;210;168;255m",
+  reflection: "\x1b[38;2;78;205;196m",
+  synthesis: "\x1b[38;2;232;93;4m",
+  share: "\x1b[38;2;126;231;135m",
+  visualization: "\x1b[38;2;210;168;255m",
+  planning: "\x1b[38;2;88;166;255m",
+  power: "\x1b[38;2;232;93;4m",
 };
 
 function fetch(url) {
@@ -142,11 +159,14 @@ async function main() {
   const args = process.argv.slice(2);
   const peek = args.includes("--peek") || args.includes("-p");
   const json = args.includes("--json") || args.includes("-j");
+  const wellness = args.includes("--wellness") || args.includes("-w");
+
+  const endpoint = wellness ? `${API}/daily/wellness` : `${API}/daily`;
 
   // For JSON output, skip the header and fetch directly
   if (json) {
     try {
-      const session = await fetch(`${API}/daily`);
+      const session = await fetch(endpoint);
       outputJson(session);
     } catch (err) {
       console.error(JSON.stringify({ error: "Could not reach jerome7.com — check your connection." }));
@@ -157,9 +177,14 @@ async function main() {
 
   printHeader();
 
+  if (wellness) {
+    console.log(`  ${DIM}mode: ${ORANGE}wellness${RESET}${DIM} (breathwork/meditation/reflection/preparation)${RESET}`);
+    console.log();
+  }
+
   try {
     process.stdout.write(`  ${DIM}fetching today's session...${RESET}`);
-    const session = await fetch(`${API}/daily`);
+    const session = await fetch(endpoint);
     process.stdout.write(`${CLEAR_LINE}`);
 
     if (peek) {

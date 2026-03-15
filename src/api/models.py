@@ -23,6 +23,7 @@ class PledgeRequest(BaseModel):
     source: Optional[str] = None        # discord | openclaw | zeroclaw | web | api | mcp
     goal: Optional[str] = None          # move_more | build_strength | destress | just_try
     invite_code: Optional[str] = None    # pod chain invite code
+    github_username: Optional[str] = None
 
 
 class LogSessionRequest(BaseModel):
@@ -55,9 +56,27 @@ class FeedbackResponse(BaseModel):
 class UserResponse(BaseModel):
     user_id: str
     name: str
+    jerome_number: Optional[int] = None
     pledge_confirmed: bool = True
     pod_match_eta: str = "within 24 hours"
     country: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
+class OnboardingSurveyRequest(BaseModel):
+    role: Optional[str] = None              # developer, founder, student, designer, other
+    experience_level: Optional[str] = None  # junior, mid, senior, lead
+    primary_goal: Optional[str] = None      # stress_relief, focus, consistency, community
+    preferred_time: Optional[str] = None    # morning, afternoon, evening
+    burnout_level: Optional[int] = Field(None, ge=1, le=10)
+    how_heard: Optional[str] = None         # github, twitter, friend, newsletter, hn, reddit, other
+
+
+class OnboardingSurveyResponse(BaseModel):
+    survey_id: str
+    jerome_number: int
+    onboarding_complete: bool = True
 
     model_config = {"from_attributes": True}
 

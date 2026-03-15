@@ -8,9 +8,17 @@ from src.api.models import PledgeRequest, UserResponse
 from src.db.database import get_db
 from src.db.models import (
     User, Streak, FitnessLevel,
-    AgeBracket, Gender, UserSource, UserGoal, InviteCode,
+    AgeBracket, Gender, UserSource, UserGoal, InviteCode, UserRole,
 )
 from datetime import datetime
+
+
+def _next_jerome_number(db: Session) -> int:
+    """Get the next available Jerome# (starting from 8, since 1-7 are reserved)."""
+    max_num = db.query(func.max(User.jerome_number)).scalar()
+    if max_num is None or max_num < 8:
+        return 8
+    return max_num + 1
 
 router = APIRouter()
 
@@ -136,8 +144,14 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
             existing.goal = goal
         if not existing.gender or existing.gender == Gender.skip:
             existing.gender = gender
+        # Backfill Jerome# if missing
+        if not existing.jerome_number:
+            existing.jerome_number = _next_jerome_number(db)
         db.commit()
-        return UserResponse(user_id=existing.id, name=existing.name, country=existing.country)
+        return UserResponse(
+            user_id=existing.id, name=existing.name,
+            jerome_number=existing.jerome_number, country=existing.country,
+        )
 
     # --- 5. Resolve country: explicit > IP > timezone ---
     country = req.country
@@ -166,7 +180,10 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
         if invite:
             invited_by = invite.inviter_id
 
-    # --- 9. Create user ---
+    # --- 9. Assign Jerome# ---
+    jerome_number = _next_jerome_number(db)
+
+    # --- 10. Create user ---
     user = User(
         name=name,
         email=req.email,
@@ -180,6 +197,9 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
         source=source,
         goal=goal,
         invited_by=invited_by,
+        jerome_number=jerome_number,
+        github_username=req.github_username,
+        role=UserRole.member,
     )
     db.add(user)
     db.flush()
@@ -193,4 +213,7 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
     db.add(streak)
     db.commit()
 
-    return UserResponse(user_id=user.id, name=user.name, country=user.country)
+    return UserResponse(
+        user_id=user.id, name=user.name,
+        jerome_number=user.jerome_number, country=user.country,
+    )

@@ -6,7 +6,7 @@ from datetime import datetime, date
 
 from sqlalchemy import (
     Column, String, Integer, Boolean, DateTime, Date, Enum, ForeignKey,
-    JSON, Text, UniqueConstraint,
+    JSON, Text, UniqueConstraint, Float,
 )
 from sqlalchemy.orm import DeclarativeBase, relationship
 
@@ -66,6 +66,10 @@ class UserGoal(str, enum.Enum):
     build_strength = "build_strength"
     destress = "destress"
     just_try = "just_try"
+    stress_relief = "stress_relief"
+    focus = "focus"
+    consistency = "consistency"
+    community = "community"
 
 
 class DeliveryChannel(str, enum.Enum):
@@ -75,12 +79,52 @@ class DeliveryChannel(str, enum.Enum):
     api = "api"
 
 
+class SessionType(str, enum.Enum):
+    breathwork = "breathwork"
+    meditation = "meditation"
+    reflection = "reflection"
+    preparation = "preparation"
+
+
+class UserRole(str, enum.Enum):
+    founder = "founder"
+    early_adopter = "early_adopter"
+    member = "member"
+    ambassador = "ambassador"
+
+
+class ExperienceLevel(str, enum.Enum):
+    junior = "junior"
+    mid = "mid"
+    senior = "senior"
+    lead = "lead"
+
+
+class SocialPlatform(str, enum.Enum):
+    twitter = "twitter"
+    linkedin = "linkedin"
+    github = "github"
+    discord = "discord"
+    reddit = "reddit"
+    instagram = "instagram"
+
+
+class AgentType(str, enum.Enum):
+    coach = "coach"
+    nudge = "nudge"
+    streak = "streak"
+    community = "community"
+    scheduler = "scheduler"
+
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(String, primary_key=True, default=generate_uuid)
+    jerome_number = Column(Integer, unique=True, nullable=True, index=True)
     discord_id = Column(String, unique=True, nullable=True, index=True)
     name = Column(String, nullable=False)
+    display_name = Column(String, nullable=True)
     email = Column(String, unique=True, nullable=True)
     timezone = Column(String, nullable=False, default="UTC")
     fitness_level = Column(Enum(FitnessLevel), nullable=False, default=FitnessLevel.beginner)
@@ -95,6 +139,17 @@ class User(Base):
     goal = Column(Enum(UserGoal), nullable=True)
     invited_by = Column(String, nullable=True)  # user_id of inviter
 
+    # Jerome# identity
+    role = Column(Enum(UserRole), default=UserRole.member)
+    github_username = Column(String, nullable=True)
+    avatar_url = Column(String, nullable=True)
+    onboarding_complete = Column(Boolean, default=False)
+
+    # Location (for globe)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    city = Column(String, nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
     last_active_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -104,6 +159,7 @@ class User(Base):
     nudges = relationship("Nudge", back_populates="user")
     pod_memberships = relationship("PodMember", back_populates="user")
     feedback = relationship("SessionFeedback", back_populates="user")
+    onboarding_survey = relationship("OnboardingSurvey", back_populates="user", uselist=False)
 
 
 class Session(Base):
@@ -236,3 +292,42 @@ class Event(Base):
     user_id = Column(String, ForeignKey("users.id"), nullable=True)
     payload = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class OnboardingSurvey(Base):
+    __tablename__ = "onboarding_surveys"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    user_id = Column(String, ForeignKey("users.id"), unique=True, nullable=False)
+    role = Column(String, nullable=True)             # developer, founder, student, designer, other
+    experience_level = Column(Enum(ExperienceLevel), nullable=True)
+    primary_goal = Column(String, nullable=True)     # stress_relief, focus, consistency, community
+    preferred_time = Column(String, nullable=True)   # morning, afternoon, evening
+    burnout_level = Column(Integer, nullable=True)   # 1-10
+    how_heard = Column(String, nullable=True)        # github, twitter, friend, newsletter, hn, reddit, other
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="onboarding_survey")
+
+
+class AgentLog(Base):
+    __tablename__ = "agent_logs"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    agent_type = Column(Enum(AgentType), nullable=False)
+    action = Column(String, nullable=False)
+    payload = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class SocialShare(Base):
+    __tablename__ = "social_shares"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    platform = Column(Enum(SocialPlatform), nullable=False)
+    share_type = Column(String, nullable=False)  # streak_milestone, session_complete, badge_earned
+    content = Column(Text, nullable=True)
+    external_url = Column(Text, nullable=True)
+    shared_at = Column(DateTime, default=datetime.utcnow)

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session as DBSession
 
 from src.db.database import get_db
 from src.db.models import User, Streak, Session as SessionModel, Pod, PodMember
+from src.agents.session_types import today_session_type
 
 router = APIRouter()
 
@@ -142,9 +143,11 @@ def globe_data(db: DBSession = Depends(get_db)):
         "connections": unique_connections,
         "stats": {
             "total_builders": total_builders,
+            "total_jeromes": total_builders,
             "countries": num_countries,
             "sessions_today": sessions_today,
             "longest_streak": longest_streak,
+            "session_type": today_session_type(),
         },
     })
 

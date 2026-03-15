@@ -1,53 +1,54 @@
-# Show HN: Jerome7 -- 5 AI Agents, 7 Minutes, One Daily Session for Every Builder on Earth
+# Show HN: Jerome7 — 7-Min Daily Wellness for Developers (Open Source)
 
-Hey HN,
+Hey HN — I'm Omar. I was 80 lbs overweight. Couldn't run a mile.
 
-I'm Omar. Two years ago I weighed 280 lbs and couldn't run a block. I started with 7 minutes of bodyweight exercises a day -- that's it. No gym, no equipment, no plan beyond "just show up." I lost 80 lbs, ran the Boston Marathon, then finished an Ironman 70.3.
+Started with 7 minutes of walking a day. That turned into the Boston Marathon,
+then an Ironman 70.3, then MIT. Not because I was exceptional — because I was
+consistent.
 
-The thing that worked wasn't any particular workout. It was the consistency. Seven minutes is short enough that you can't talk yourself out of it.
+Jerome7 is what I wish existed back then. It's a daily 7-minute guided session
+(breathwork, meditation, reflection — rotating daily) built specifically for
+builders and coders. No exercise equipment. Just earphones and a place to sit.
 
-**What Jerome7 is:**
+**How it works:**
 
-Every day, Jerome7 generates one 7-minute bodyweight session. Same session for everyone on Earth, same day. Like Wordle, but you move. You open it, you do the 7 blocks (1 minute each), you're done. No decision fatigue, no browsing exercises, no personalization rabbit hole.
+Every day, Jerome7 generates one wellness session. Same session for every builder
+on Earth. The type rotates: breathwork → meditation → reflection → preparation.
+Like Wordle, but for your mind.
 
-**The 5 agents:**
+Every user gets a Jerome# — a permanent identity (I'm Jerome7). First come,
+first served. Low numbers become status symbols.
 
-This is the part I'm most interested in feedback on. Jerome7 runs 5 autonomous AI agents that work together to keep you consistent:
+**The 5 AI agents:**
 
-1. **Coach** -- Adapts exercise difficulty based on your logged history. If you're consistently completing all blocks, it progressively loads. If you're struggling, it scales down. Uses Gemini 2.5 Flash for generation.
+Tech stack: FastAPI + PostgreSQL + Gemini 2.5 Flash for AI coaching.
+We have 5 AI agents that communicate via A2A protocol:
 
-2. **Nudge** -- Predicts when you're likely to skip based on your historical patterns (time of day, day of week, streak length). Sends an intervention *before* the skip happens, not after.
+1. **Coach** — Generates sessions. Reads your feedback. Adjusts tomorrow.
+2. **Nudge** — Learns skip patterns. Fires a reminder before you ghost.
+3. **Streak** — 3-miss rule (not 1). 1 save per 30 days.
+4. **Community** — Matches pods of 3-5 by timezone + engagement.
+5. **Scheduler** — Finds your optimal session window.
 
-3. **Streak** -- Implements a 3-miss chain break mechanic. You don't lose your streak on one missed day. You lose it after 3. This is borrowed from behavioral research on habit formation -- binary streaks are too fragile.
+**MCP-native:** Jerome7 is an MCP server. Claude, GPT, Gemini — any
+MCP-compatible agent can check your streak, pull today's session, and
+nudge you through standard tool calls.
 
-4. **Community** -- Matches you into accountability pods of 3-5 people based on timezone, fitness level, and activity window. Small group > large community for accountability.
+**The globe:** Every builder who shows up is a dot on a 3D globe at
+jerome7.com/globe. Watch the world light up.
 
-5. **Scheduler** -- Learns your preferred session times and patterns over the first two weeks, then optimizes nudge timing accordingly.
-
-**Tech stack:**
-
-- FastAPI + PostgreSQL
-- Gemini 2.5 Flash for session generation
-- MCP-native: Jerome7 exposes itself as an MCP server, so it works natively with Claude, GPT-4, Gemini, or any MCP-compatible client
-- `npx jerome7` gets you a session from your terminal
-
-The MCP piece is what I think is genuinely new. Your AI assistant can check your streak, pull today's session, log completions, and nudge you -- all through standard tool calls. The fitness app becomes a capability your agent has, not a separate app you have to open.
-
-**Why "Jerome7":**
-
-Named after Jerome Morrow from Gattaca. The guy who had every genetic advantage but still needed someone else's determination to get to space. The name felt right for a project about proving that consistency beats talent.
+**The science:** Peking University research (2023) confirms 7-minute breathing
+reduces stress (p < .001), increases serenity, decreases anxiety.
 
 **Details:**
+- Free forever. No premium tier. No paywall. Apache 2.0.
+- `npx jerome7` or `npx jerome7 --wellness` from your terminal
+- 14 builders from 8+ countries so far
 
-- Free forever. No premium tier. No "unlock advanced features."
-- Open source, Apache 2.0
-- Built at MIT
-
-**Links:**
+Would love feedback on the agent architecture and whether the 7-minute
+format resonates. Happy to dive deep on the technical side.
 
 - Live: https://jerome7.com
-- GitHub: https://github.com/odominguez7/jerome7
-- Discord: https://discord.gg/jerome7
-- CLI: `npx jerome7`
-
-I'd love feedback on the agent architecture specifically. The nudge prediction and streak mechanics are where I've spent the most time iterating. Happy to go deep on any of it.
+- GitHub: https://github.com/odominguez7/Jerome7
+- Globe: https://jerome7.com/globe
+- Discord: https://discord.gg/5AZP8DbEJm

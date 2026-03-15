@@ -215,6 +215,36 @@ def embed_badge(user_id: str, db: DBSession = Depends(get_db)):
 # 2. GET /embed/badge/{user_id}/markdown — markdown snippet
 # ---------------------------------------------------------------------------
 
+@router.get("/api/badge/{jerome_number}.svg")
+def badge_by_jerome_number(jerome_number: int, db: DBSession = Depends(get_db)):
+    """SVG streak badge by Jerome# number (real-time).
+
+    Usage in markdown:
+        ![Jerome42](https://jerome7.com/api/badge/42.svg)
+    """
+    user = db.query(User).filter(User.jerome_number == jerome_number).first()
+    if not user:
+        svg = _shield_svg(f"Jerome{jerome_number}", "not found", color="#999")
+        return Response(content=svg, media_type="image/svg+xml", headers={
+            "Cache-Control": "no-cache",
+        })
+
+    streak_row = db.query(Streak).filter(Streak.user_id == user.id).first()
+    current = streak_row.current_streak if streak_row else 0
+
+    label = f"Jerome{jerome_number}"
+    if current == 0:
+        value = "Day 0"
+    else:
+        value = f"Day {current} \U0001f525"
+
+    svg = _shield_svg(label, value)
+    return Response(content=svg, media_type="image/svg+xml", headers={
+        "Cache-Control": "public, max-age=3600",
+        "Access-Control-Allow-Origin": "*",
+    })
+
+
 @router.get("/embed/badge/{user_id}/markdown")
 def embed_badge_markdown(user_id: str):
     """Return a copy-paste markdown snippet for the streak badge."""

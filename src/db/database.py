@@ -29,6 +29,15 @@ def _migrate_add_columns():
         "source": "VARCHAR",
         "goal": "VARCHAR",
         "invited_by": "VARCHAR",
+        "jerome_number": "INTEGER",
+        "display_name": "VARCHAR",
+        "role": "VARCHAR",
+        "github_username": "VARCHAR",
+        "avatar_url": "VARCHAR",
+        "onboarding_complete": "BOOLEAN",
+        "latitude": "FLOAT",
+        "longitude": "FLOAT",
+        "city": "VARCHAR",
     }
 
     if "users" in inspector.get_table_names():

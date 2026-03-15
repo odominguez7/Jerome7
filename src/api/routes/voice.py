@@ -11,12 +11,13 @@ import httpx
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse, Response, JSONResponse
 
-from src.api.routes.daily import get_daily
+from src.api.routes.daily import get_daily, get_daily_wellness
 
 router = APIRouter()
 
 # ── In-memory audio cache (keyed by date string) ────────────────────────────
 _audio_cache: dict[str, bytes] = {}
+_wellness_audio_cache: dict[str, bytes] = {}
 
 def _get_api_key():
     return os.getenv("ELEVENLABS_API_KEY", "")
@@ -978,3 +979,111 @@ async def voice_session():
 </html>"""
 
     return HTMLResponse(content=html)
+
+
+# ── Wellness audio generation ──────────────────────────────────────────────
+
+def _build_wellness_narration(blocks: list[dict], session_type: str, closing: str) -> str:
+    """Build narration script for wellness sessions (breathwork/meditation/reflection/preparation)."""
+    lines = []
+
+    # Opening
+    lines.append(
+        "Welcome to Jerome 7. "
+        f"Today is a {session_type} session. "
+        "Builders around the world are with you right now. "
+        "Find a comfortable position. Close your eyes if that feels right."
+    )
+    lines.append("...")
+
+    # Walk through each block
+    for i, b in enumerate(blocks, 1):
+        name = b.get("name", f"Block {i}")
+        instruction = b.get("instruction", "")
+        lines.append(f"{name}. {instruction}")
+        lines.append("...")
+
+    # Closing
+    lines.append(closing)
+    return "\n".join(lines)
+
+
+@router.post("/voice/wellness/generate")
+async def voice_wellness_generate():
+    """Generate ElevenLabs TTS audio for today's wellness session. Cached per day."""
+    api_key = _get_api_key()
+    voice_id = _get_voice_id()
+    if not api_key:
+        return JSONResponse(
+            status_code=503,
+            content={"error": "ElevenLabs API key not configured."},
+        )
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if today in _wellness_audio_cache:
+        return {"status": "generated", "url": "/voice/wellness/audio", "cached": True}
+
+    session = await get_daily_wellness()
+    if hasattr(session, "model_dump"):
+        session = session.model_dump()
+    elif hasattr(session, "dict"):
+        session = session.dict()
+
+    blocks = session.get("blocks", [])
+    session_type = session.get("session_type", "breathwork")
+    closing = session.get("closing", "You showed up. That's the win.")
+
+    script = _build_wellness_narration(blocks, session_type, closing)
+
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    headers = {
+        "xi-api-key": api_key,
+        "Content-Type": "application/json",
+        "Accept": "audio/mpeg",
+    }
+    payload = {
+        "text": script,
+        "model_id": "eleven_turbo_v2_5",
+        "voice_settings": {
+            "stability": 0.6,
+            "similarity_boost": 0.8,
+            "style": 0.0,
+            "use_speaker_boost": True,
+        },
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            resp = await client.post(url, json=payload, headers=headers)
+            if resp.status_code != 200:
+                return JSONResponse(
+                    status_code=502,
+                    content={"error": f"ElevenLabs API error: {resp.status_code}"},
+                )
+            _wellness_audio_cache[today] = resp.content
+    except httpx.TimeoutException:
+        return JSONResponse(status_code=504, content={"error": "ElevenLabs API timed out."})
+    except httpx.HTTPError as exc:
+        return JSONResponse(status_code=502, content={"error": f"HTTP error: {str(exc)}"})
+
+    return {"status": "generated", "url": "/voice/wellness/audio", "cached": False}
+
+
+@router.get("/voice/wellness/audio")
+async def voice_wellness_audio():
+    """Stream the cached wellness TTS MP3 for today's session."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    audio = _wellness_audio_cache.get(today)
+    if audio is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "No wellness audio for today. POST /voice/wellness/generate first."},
+        )
+    return Response(
+        content=audio,
+        media_type="audio/mpeg",
+        headers={
+            "Content-Disposition": f'inline; filename="jerome7-wellness-{today}.mp3"',
+            "Cache-Control": "public, max-age=86400",
+        },
+    )
