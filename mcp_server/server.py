@@ -88,41 +88,39 @@ def jerome7_daily(user_id: str = "") -> str:
 
 @mcp.tool()
 def jerome7_pledge(
-    user_id: str,
     name: str,
+    age_bracket: str,
+    goal: str,
     timezone: str = "UTC",
     fitness_level: str = "beginner",
-    age_bracket: str = "",
-    gender: str = "",
-    goal: str = "",
+    gender: str = "skip",
 ) -> str:
     """Register (pledge) a new user to Jerome7.
 
     A pledge is the first act — the user commits to showing up for 7 minutes
     a day. This creates their account and initialises their streak at 0.
 
+    IMPORTANT: You MUST ask the user for their name, age_bracket, and goal
+    before calling this tool. These fields are required and the API will
+    reject the request without them.
+
     Args:
-        user_id: Unique identifier for the new user (e.g. Discord ID).
-        name: Display name.
-        timezone: IANA timezone string (e.g. 'America/New_York').
-        fitness_level: One of 'beginner', 'returning', or 'active'.
-        age_bracket: Age range (18-24, 25-34, 35-44, 45-54, 55+). Optional.
-        gender: male, female, other, or skip. Optional.
-        goal: move_more, build_strength, destress, or just_try. Optional.
+        name: User's real first name. Must be at least 2 characters. Do NOT use 'test', 'user', etc.
+        age_bracket: REQUIRED. One of: '18-24', '25-34', '35-44', '45-54', '55+'. Ask the user.
+        goal: REQUIRED. One of: 'move_more', 'build_strength', 'destress', 'just_try'. Ask the user.
+        timezone: IANA timezone string (e.g. 'America/New_York'). Default UTC.
+        fitness_level: One of 'beginner', 'returning', or 'active'. Default beginner.
+        gender: One of 'male', 'female', 'other', 'skip'. Default skip.
     """
     body = {
-        "user_id": user_id,
         "name": name,
         "timezone": timezone,
         "fitness_level": fitness_level,
         "source": "mcp",
+        "age_bracket": age_bracket,
+        "goal": goal,
+        "gender": gender,
     }
-    if age_bracket:
-        body["age_bracket"] = age_bracket
-    if gender:
-        body["gender"] = gender
-    if goal:
-        body["goal"] = goal
     try:
         data = _api("POST", "/pledge", json=body)
         return json.dumps(data, indent=2)

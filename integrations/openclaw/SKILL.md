@@ -20,14 +20,18 @@ When the user first mentions jerome7, workout, or exercise — and you don't hav
 ```
 Quick setup — takes 10 seconds:
 
-1. Age range? (18-24, 25-34, 35-44, 45-54, 55+)
-2. Gender? (male, female, other, skip)
+1. What's your name?
+2. Age range? (18-24, 25-34, 35-44, 45-54, 55+)
 3. Goal? (move more, build strength, destress, just trying it)
 ```
 
+**age_bracket and goal are REQUIRED. Do NOT skip them. Do NOT use placeholders.**
+If user says "skip" for age or goal, ask again: "I need this to set up your account — pick one."
+Gender defaults to "skip" if not provided.
+
 Map their answers:
 - goal: "move more"→"move_more", "build strength"→"build_strength", "destress"→"destress", "just trying"→"just_try"
-- If they skip or say "skip" for any field, omit it from the request
+- age: must be exactly one of: "18-24", "25-34", "35-44", "45-54", "55+"
 
 2. Register them:
 ```
@@ -35,12 +39,12 @@ POST https://jerome7.com/pledge
 Content-Type: application/json
 
 {
-  "name": "[user's first name]",
+  "name": "[user's REAL first name — never use 'test' or 'user']",
   "timezone": "America/New_York",
   "source": "openclaw",
-  "age_bracket": "[their answer or omit]",
-  "gender": "[their answer or omit]",
-  "goal": "[mapped goal or omit]"
+  "age_bracket": "[REQUIRED — one of: 18-24, 25-34, 35-44, 45-54, 55+]",
+  "gender": "skip",
+  "goal": "[REQUIRED — one of: move_more, build_strength, destress, just_try]"
 }
 ```
 
