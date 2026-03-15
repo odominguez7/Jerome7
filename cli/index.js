@@ -6,6 +6,7 @@
  * Usage:
  *   npx jerome7          → start today's session
  *   npx jerome7 --peek   → preview blocks without starting timer
+ *   npx jerome7 --json   → output session as JSON for piping to other tools
  */
 
 const https = require("https");
@@ -133,9 +134,26 @@ function peekSession(session) {
   console.log();
 }
 
+function outputJson(session) {
+  console.log(JSON.stringify(session, null, 2));
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const peek = args.includes("--peek") || args.includes("-p");
+  const json = args.includes("--json") || args.includes("-j");
+
+  // For JSON output, skip the header and fetch directly
+  if (json) {
+    try {
+      const session = await fetch(`${API}/daily`);
+      outputJson(session);
+    } catch (err) {
+      console.error(JSON.stringify({ error: "Could not reach jerome7.com — check your connection." }));
+      process.exit(1);
+    }
+    return;
+  }
 
   printHeader();
 
