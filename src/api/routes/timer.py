@@ -190,6 +190,37 @@ async def timer_page():
     font-size: 10px; color: #30363d; margin-top: 16px; letter-spacing: 1px;
   }}
 
+  /* ── COMMUNITY STATS ── */
+  .community-bar {{
+    display: flex; justify-content: center; gap: 24px;
+    margin-bottom: 24px;
+  }}
+  .community-stat {{
+    text-align: center;
+  }}
+  .community-num {{
+    font-size: 20px; font-weight: 800; color: #E85D04;
+  }}
+  .community-label {{
+    font-size: 9px; letter-spacing: 2px; color: #484f58;
+  }}
+
+  /* ── AMBIENT AUDIO TOGGLE ── */
+  .ambient-toggle {{
+    position: fixed; bottom: 20px; left: 20px; z-index: 50;
+    display: flex; align-items: center; gap: 8px;
+    background: #161b22; border: 1px solid #21262d;
+    border-radius: 100px; padding: 6px 14px;
+    font-size: 10px; color: #484f58; cursor: pointer;
+    letter-spacing: 1px; border: none; font-family: inherit;
+  }}
+  .ambient-toggle:hover {{ color: #8b949e; }}
+  .ambient-dot {{
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #3fb950; transition: background 0.2s;
+  }}
+  .ambient-dot.off {{ background: #484f58; }}
+
   /* ── ACTIVE SESSION ── */
   .phase-label {{
     font-size: 10px; letter-spacing: 3px; margin-bottom: 12px;
@@ -317,6 +348,22 @@ async def timer_page():
       LIVE SESSION
     </div>
 
+    <!-- Community stats -->
+    <div class="community-bar" id="communityBar">
+      <div class="community-stat">
+        <div class="community-num" id="statJeromes">--</div>
+        <div class="community-label">JEROMES</div>
+      </div>
+      <div class="community-stat">
+        <div class="community-num" id="statToday">--</div>
+        <div class="community-label">TODAY</div>
+      </div>
+      <div class="community-stat">
+        <div class="community-num" id="statCountries">--</div>
+        <div class="community-label">COUNTRIES</div>
+      </div>
+    </div>
+
     <div class="session-type" id="sessionType" style="--type-color:#4ecdc4">{session_type.upper()}</div>
     <div class="session-title">{title}</div>
     <div class="session-desc">{type_desc}</div>
@@ -324,7 +371,7 @@ async def timer_page():
     <div class="blocks-preview" id="blocksPreview"></div>
 
     <button class="start-btn" id="startBtn" onclick="beginSession()">BEGIN SESSION</button>
-    <div class="voice-note">Voice-guided. Use earphones for the best experience.</div>
+    <div class="voice-note">Voice-guided with ambient 432Hz audio. Use earphones.</div>
   </div>
 
   <!-- ACTIVE SESSION -->
@@ -343,6 +390,8 @@ async def timer_page():
     <div class="complete-check">&#10003;</div>
     <div class="complete-title">SESSION COMPLETE</div>
     <div class="complete-text" id="closingText">{closing}</div>
+    <div class="complete-text" id="streakStatus" style="color:#E85D04;font-weight:700;margin-bottom:8px"></div>
+    <div class="complete-text" id="communityStatus" style="font-size:12px;color:#484f58;margin-bottom:24px"></div>
     <div class="share-row">
       <button class="share-btn primary" onclick="copyCard()">Copy to Clipboard</button>
       <button class="share-btn" onclick="shareTwitter()">Share on Twitter</button>
@@ -356,6 +405,12 @@ async def timer_page():
   </div>
 
 </div>
+
+<!-- Ambient audio toggle -->
+<button class="ambient-toggle" id="ambientToggle" onclick="toggleAmbient()">
+  <span class="ambient-dot" id="ambientDot"></span>
+  432Hz
+</button>
 
 <script>
 // ── Config ──
@@ -378,6 +433,74 @@ let remaining = 0;
 let totalElapsed = 0;
 let interval = null;
 let userName = '';
+let jeromeNumber = null;
+let communityData = {{ total_jeromes: 0, sessions_today: 0, countries: 0 }};
+
+// ── Ambient 432Hz Audio (Web Audio API) ──
+let ambientCtx = null;
+let ambientOsc = null;
+let ambientGain = null;
+let ambientOn = true;
+
+function initAmbient() {{
+  try {{
+    ambientCtx = new (window.AudioContext || window.webkitAudioContext)();
+    ambientGain = ambientCtx.createGain();
+    ambientGain.gain.value = 0;
+    ambientGain.connect(ambientCtx.destination);
+
+    // Primary tone: 432Hz (relaxation frequency)
+    ambientOsc = ambientCtx.createOscillator();
+    ambientOsc.type = 'sine';
+    ambientOsc.frequency.value = 432;
+    ambientOsc.connect(ambientGain);
+    ambientOsc.start();
+
+    // Second tone: 438Hz (6Hz binaural beat = theta waves / meditation)
+    const osc2 = ambientCtx.createOscillator();
+    osc2.type = 'sine';
+    osc2.frequency.value = 438;
+    osc2.connect(ambientGain);
+    osc2.start();
+  }} catch(e) {{ /* Web Audio not supported */ }}
+}}
+
+function startAmbient() {{
+  if (!ambientCtx || !ambientOn) return;
+  if (ambientCtx.state === 'suspended') ambientCtx.resume();
+  ambientGain.gain.linearRampToValueAtTime(0.06, ambientCtx.currentTime + 3);
+}}
+
+function stopAmbient() {{
+  if (!ambientCtx || !ambientGain) return;
+  ambientGain.gain.linearRampToValueAtTime(0, ambientCtx.currentTime + 2);
+}}
+
+function toggleAmbient() {{
+  ambientOn = !ambientOn;
+  const dot = document.getElementById('ambientDot');
+  if (ambientOn) {{
+    dot.classList.remove('off');
+    if (totalElapsed > 0) startAmbient();
+  }} else {{
+    dot.classList.add('off');
+    stopAmbient();
+  }}
+}}
+
+// ── Community Stats ──
+async function loadCommunityStats() {{
+  try {{
+    const resp = await fetch('/stats');
+    const data = await resp.json();
+    communityData = data;
+    document.getElementById('statJeromes').textContent = data.total_jeromes || 0;
+    document.getElementById('statToday').textContent = data.sessions_today || 0;
+    document.getElementById('statCountries').textContent = data.countries_represented || 0;
+  }} catch(e) {{
+    // Silently fail
+  }}
+}}
 
 // ── Onboarding ──
 function checkOnboarding() {{
@@ -385,7 +508,8 @@ function checkOnboarding() {{
   if (stored) {{
     const user = JSON.parse(stored);
     userName = user.name || '';
-    return; // already onboarded
+    jeromeNumber = user.jeromeNumber || null;
+    return;
   }}
   document.getElementById('onboarding').classList.remove('hidden');
 }}
@@ -417,15 +541,14 @@ async function submitOnboarding() {{
     }};
     localStorage.setItem('jerome7_user', JSON.stringify(userData));
     userName = name;
+    jeromeNumber = data.jerome_number;
 
-    // Show assigned number
     document.getElementById('onboard-greeting').textContent =
       'You are Jerome' + (data.jerome_number || '?') + '!';
     btn.textContent = 'LET\\'S GO';
     btn.disabled = false;
     btn.onclick = () => document.getElementById('onboarding').classList.add('hidden');
   }} catch(e) {{
-    // Save locally even if server fails
     localStorage.setItem('jerome7_user', JSON.stringify({{ name: name, role: role, goal: goal }}));
     userName = name;
     document.getElementById('onboarding').classList.add('hidden');
@@ -472,12 +595,21 @@ function beginSession() {{
   document.getElementById('preStart').classList.add('hidden');
   document.getElementById('activeSession').classList.remove('hidden');
 
+  // Init and start ambient audio
+  initAmbient();
+  startAmbient();
+
   // Build dots
   document.getElementById('dots').innerHTML = blocks.map((_, i) =>
     '<div class="dot" id="d' + i + '"></div>').join('');
 
-  // Welcome narration
-  const greeting = userName ? ('Welcome, ' + userName + '.') : 'Welcome to Jerome 7.';
+  // Personalized welcome with Jerome#
+  let greeting = 'Welcome to Jerome 7.';
+  if (userName && jeromeNumber) {{
+    greeting = 'Good morning, Jerome' + jeromeNumber + '.';
+  }} else if (userName && userName !== 'builder') {{
+    greeting = 'Welcome, ' + userName + '.';
+  }}
   speak(greeting + ' Today is a ' + sessionType + ' session. Let\\'s begin.');
 
   currentBlock = 0;
@@ -503,7 +635,7 @@ function showBlock(i) {{
     dot.className = 'dot' + (j < i ? ' done' : j === i ? ' active' : '');
   }});
 
-  // Narrate
+  // Narrate block
   speak(b.name + '. ' + (b.instruction || ''));
 }}
 
@@ -528,6 +660,9 @@ function tick() {{
 }}
 
 function finishSession() {{
+  // Fade out ambient
+  stopAmbient();
+
   document.getElementById('activeSession').classList.add('hidden');
   document.getElementById('complete').classList.remove('hidden');
   document.getElementById('closingText').textContent = closingText;
@@ -535,8 +670,22 @@ function finishSession() {{
   // Record streak
   recordSession();
 
-  // Closing narration
-  speak('Session complete. ' + closingText);
+  // Show streak status with Jerome#
+  const day = getStreakDay();
+  const jLabel = jeromeNumber ? 'Jerome' + jeromeNumber : (userName || 'YU');
+  document.getElementById('streakStatus').textContent =
+    'Day ' + day + '. ' + jLabel + ' showed up.';
+
+  // Show community stat
+  const jCount = communityData.total_jeromes || 0;
+  if (jCount > 1) {{
+    document.getElementById('communityStatus').textContent =
+      jCount + ' Jeromes also showed up today.';
+  }}
+
+  // Personalized closing narration
+  const closingNarration = 'Session complete. Day ' + day + '. ' + jLabel + ' showed up. ' + closingText;
+  speak(closingNarration);
 }}
 
 function formatTime(s) {{
@@ -564,7 +713,7 @@ function recordSession() {{
     totalSessions: (data.totalSessions || 0) + 1,
   }}));
 
-  // Also log to server if we have a user ID
+  // Log to server
   const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
   if (user.userId) {{
     fetch('/log', {{
@@ -607,6 +756,7 @@ function shareTwitter() {{
 if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
 renderPreview();
 checkOnboarding();
+loadCommunityStats();
 </script>
 </body>
 </html>"""
