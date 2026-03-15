@@ -143,10 +143,15 @@ async def voice_audio():
 async def voice_session():
     """Voice-guided session — AI voice (ElevenLabs) or browser speech fallback."""
     session = await get_daily()
-    blocks = session.get("blocks", [])
-    title = session.get("session_title", "the seven 7")
+    if hasattr(session, "model_dump"):
+        session = session.model_dump()
+    elif hasattr(session, "dict"):
+        session = session.dict()
+    blocks = session.get("blocks", []) if isinstance(session, dict) else []
+    title = session.get("session_title", "the seven 7") if isinstance(session, dict) else "the seven 7"
 
-    ai_available = "true" if ELEVENLABS_API_KEY else "false"
+    closing_text = session.get("closing", "You showed up. That is the win.").replace("'", "\\'") if isinstance(session, dict) else "You showed up. That is the win."
+    ai_available = "true" if _get_api_key() else "false"
 
     # Serialize blocks to JS
     blocks_js = "[\n"
@@ -417,7 +422,7 @@ async def voice_session():
 
 <script>
   const blocks = {blocks_js};
-  const closing = '{session.get("closing", "You showed up. That is the win.").replace(chr(39), chr(92)+chr(39))}';
+  const closing = '{closing_text}';
   const aiAvailable = {ai_available};
 
   let voiceMode = aiAvailable ? 'ai' : 'browser';  // 'ai' or 'browser'
