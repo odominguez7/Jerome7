@@ -104,6 +104,13 @@ def share_card(user_id: str, db: DBSession = Depends(get_db)):
     border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700;
   }}
   .cta:hover {{ background: #ff6b1a; }}
+  .share-buttons {{ display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }}
+  .cta-twitter {{
+    display: block; text-align: center;
+    background: #000; color: #fff; padding: 10px 20px;
+    border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700;
+  }}
+  .cta-twitter:hover {{ background: #1a1a1a; }}
 </style>
 </head>
 <body>
@@ -121,8 +128,11 @@ def share_card(user_id: str, db: DBSession = Depends(get_db)):
     <div class="stat"><div class="stat-num">{longest}</div><div class="stat-label">LONGEST</div></div>
     <div class="stat"><div class="stat-num">{total}</div><div class="stat-label">TOTAL</div></div>
   </div>
-  <div class="footer">yu showed up · <a href="https://github.com/odominguez7/Jerome7">github.com/odominguez7/Jerome7</a></div>
-  <a class="cta" href="https://github.com/odominguez7/Jerome7">Join Jerome7 — 7 min/day</a>
+  <div class="footer">yu showed up · <a href="https://jerome7.com">jerome7.com</a></div>
+  <div class="share-buttons">
+    <a class="cta-twitter" href="https://twitter.com/intent/tweet?text=Day+{current}+%F0%9F%94%A5+Just+finished+my+Jerome7+session.+7+minutes.+Every+day.+%E2%80%94+jerome7.com+%23jerome7+%23buildinpublic" target="_blank">𝕏 Share your streak</a>
+    <a class="cta" href="https://discord.gg/5AZP8DbEJm">Join the Discord →</a>
+  </div>
 </div>
 </body>
 </html>"""
