@@ -1,4 +1,8 @@
-"""GET /timer — live countdown timer. One move at a time. No login required."""
+"""GET /timer — The unified 7-minute wellness session.
+
+Combines onboarding, audio-guided wellness, and session completion into one flow.
+Session type rotates daily: breathwork → meditation → reflection → preparation.
+"""
 
 import json
 from datetime import datetime
@@ -7,81 +11,218 @@ from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
 from src.agents.coach import CoachAgent
+from src.agents.session_types import today_session_type
 
 router = APIRouter()
 coach = CoachAgent()
 
-# Cache daily session for timer
-_timer_cache: dict = {"date": None, "session": None}
+_cache: dict = {"date": None, "session": None}
 
 
 @router.get("/timer", response_class=HTMLResponse)
 async def timer_page():
-    """Universal timer — no user ID needed. Uses today's daily session."""
     today = datetime.utcnow().strftime("%Y-%m-%d")
+    session_type = today_session_type()
 
-    if _timer_cache["date"] == today and _timer_cache["session"]:
-        data = _timer_cache["session"]
+    if _cache["date"] == today and _cache["session"]:
+        data = _cache["session"]
     else:
-        data = await coach.generate_daily()
-        _timer_cache["date"] = today
-        _timer_cache["session"] = data
+        try:
+            data = await coach.generate_wellness(session_type)
+        except Exception:
+            data = await coach.generate_daily()
+        _cache["date"] = today
+        _cache["session"] = data
 
     blocks_json = json.dumps(data.get("blocks", []))
-    title = data.get("session_title", "the seven 7")
+    title = data.get("session_title", session_type.title())
+    closing = data.get("closing", "You showed up. That's the win.").replace("'", "\\'")
+
+    type_labels = {
+        "breathwork": "Guided Breathwork",
+        "meditation": "Focus Meditation",
+        "reflection": "Reflection",
+        "preparation": "Preparation for the Day",
+    }
+    type_label = type_labels.get(session_type, session_type.title())
+
+    type_descriptions = {
+        "breathwork": "Box breathing. 4-count cycles. Calm your nervous system.",
+        "meditation": "Breath awareness. Gentle focus. Developing calmness.",
+        "reflection": "Journaling prompt. Silent reflection. Carry one thing forward.",
+        "preparation": "Visualization. 3 priorities. Launch into the day.",
+    }
+    type_desc = type_descriptions.get(session_type, "7 minutes of guided wellness.")
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Jerome7 — {title}</title>
+<title>Jerome7 — {type_label}</title>
+<meta name="description" content="Today's 7-minute guided {session_type} session. Same for every builder on earth.">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{
-    background: #0d1117; color: #f0f6fc;
+    background: #0d1117; color: #c9d1d9;
     font-family: 'JetBrains Mono', monospace;
-    height: 100vh; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    overflow: hidden; padding: 20px;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }}
+  .container {{ max-width: 560px; width: 100%; text-align: center; }}
+
+  /* ── NAV ── */
+  .nav {{
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 24px; background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(12px); border-bottom: 1px solid #21262d;
+  }}
+  .nav-brand {{
+    font-size: 13px; font-weight: 800; color: #E85D04;
+    letter-spacing: 2px; text-decoration: none;
+  }}
+  .nav-links {{ display: flex; gap: 20px; }}
+  .nav-links a {{
+    font-size: 12px; color: #8b949e; text-decoration: none;
+    letter-spacing: 0.5px;
+  }}
+  .nav-links a:hover {{ color: #f0f6fc; }}
+
+  /* ── ONBOARDING MODAL ── */
+  .modal-overlay {{
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }}
+  .modal {{
+    background: #161b22; border: 1px solid #30363d;
+    border-radius: 16px; padding: 40px; max-width: 420px;
+    width: 100%; text-align: center;
+  }}
+  .modal-brand {{ font-size: 10px; letter-spacing: 3px; color: #E85D04; margin-bottom: 16px; }}
+  .modal h2 {{ font-size: 22px; font-weight: 800; color: #f0f6fc; margin-bottom: 8px; }}
+  .modal .subtitle {{ font-size: 12px; color: #484f58; margin-bottom: 32px; }}
+  .modal label {{
+    display: block; text-align: left; font-size: 10px;
+    letter-spacing: 2px; color: #8b949e; margin-bottom: 6px; margin-top: 16px;
+  }}
+  .modal input, .modal select {{
+    width: 100%; padding: 12px 16px; background: #0d1117;
+    border: 1px solid #30363d; border-radius: 8px;
+    color: #f0f6fc; font-family: inherit; font-size: 14px;
+    outline: none;
+  }}
+  .modal input:focus, .modal select:focus {{ border-color: #E85D04; }}
+  .modal select {{ appearance: none; cursor: pointer; }}
+  .modal-btn {{
+    width: 100%; margin-top: 24px; padding: 14px;
+    background: #E85D04; color: #fff; border: none;
+    border-radius: 100px; font-family: inherit;
+    font-size: 14px; font-weight: 700; letter-spacing: 1px;
+    cursor: pointer;
+  }}
+  .modal-btn:hover {{ background: #ff6b1a; }}
+  .modal-btn:disabled {{ background: #21262d; color: #484f58; cursor: default; }}
+  .modal-skip {{
+    display: block; margin-top: 16px; font-size: 11px;
+    color: #484f58; cursor: pointer; background: none;
+    border: none; font-family: inherit; letter-spacing: 1px;
+  }}
+  .modal-skip:hover {{ color: #8b949e; }}
+  .hidden {{ display: none !important; }}
+
+  /* ── PRE-START ── */
+  .session-badge {{
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #161b22; border: 1px solid #30363d;
+    border-radius: 100px; padding: 8px 20px;
+    font-size: 10px; letter-spacing: 2px; color: #8b949e;
+    margin-bottom: 24px;
+  }}
+  .session-badge .pulse {{
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #3fb950; animation: pulse 2s infinite;
+  }}
+  @keyframes pulse {{ 0%,100% {{ opacity: 1; }} 50% {{ opacity: 0.4; }} }}
+
+  .session-type {{
+    font-size: 10px; letter-spacing: 3px; color: var(--type-color);
+    margin-bottom: 12px;
+  }}
+  .session-title {{
+    font-size: 32px; font-weight: 800; color: #f0f6fc;
+    margin-bottom: 12px; line-height: 1.2;
+  }}
+  .session-desc {{
+    font-size: 14px; color: #8b949e; margin-bottom: 40px;
+    max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.6;
   }}
 
-  .brand {{ font-size: 11px; letter-spacing: 3px; color: #E85D04; margin-bottom: 6px; }}
-  .session-title {{ font-size: 14px; color: #484f58; margin-bottom: 40px; }}
-
-  .phase {{
-    font-size: 10px; letter-spacing: 3px; color: #484f58;
-    text-transform: uppercase; margin-bottom: 16px;
-    transition: color 0.3s;
+  /* ── BLOCKS PREVIEW ── */
+  .blocks-preview {{
+    background: #161b22; border: 1px solid #21262d;
+    border-radius: 12px; padding: 20px;
+    margin-bottom: 40px; text-align: left;
   }}
-  .phase.prime {{ color: #7ee787; }}
-  .phase.build {{ color: #E85D04; }}
-  .phase.move {{ color: #f778ba; }}
-  .phase.reset {{ color: #79c0ff; }}
+  .blocks-preview .block-row {{
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+  }}
+  .blocks-preview .block-row:last-child {{ border-bottom: none; }}
+  .block-num {{ font-size: 10px; color: #484f58; min-width: 20px; }}
+  .block-name-prev {{ font-size: 13px; color: #f0f6fc; flex: 1; }}
+  .block-dur {{ font-size: 11px; color: #484f58; }}
 
-  .countdown {{
-    font-size: 120px; font-weight: 800; line-height: 1;
-    margin-bottom: 8px; transition: color 0.3s;
+  /* ── START BUTTON ── */
+  .start-btn {{
+    display: inline-block; padding: 18px 56px;
+    background: #E85D04; color: #fff; border: none;
+    border-radius: 100px; font-family: inherit;
+    font-size: 16px; font-weight: 700; letter-spacing: 1px;
+    cursor: pointer; transition: all 0.2s;
+  }}
+  .start-btn:hover {{ background: #ff6b1a; transform: translateY(-1px); }}
+
+  .voice-note {{
+    font-size: 10px; color: #30363d; margin-top: 16px; letter-spacing: 1px;
   }}
 
-  .block-name {{ font-size: 22px; font-weight: 700; margin-bottom: 12px; }}
-  .block-instruction {{
-    font-size: 14px; color: #8b949e; max-width: 300px;
-    text-align: center; line-height: 1.5; margin-bottom: 40px;
+  /* ── ACTIVE SESSION ── */
+  .phase-label {{
+    font-size: 10px; letter-spacing: 3px; margin-bottom: 12px;
+    transition: color 0.4s;
+  }}
+  .active-name {{
+    font-size: 36px; font-weight: 800; color: #f0f6fc;
+    margin-bottom: 12px; line-height: 1.2;
+  }}
+  .active-instruction {{
+    font-size: 14px; color: #8b949e; margin-bottom: 40px;
+    max-width: 420px; margin-left: auto; margin-right: auto; line-height: 1.6;
+  }}
+  .timer {{
+    font-size: 96px; font-weight: 800; color: #f0f6fc;
+    letter-spacing: -2px; margin-bottom: 8px;
+    font-variant-numeric: tabular-nums;
+  }}
+  .timer-label {{
+    font-size: 10px; color: #484f58; letter-spacing: 2px; margin-bottom: 32px;
   }}
 
+  /* Progress */
   .progress-bar {{
-    width: 100%; max-width: 300px; height: 4px;
-    background: #21262d; border-radius: 2px; overflow: hidden;
-    margin-bottom: 16px;
+    width: 100%; height: 4px; background: #21262d;
+    border-radius: 2px; overflow: hidden; margin-bottom: 12px;
   }}
   .progress-fill {{
-    height: 100%; background: #E85D04; border-radius: 2px;
-    transition: width 1s linear;
+    height: 100%; border-radius: 2px;
+    transition: width 1s linear, background-color 0.4s;
+    width: 0%;
   }}
-
-  .dots {{ display: flex; gap: 8px; margin-bottom: 40px; }}
+  .dots {{ display: flex; gap: 6px; justify-content: center; margin-bottom: 32px; }}
   .dot {{
     width: 8px; height: 8px; border-radius: 50%;
     background: #21262d; transition: all 0.3s;
@@ -89,247 +230,383 @@ async def timer_page():
   .dot.active {{ background: #E85D04; transform: scale(1.3); }}
   .dot.done {{ background: #484f58; }}
 
-  .btn {{
-    padding: 14px 40px; border-radius: 100px; border: none;
-    cursor: pointer; font-family: inherit; font-size: 14px;
-    font-weight: 700; letter-spacing: 1px;
+  /* ── COMPLETE ── */
+  .complete {{ text-align: center; }}
+  .complete-check {{ font-size: 64px; margin-bottom: 16px; color: #3fb950; }}
+  .complete-title {{ font-size: 24px; font-weight: 800; color: #f0f6fc; margin-bottom: 8px; }}
+  .complete-text {{ font-size: 14px; color: #8b949e; margin-bottom: 32px; line-height: 1.6; }}
+  .share-row {{
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    margin-bottom: 16px;
   }}
-  .btn-go {{ background: #E85D04; color: #fff; }}
-  .btn-go:hover {{ background: #ff6b1a; }}
-  .btn-skip {{
-    position: fixed; bottom: 24px; right: 24px;
-    background: transparent; color: #484f58; border: none;
-    cursor: pointer; font-family: inherit; font-size: 11px;
-    letter-spacing: 1px;
-  }}
-  .btn-skip:hover {{ color: #8b949e; }}
-
-  .done {{ display: none; text-align: center; }}
-  .done-mark {{ font-size: 48px; color: #E85D04; margin-bottom: 16px; }}
-  .done-text {{ font-size: 16px; margin-bottom: 8px; }}
-  .done-sub {{ font-size: 13px; color: #484f58; margin-bottom: 32px; }}
-  .share-row {{ display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }}
   .share-btn {{
     padding: 10px 20px; border-radius: 8px; border: 1px solid #30363d;
     background: #161b22; color: #c9d1d9; cursor: pointer;
     font-family: inherit; font-size: 12px; font-weight: 600;
+    transition: all 0.2s;
   }}
   .share-btn:hover {{ border-color: #E85D04; color: #E85D04; }}
   .share-btn.primary {{ background: #E85D04; color: #fff; border-color: #E85D04; }}
-
-  .card-preview {{
-    background: #0f1419; border: 1px solid #30363d; border-radius: 12px;
-    padding: 20px 24px; margin: 24px auto 0; max-width: 320px;
-    text-align: left; font-size: 13px; line-height: 1.7;
-    white-space: pre-line; color: #c9d1d9;
+  .complete-links {{
+    margin-top: 24px; font-size: 11px; color: #484f58;
   }}
-  .card-preview .card-header {{
-    color: #E85D04; font-weight: 700; font-size: 14px;
-  }}
-  .card-preview .card-divider {{ color: #30363d; }}
-  .card-preview .card-exercise {{ color: #c9d1d9; }}
-  .card-preview .card-footer {{
-    color: #484f58; font-size: 12px;
-  }}
-  .card-preview .card-site {{
-    color: #E85D04; font-size: 12px; font-weight: 600;
-  }}
-
-  .share-section {{ margin-top: 20px; }}
-  .share-section .share-row {{ margin-bottom: 12px; }}
-  .view-card-link {{
-    display: inline-block; margin-top: 8px;
-    color: #484f58; font-size: 11px; text-decoration: none;
-    letter-spacing: 1px; transition: color 0.2s;
-  }}
-  .view-card-link:hover {{ color: #E85D04; }}
-  .copied-toast {{
+  .complete-links a {{ color: #E85D04; text-decoration: none; margin: 0 8px; }}
+  .toast {{
     display: none; color: #7ee787; font-size: 11px;
-    margin-top: 6px; letter-spacing: 1px;
+    margin-top: 8px; letter-spacing: 1px;
   }}
 
-  @keyframes pulse {{ 0%,100% {{ opacity: 1; }} 50% {{ opacity: 0.7; }} }}
-  .pulsing {{ animation: pulse 1s ease-in-out infinite; }}
+  @media (max-width: 480px) {{
+    .timer {{ font-size: 64px; }}
+    .session-title {{ font-size: 24px; }}
+    .active-name {{ font-size: 24px; }}
+  }}
 </style>
 </head>
 <body>
 
-<div id="main">
-  <div class="brand">JEROME7</div>
-  <div class="session-title">{title}</div>
-  <div class="phase" id="phase">READY</div>
-  <div class="countdown" id="countdown">7:00</div>
-  <div class="block-name" id="block-name">ready when you are</div>
-  <div class="block-instruction" id="instruction">tap start. 7 blocks. 60 seconds each.</div>
-  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
-  <div class="dots" id="dots"></div>
-  <button class="btn btn-go" id="start-btn" onclick="go()">START</button>
-  <button class="btn-skip" id="skip-btn" onclick="skip()" style="display:none">skip ▸</button>
+<!-- NAV -->
+<nav class="nav">
+  <a href="/" class="nav-brand">JEROME7</a>
+  <div class="nav-links">
+    <a href="/globe">Globe</a>
+    <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
+  </div>
+</nav>
+
+<!-- ONBOARDING MODAL -->
+<div class="modal-overlay hidden" id="onboarding">
+  <div class="modal">
+    <div class="modal-brand">JEROME7</div>
+    <h2 id="onboard-greeting">Welcome, builder.</h2>
+    <div class="subtitle">Claim your Jerome# identity. 30 seconds.</div>
+
+    <label>YOUR NAME</label>
+    <input type="text" id="ob-name" placeholder="What should we call you?" maxlength="50" autocomplete="off">
+
+    <label>WHAT DO YOU BUILD?</label>
+    <select id="ob-role">
+      <option value="">Choose...</option>
+      <option value="developer">Developer</option>
+      <option value="founder">Founder</option>
+      <option value="student">Student</option>
+      <option value="designer">Designer</option>
+      <option value="other">Other</option>
+    </select>
+
+    <label>PRIMARY GOAL</label>
+    <select id="ob-goal">
+      <option value="">Choose...</option>
+      <option value="stress_relief">Stress relief</option>
+      <option value="focus">Better focus</option>
+      <option value="consistency">Build consistency</option>
+      <option value="community">Find community</option>
+    </select>
+
+    <button class="modal-btn" id="ob-submit" onclick="submitOnboarding()">CLAIM MY JEROME#</button>
+    <button class="modal-skip" onclick="skipOnboarding()">skip for now</button>
+  </div>
 </div>
 
-<div class="done" id="done">
-  <div class="done-mark">◉</div>
-  <div class="done-text">done.</div>
-  <div class="done-sub">yu showed up.</div>
-  <div class="card-preview" id="card-preview"></div>
-  <div class="share-section">
+<div class="container">
+
+  <!-- PRE-START -->
+  <div id="preStart">
+    <div class="session-badge">
+      <span class="pulse"></span>
+      LIVE SESSION
+    </div>
+
+    <div class="session-type" id="sessionType" style="--type-color:#4ecdc4">{session_type.upper()}</div>
+    <div class="session-title">{title}</div>
+    <div class="session-desc">{type_desc}</div>
+
+    <div class="blocks-preview" id="blocksPreview"></div>
+
+    <button class="start-btn" id="startBtn" onclick="beginSession()">BEGIN SESSION</button>
+    <div class="voice-note">Voice-guided. Use earphones for the best experience.</div>
+  </div>
+
+  <!-- ACTIVE SESSION -->
+  <div id="activeSession" class="hidden">
+    <div class="phase-label" id="phaseLabel" style="color:#4ecdc4">{session_type.upper()}</div>
+    <div class="active-name" id="blockName">—</div>
+    <div class="active-instruction" id="blockInstruction">—</div>
+    <div class="timer" id="timer">7:00</div>
+    <div class="timer-label">REMAINING</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    <div class="dots" id="dots"></div>
+  </div>
+
+  <!-- COMPLETE -->
+  <div id="complete" class="hidden">
+    <div class="complete-check">&#10003;</div>
+    <div class="complete-title">SESSION COMPLETE</div>
+    <div class="complete-text" id="closingText">{closing}</div>
     <div class="share-row">
       <button class="share-btn primary" onclick="copyCard()">Copy to Clipboard</button>
       <button class="share-btn" onclick="shareTwitter()">Share on Twitter</button>
     </div>
-    <div class="share-row">
-      <button class="share-btn" onclick="shareNative()">Share</button>
+    <div class="toast" id="toast">copied to clipboard</div>
+    <div class="complete-links">
+      <a href="/">Home</a>
+      <a href="/globe">Globe</a>
+      <a href="/timer">Replay</a>
     </div>
-    <div class="copied-toast" id="copied-toast">copied to clipboard ✓</div>
-    <a class="view-card-link" id="view-card-link" href="/card/" target="_blank">VIEW YOUR CARD ▸</a>
   </div>
+
 </div>
 
 <script>
+// ── Config ──
 const blocks = {blocks_json};
-const TOTAL = 420;
-let cur = 0, rem = 0, elapsed = 0, interval = null;
-const PC = {{prime:'#7ee787', build:'#E85D04', move:'#f778ba', reset:'#79c0ff'}};
+const sessionType = '{session_type}';
+const closingText = '{closing}';
+const TOTAL = blocks.reduce((s, b) => s + (b.duration_seconds || 60), 0);
 
-function init() {{
-  document.getElementById('dots').innerHTML =
-    blocks.map((_, i) => '<div class="dot" id="d'+i+'"></div>').join('');
+const TYPE_COLORS = {{
+  breathwork: '#4ecdc4',
+  meditation: '#79c0ff',
+  reflection: '#b392f0',
+  preparation: '#e8713a',
+}};
+const typeColor = TYPE_COLORS[sessionType] || '#E85D04';
+
+// ── State ──
+let currentBlock = 0;
+let remaining = 0;
+let totalElapsed = 0;
+let interval = null;
+let userName = '';
+
+// ── Onboarding ──
+function checkOnboarding() {{
+  const stored = localStorage.getItem('jerome7_user');
+  if (stored) {{
+    const user = JSON.parse(stored);
+    userName = user.name || '';
+    return; // already onboarded
+  }}
+  document.getElementById('onboarding').classList.remove('hidden');
 }}
 
-function show(i) {{
-  const b = blocks[i], p = b.phase || 'build';
-  document.getElementById('phase').textContent = p.toUpperCase();
-  document.getElementById('phase').className = 'phase ' + p;
-  document.getElementById('countdown').textContent = b.duration_seconds;
-  document.getElementById('countdown').style.color = PC[p] || '#f0f6fc';
-  document.getElementById('block-name').textContent = b.name;
-  document.getElementById('instruction').textContent = b.instruction;
-  rem = b.duration_seconds;
+async function submitOnboarding() {{
+  const name = document.getElementById('ob-name').value.trim();
+  if (!name) {{ document.getElementById('ob-name').style.borderColor = '#f85149'; return; }}
+
+  const role = document.getElementById('ob-role').value;
+  const goal = document.getElementById('ob-goal').value;
+
+  const btn = document.getElementById('ob-submit');
+  btn.disabled = true; btn.textContent = 'CLAIMING...';
+
+  try {{
+    const resp = await fetch('/pledge', {{
+      method: 'POST',
+      headers: {{ 'Content-Type': 'application/json' }},
+      body: JSON.stringify({{ name: name, goal: goal || 'just_try', age_bracket: '25-34' }}),
+    }});
+    const data = await resp.json();
+
+    const userData = {{
+      name: name,
+      userId: data.user_id,
+      jeromeNumber: data.jerome_number,
+      role: role,
+      goal: goal,
+    }};
+    localStorage.setItem('jerome7_user', JSON.stringify(userData));
+    userName = name;
+
+    // Show assigned number
+    document.getElementById('onboard-greeting').textContent =
+      'You are Jerome' + (data.jerome_number || '?') + '!';
+    btn.textContent = 'LET\\'S GO';
+    btn.disabled = false;
+    btn.onclick = () => document.getElementById('onboarding').classList.add('hidden');
+  }} catch(e) {{
+    // Save locally even if server fails
+    localStorage.setItem('jerome7_user', JSON.stringify({{ name: name, role: role, goal: goal }}));
+    userName = name;
+    document.getElementById('onboarding').classList.add('hidden');
+  }}
+}}
+
+function skipOnboarding() {{
+  localStorage.setItem('jerome7_user', JSON.stringify({{ name: 'builder', skipped: true }}));
+  userName = 'builder';
+  document.getElementById('onboarding').classList.add('hidden');
+}}
+
+// ── Blocks preview ──
+function renderPreview() {{
+  const el = document.getElementById('blocksPreview');
+  el.innerHTML = blocks.map((b, i) => {{
+    const dur = b.duration_seconds || 60;
+    const m = Math.floor(dur / 60);
+    const s = dur % 60;
+    const time = m > 0 ? m + ':' + s.toString().padStart(2, '0') : s + 's';
+    return '<div class="block-row">' +
+      '<span class="block-num">' + (i+1) + '</span>' +
+      '<span class="block-name-prev">' + b.name + '</span>' +
+      '<span class="block-dur">' + time + '</span>' +
+    '</div>';
+  }}).join('');
+}}
+
+// ── Voice narration (browser speech) ──
+function speak(text) {{
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.85; u.pitch = 1.0; u.volume = 1.0;
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v =>
+    v.name.includes('Samantha') || v.name.includes('Daniel') || v.name.includes('Google'));
+  if (preferred) u.voice = preferred;
+  window.speechSynthesis.speak(u);
+}}
+
+// ── Session runner ──
+function beginSession() {{
+  document.getElementById('preStart').classList.add('hidden');
+  document.getElementById('activeSession').classList.remove('hidden');
+
+  // Build dots
+  document.getElementById('dots').innerHTML = blocks.map((_, i) =>
+    '<div class="dot" id="d' + i + '"></div>').join('');
+
+  // Welcome narration
+  const greeting = userName ? ('Welcome, ' + userName + '.') : 'Welcome to Jerome 7.';
+  speak(greeting + ' Today is a ' + sessionType + ' session. Let\\'s begin.');
+
+  currentBlock = 0;
+  totalElapsed = 0;
+  showBlock(0);
+  tick();
+}}
+
+function showBlock(i) {{
+  const b = blocks[i];
+  const phase = b.phase || sessionType;
+
+  document.getElementById('phaseLabel').textContent = (phase || sessionType).toUpperCase();
+  document.getElementById('phaseLabel').style.color = typeColor;
+  document.getElementById('blockName').textContent = b.name.toUpperCase();
+  document.getElementById('blockInstruction').textContent = b.instruction || '';
+  remaining = b.duration_seconds || 60;
+  document.getElementById('timer').textContent = formatTime(remaining);
+
+  // Update dots
   blocks.forEach((_, j) => {{
-    document.getElementById('d'+j).className =
-      'dot' + (j<i?' done':j===i?' active':'');
+    const dot = document.getElementById('d' + j);
+    dot.className = 'dot' + (j < i ? ' done' : j === i ? ' active' : '');
   }});
-}}
 
-function go() {{
-  document.getElementById('start-btn').style.display = 'none';
-  document.getElementById('skip-btn').style.display = 'block';
-  show(0); tick();
+  // Narrate
+  speak(b.name + '. ' + (b.instruction || ''));
 }}
 
 function tick() {{
   interval = setInterval(() => {{
-    rem--; elapsed++;
-    document.getElementById('countdown').textContent = rem;
-    document.getElementById('progress').style.width = (elapsed/TOTAL*100)+'%';
-    if (rem<=3 && rem>0) document.getElementById('countdown').classList.add('pulsing');
-    else document.getElementById('countdown').classList.remove('pulsing');
-    if (rem<=0) {{
-      cur++;
-      if (cur<blocks.length) show(cur);
-      else {{ clearInterval(interval); finish(); }}
+    remaining--;
+    totalElapsed++;
+    document.getElementById('timer').textContent = formatTime(remaining);
+    document.getElementById('progress').style.width = (totalElapsed / TOTAL * 100) + '%';
+    document.getElementById('progress').style.backgroundColor = typeColor;
+
+    if (remaining <= 0) {{
+      currentBlock++;
+      if (currentBlock < blocks.length) {{
+        showBlock(currentBlock);
+      }} else {{
+        clearInterval(interval);
+        finishSession();
+      }}
     }}
   }}, 1000);
 }}
 
-function skip() {{
-  elapsed += rem; cur++;
-  if (cur<blocks.length) show(cur);
-  else {{ clearInterval(interval); finish(); }}
+function finishSession() {{
+  document.getElementById('activeSession').classList.add('hidden');
+  document.getElementById('complete').classList.remove('hidden');
+  document.getElementById('closingText').textContent = closingText;
+
+  // Record streak
+  recordSession();
+
+  // Closing narration
+  speak('Session complete. ' + closingText);
 }}
 
-function getStreakDay() {{
-  // Priority: URL param > localStorage streak
-  const urlDay = new URLSearchParams(window.location.search).get('day');
-  if (urlDay) return urlDay;
-  // localStorage streak tracking
-  const data = JSON.parse(localStorage.getItem('jerome7_streak') || '{{}}'  );
-  return data.day || 1;
+function formatTime(s) {{
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return m + ':' + sec.toString().padStart(2, '0');
 }}
 
-function recordSessionComplete() {{
+// ── Streak tracking ──
+function recordSession() {{
   const today = new Date().toISOString().slice(0, 10);
   const data = JSON.parse(localStorage.getItem('jerome7_streak') || '{{}}');
-  const lastDate = data.lastDate || '';
-  if (lastDate === today) return; // already logged today
+  if (data.lastDate === today) return;
 
-  // Check if yesterday was logged (chain continues) or gap (chain breaks after 3 misses)
   let day = data.day || 0;
-  if (lastDate) {{
-    const last = new Date(lastDate);
-    const now = new Date(today);
-    const diffDays = Math.floor((now - last) / 86400000);
-    if (diffDays <= 3) {{
-      day++; // chain continues
-    }} else {{
-      day = 1; // chain broke, restart
-    }}
+  if (data.lastDate) {{
+    const diff = Math.floor((new Date(today) - new Date(data.lastDate)) / 86400000);
+    day = diff <= 3 ? day + 1 : 1;
   }} else {{
-    day = 1; // first session
+    day = 1;
   }}
 
   localStorage.setItem('jerome7_streak', JSON.stringify({{
-    day: day,
-    lastDate: today,
+    day: day, lastDate: today,
     totalSessions: (data.totalSessions || 0) + 1,
   }}));
+
+  // Also log to server if we have a user ID
+  const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
+  if (user.userId) {{
+    fetch('/log', {{
+      method: 'POST',
+      headers: {{ 'Content-Type': 'application/json' }},
+      body: JSON.stringify({{ user_id: user.userId }}),
+    }}).catch(() => {{}});
+  }}
+}}
+
+// ── Share ──
+function getStreakDay() {{
+  const data = JSON.parse(localStorage.getItem('jerome7_streak') || '{{}}');
+  return data.day || 1;
 }}
 
 function buildCardText() {{
-  const dayNum = getStreakDay();
-  const sep = '━━━━━━━━━━━━━━━━━';
-  const exercises = blocks.map(b => '🟧 ' + b.name).join('\\n');
-  return 'JEROME7 \\u00b7 Day ' + dayNum + ' \\ud83d\\udd25\\n'
-    + sep + '\\n'
-    + exercises + '\\n'
-    + sep + '\\n'
-    + dayNum + '-day chain \\ud83d\\udd17 unbroken\\n'
-    + 'jerome7.com';
-}}
-
-function renderCardPreview() {{
-  const dayNum = getStreakDay();
-  const sep = '━━━━━━━━━━━━━━━━━';
-  const header = '<span class="card-header">JEROME7 \\u00b7 Day ' + dayNum + ' \\ud83d\\udd25</span>';
-  const divider = '<span class="card-divider">' + sep + '</span>';
-  const exercises = blocks.map(b => '<span class="card-exercise">\\ud83d\\udfe7 ' + b.name + '</span>').join('\\n');
-  const footer = '<span class="card-footer">' + dayNum + '-day chain \\ud83d\\udd17 unbroken</span>';
-  const site = '<span class="card-site">jerome7.com</span>';
-  document.getElementById('card-preview').innerHTML =
-    header + '\\n' + divider + '\\n' + exercises + '\\n' + divider + '\\n' + footer + '\\n' + site;
-}}
-
-function finish() {{
-  recordSessionComplete();
-  document.getElementById('main').style.display = 'none';
-  document.getElementById('done').style.display = 'block';
-  renderCardPreview();
-  const uid = new URLSearchParams(window.location.search).get('user_id');
-  if (uid) document.getElementById('view-card-link').href = '/card/' + uid;
-  else document.getElementById('view-card-link').style.display = 'none';
+  const day = getStreakDay();
+  const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
+  const jnum = user.jeromeNumber ? 'Jerome' + user.jeromeNumber : 'Jerome7';
+  return 'Day ' + day + '. 7 minutes. \\u2713\\n\\n' +
+    'I\\'m ' + jnum + '. @Jerome7app\\n\\n' +
+    'https://jerome7.com/join';
 }}
 
 function copyCard() {{
-  const text = buildCardText();
-  navigator.clipboard.writeText(text).then(() => {{
-    const toast = document.getElementById('copied-toast');
+  navigator.clipboard.writeText(buildCardText()).then(() => {{
+    const toast = document.getElementById('toast');
     toast.style.display = 'block';
-    setTimeout(() => {{ toast.style.display = 'none'; }}, 2000);
+    setTimeout(() => toast.style.display = 'none', 2000);
   }});
 }}
 
 function shareTwitter() {{
-  const text = buildCardText();
-  const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text);
+  const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(buildCardText());
   window.open(url, '_blank');
 }}
 
-function shareNative() {{
-  const text = buildCardText();
-  if (navigator.share) navigator.share({{text: text}});
-  else copyCard();
-}}
-init();
+// ── Init ──
+if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
+renderPreview();
+checkOnboarding();
 </script>
 </body>
 </html>"""

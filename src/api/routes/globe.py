@@ -99,7 +99,10 @@ def globe_data(db: DBSession = Depends(get_db)):
 
     # Pod connections — users in the same pod from different countries
     connections = []
-    pods = db.query(Pod).all()
+    try:
+        pods = db.query(Pod).all()
+    except Exception:
+        pods = []
     for pod in pods:
         members = (
             db.query(PodMember, User)
@@ -271,10 +274,9 @@ def globe_page():
 <nav class="nav">
   <a href="/" class="brand">JEROME7</a>
   <div class="nav-links">
-    <a href="/timer">TIMER</a>
-    <a href="/live">LIVE</a>
-    <a href="/leaderboard">LEADERBOARD</a>
-    <a href="/agents">AGENTS</a>
+    <a href="/timer">SESSION</a>
+    <a href="https://discord.gg/5AZP8DbEJm">DISCORD</a>
+    <a href="https://github.com/odominguez7/Jerome7">GITHUB</a>
   </div>
 </nav>
 

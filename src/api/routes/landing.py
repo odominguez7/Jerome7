@@ -1,604 +1,249 @@
-"""GET / — jerome7.com landing page. The front door."""
-
+"""GET / — jerome7.com landing page. Wellness-first. Blueprint-aligned."""
 
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
-from src.agents.coach import CoachAgent
+from src.agents.session_types import today_session_type
 
 router = APIRouter()
-coach = CoachAgent()
-
-PHASE_COLORS = {
-    "prime": "#7ee787",
-    "build": "#E85D04",
-    "move": "#f778ba",
-    "reset": "#79c0ff",
-}
 
 
 @router.get("/", response_class=HTMLResponse)
 async def landing():
-    # Get today's session for the preview
-    try:
-        data = await coach.generate_daily()
-    except Exception:
-        data = None
-
-    # Build session preview blocks
-    blocks_html = ""
-    if data and "blocks" in data:
-        for b in data["blocks"]:
-            phase = b.get("phase", "build")
-            color = PHASE_COLORS.get(phase, "#E85D04")
-            blocks_html += f"""
-            <div class="block">
-              <span class="block-phase" style="color:{color}">{phase.upper()}</span>
-              <span class="block-name">{b['name']}</span>
-              <span class="block-time">60s</span>
-            </div>"""
-
-    session_title = data.get("session_title", "the foundation") if data else "the foundation"
+    session_type = today_session_type()
+    type_labels = {
+        "breathwork": "Guided Breathwork",
+        "meditation": "Focus Meditation",
+        "reflection": "Reflection",
+        "preparation": "Preparation for the Day",
+    }
+    today_label = type_labels.get(session_type, session_type.title())
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jerome7 — 7 minutes. Show up.</title>
-<meta name="description" content="7 minutes a day. Same session for everyone. Streak-based accountability. Free forever.">
+<title>Jerome7 — 7 minutes. Show up. The world gets better.</title>
+<meta name="description" content="Daily 7-minute guided wellness for builders. Breathwork, meditation, reflection. Powered by AI agents. Free forever.">
 <meta property="og:title" content="Jerome7 — 7 minutes. Show up.">
-<meta property="og:description" content="The daily 7-minute challenge for builders. Bodyweight. No equipment. Streak-powered.">
+<meta property="og:description" content="Daily 7-minute guided wellness for builders, coders, and dreamers. Same session for everyone. Free forever.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jerome7.com">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Jerome7 — 7 minutes. Show up.">
-<meta name="twitter:description" content="Same session for everyone. Every day. Free forever.">
+<meta name="twitter:description" content="Daily guided breathwork, meditation, reflection. Same session for every builder on earth.">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-
   body {{
-    background: #0d1117;
-    color: #c9d1d9;
+    background: #0d1117; color: #c9d1d9;
     font-family: 'JetBrains Mono', monospace;
-    line-height: 1.6;
-    overflow-x: hidden;
+    line-height: 1.6; overflow-x: hidden;
   }}
 
-  /* --- HERO --- */
-  .hero {{
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 40px 20px;
-  }}
-
-  .brand {{
-    font-size: 11px;
-    letter-spacing: 4px;
-    color: #E85D04;
-    margin-bottom: 32px;
-  }}
-
-  h1 {{
-    font-size: clamp(32px, 8vw, 64px);
-    font-weight: 800;
-    color: #f0f6fc;
-    line-height: 1.1;
-    margin-bottom: 16px;
-  }}
-
-  h1 span {{ color: #E85D04; }}
-
-  .tagline {{
-    font-size: 16px;
-    color: #8b949e;
-    margin-bottom: 48px;
-    max-width: 400px;
-  }}
-
-  .cta-row {{
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }}
-
-  .btn {{
-    padding: 14px 32px;
-    border-radius: 100px;
-    border: none;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-decoration: none;
-    transition: all 0.2s;
-  }}
-
-  .btn-primary {{
-    background: #E85D04;
-    color: #fff;
-  }}
-  .btn-primary:hover {{ background: #ff6b1a; transform: translateY(-1px); }}
-
-  .btn-ghost {{
-    background: transparent;
-    color: #8b949e;
-    border: 1px solid #30363d;
-  }}
-  .btn-ghost:hover {{ border-color: #E85D04; color: #E85D04; }}
-
-  .scroll-hint {{
-    position: absolute;
-    bottom: 32px;
-    color: #484f58;
-    font-size: 11px;
-    letter-spacing: 2px;
-    animation: pulse 2s ease-in-out infinite;
-  }}
-
-  @keyframes pulse {{ 0%,100% {{ opacity: 1; }} 50% {{ opacity: 0.4; }} }}
-
-  /* --- SECTIONS --- */
-  section {{
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 80px 20px;
-  }}
-
-  .section-label {{
-    font-size: 10px;
-    letter-spacing: 3px;
-    color: #E85D04;
-    margin-bottom: 24px;
-  }}
-
-  h2 {{
-    font-size: 24px;
-    font-weight: 700;
-    color: #f0f6fc;
-    margin-bottom: 16px;
-  }}
-
-  p {{
-    color: #8b949e;
-    font-size: 14px;
-    margin-bottom: 16px;
-  }}
-
-  /* --- HOW IT WORKS --- */
-  .steps {{
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    margin-top: 32px;
-  }}
-
-  .step {{
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-  }}
-
-  .step-num {{
-    font-size: 24px;
-    font-weight: 800;
-    color: #E85D04;
-    min-width: 32px;
-  }}
-
-  .step-text {{
-    font-size: 14px;
-    color: #c9d1d9;
-  }}
-
-  .step-text strong {{ color: #f0f6fc; }}
-  .step-sub {{ font-size: 12px; color: #484f58; margin-top: 4px; }}
-
-  /* --- TODAY'S SESSION --- */
-  .session-card {{
-    background: #161b22;
-    border: 1px solid #30363d;
-    border-radius: 12px;
-    padding: 24px;
-    margin-top: 32px;
-  }}
-
-  .session-header {{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }}
-
-  .session-title {{
-    font-size: 16px;
-    font-weight: 700;
-    color: #f0f6fc;
-  }}
-
-  .session-time {{
-    font-size: 12px;
-    color: #484f58;
-  }}
-
-  .block {{
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 0;
-    border-bottom: 1px solid #21262d;
-  }}
-
-  .block:last-child {{ border-bottom: none; }}
-
-  .block-phase {{
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    min-width: 48px;
-  }}
-
-  .block-name {{
-    font-size: 13px;
-    color: #f0f6fc;
-    flex: 1;
-  }}
-
-  .block-time {{
-    font-size: 11px;
-    color: #484f58;
-  }}
-
-  /* --- AGENTS --- */
-  .agents {{
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-top: 32px;
-  }}
-
-  .agent {{
-    background: #161b22;
-    border: 1px solid #21262d;
-    border-radius: 8px;
-    padding: 16px 20px;
-  }}
-
-  .agent-name {{
-    font-size: 13px;
-    font-weight: 700;
-    color: #f0f6fc;
-    margin-bottom: 4px;
-  }}
-
-  .agent-desc {{
-    font-size: 12px;
-    color: #8b949e;
-  }}
-
-  /* --- RULES --- */
-  .rules {{
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 24px;
-  }}
-
-  .rule {{
-    font-size: 13px;
-    color: #c9d1d9;
-    padding-left: 16px;
-    border-left: 2px solid #E85D04;
-  }}
-
-  /* --- LIVE FEED --- */
-  .feed-row {{
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 0; border-bottom: 1px solid #21262d;
-  }}
-  .feed-flag {{ font-size: 18px; }}
-  .feed-name {{ font-size: 13px; color: #f0f6fc; flex: 1; }}
-  .feed-streak {{ font-size: 12px; color: #E85D04; font-weight: 700; }}
-  .feed-time {{ font-size: 11px; color: #484f58; }}
-  .feed-empty {{ font-size: 13px; color: #484f58; padding: 16px 0; }}
-  .leaderboard-link {{
-    display: inline-block; margin-top: 20px;
-    font-size: 12px; color: #E85D04; text-decoration: none;
-    letter-spacing: 1px;
-  }}
-  .leaderboard-link:hover {{ text-decoration: underline; }}
-
-  /* --- FOOTER --- */
-  .footer {{
-    text-align: center;
-    padding: 40px 20px 60px;
-    border-top: 1px solid #21262d;
-  }}
-
-  .footer-brand {{
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: #E85D04;
-    margin-bottom: 8px;
-  }}
-
-  .footer-text {{
-    font-size: 12px;
-    color: #484f58;
-  }}
-
-  .footer a {{
-    color: #E85D04;
-    text-decoration: none;
-  }}
-
-  .bottom-cta {{
-    display: inline-block;
-    margin-top: 32px;
-    padding: 14px 40px;
-    background: #E85D04;
-    color: #fff;
-    border-radius: 100px;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 700;
-    text-decoration: none;
-    letter-spacing: 1px;
-  }}
-  .bottom-cta:hover {{ background: #ff6b1a; }}
-
-  /* --- COMPAT BAR --- */
-  .compat-bar {{
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 32px;
-  }}
-  .compat-label {{
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: #484f58;
-    margin-right: 4px;
-  }}
-  .compat-badge {{
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    border-radius: 100px;
-    border: 1px solid #30363d;
-    font-size: 11px;
-    font-weight: 600;
-    color: #c9d1d9;
-    letter-spacing: 0.5px;
-    background: #161b22;
-  }}
-  .compat-dot {{ width: 6px; height: 6px; border-radius: 50%; }}
-  .dot-claude {{ background: #cc785c; }}
-  .dot-gpt {{ background: #10a37f; }}
-  .dot-gemini {{ background: #4285f4; }}
-  .dot-openclaw {{ background: #7ee787; }}
-  .dot-zeroclaw {{ background: #f778ba; }}
-
-  /* --- INSTALL STRIP --- */
-  .install-strip {{
-    background: #161b22;
-    border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 16px 20px;
-    margin-top: 40px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }}
-  .install-label {{
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: #E85D04;
-    white-space: nowrap;
-  }}
-  .install-code {{
-    font-size: 12px;
-    color: #7ee787;
-    flex: 1;
-    word-break: break-all;
-  }}
-  .copy-btn {{
-    background: transparent;
-    border: 1px solid #30363d;
-    color: #8b949e;
-    font-family: inherit;
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    white-space: nowrap;
-  }}
-  .copy-btn:hover {{ border-color: #E85D04; color: #E85D04; }}
-
-  /* --- GITHUB STAR CTA (hero) --- */
-  .btn-star {{
-    background: linear-gradient(135deg, #21262d 0%, #161b22 100%);
-    color: #f0f6fc;
-    border: 2px solid #E85D04;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    position: relative;
-    overflow: hidden;
-  }}
-  .btn-star:hover {{
-    background: linear-gradient(135deg, #E85D04 0%, #d45200 100%);
-    color: #fff;
-    border-color: #ff6b1a;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(232,93,4,0.4);
-  }}
-  .btn-star .star-icon {{
-    font-size: 16px;
-    transition: transform 0.3s;
-  }}
-  .btn-star:hover .star-icon {{
-    transform: rotate(72deg) scale(1.2);
-  }}
-  .btn-star .star-count {{
-    background: rgba(232,93,4,0.2);
-    color: #E85D04;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 100px;
-    font-weight: 700;
-    transition: all 0.2s;
-  }}
-  .btn-star:hover .star-count {{
-    background: rgba(255,255,255,0.2);
-    color: #fff;
-  }}
-
-  /* --- GITHUB STAR (section) --- */
-  .star-bar {{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 48px;
-    padding: 20px;
-    border: 1px solid #21262d;
-    border-radius: 8px;
-    background: #161b22;
-  }}
-  .star-text {{
-    font-size: 13px;
-    color: #8b949e;
-  }}
-  .star-btn {{
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 20px;
-    background: #21262d;
-    border: 1px solid #30363d;
-    border-radius: 6px;
-    color: #f0f6fc;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s;
-  }}
-  .star-btn:hover {{ background: #30363d; border-color: #E85D04; }}
-
-  /* --- FLOATING STAR (sticky) --- */
-  .floating-star {{
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    z-index: 99;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
-    background: linear-gradient(135deg, #E85D04 0%, #d45200 100%);
-    color: #fff;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    font-weight: 700;
-    border: none;
-    border-radius: 100px;
-    text-decoration: none;
-    box-shadow: 0 4px 24px rgba(232,93,4,0.5);
-    transition: all 0.3s;
-    opacity: 0;
-    transform: translateY(20px);
-    pointer-events: none;
-  }}
-  .floating-star.visible {{
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }}
-  .floating-star:hover {{
-    transform: translateY(-3px);
-    box-shadow: 0 6px 32px rgba(232,93,4,0.6);
-  }}
-  .floating-star .star-icon {{
-    font-size: 16px;
-    animation: float-pulse 2s ease-in-out infinite;
-  }}
-  @keyframes float-pulse {{
-    0%,100% {{ transform: scale(1); }}
-    50% {{ transform: scale(1.15); }}
-  }}
-  .floating-star .float-count {{
-    background: rgba(255,255,255,0.2);
-    padding: 2px 8px;
-    border-radius: 100px;
-    font-size: 11px;
-  }}
-
-  /* --- NAV BAR --- */
+  /* ── NAV ── */
   .nav {{
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
     padding: 12px 24px;
     background: rgba(13,17,23,0.92);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid #21262d;
   }}
   .nav-brand {{
-    font-size: 13px;
-    font-weight: 800;
-    color: #E85D04;
-    letter-spacing: 2px;
-    text-decoration: none;
+    font-size: 13px; font-weight: 800; color: #E85D04;
+    letter-spacing: 2px; text-decoration: none;
   }}
-  .nav-links {{
-    display: flex;
-    gap: 20px;
-    align-items: center;
-  }}
+  .nav-links {{ display: flex; gap: 20px; align-items: center; }}
   .nav-links a {{
-    font-size: 12px;
-    color: #8b949e;
-    text-decoration: none;
-    letter-spacing: 0.5px;
-    transition: color 0.2s;
+    font-size: 12px; color: #8b949e; text-decoration: none;
+    letter-spacing: 0.5px; transition: color 0.2s;
   }}
   .nav-links a:hover {{ color: #f0f6fc; }}
-  .nav-links .nav-highlight {{
-    color: #E85D04;
-    font-weight: 700;
-    padding: 6px 14px;
-    border: 1px solid #E85D04;
+  .nav-cta {{
+    color: #E85D04 !important; font-weight: 700;
+    padding: 6px 14px; border: 1px solid #E85D04;
     border-radius: 100px;
   }}
-  .nav-links .nav-highlight:hover {{ background: #E85D04; color: #fff; }}
+  .nav-cta:hover {{ background: #E85D04; color: #fff !important; }}
 
-  /* --- RESPONSIVE --- */
+  /* ── HERO ── */
+  .hero {{
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 80px 20px 40px;
+  }}
+  .brand-label {{
+    font-size: 11px; letter-spacing: 4px; color: #E85D04; margin-bottom: 32px;
+  }}
+  h1 {{
+    font-size: clamp(32px, 8vw, 64px); font-weight: 800;
+    color: #f0f6fc; line-height: 1.1; margin-bottom: 16px;
+  }}
+  h1 span {{ color: #E85D04; }}
+  .tagline {{
+    font-size: 15px; color: #8b949e; margin-bottom: 12px; max-width: 520px;
+  }}
+  .tagline-sub {{
+    font-size: 13px; color: #484f58; margin-bottom: 48px; max-width: 480px;
+  }}
+  .cta-row {{ display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }}
+
+  .btn {{
+    padding: 14px 32px; border-radius: 100px; border: none;
+    cursor: pointer; font-family: inherit; font-size: 14px;
+    font-weight: 700; letter-spacing: 1px; text-decoration: none;
+    transition: all 0.2s;
+  }}
+  .btn-primary {{ background: #E85D04; color: #fff; padding: 18px 48px; font-size: 16px; }}
+  .btn-primary:hover {{ background: #ff6b1a; transform: translateY(-1px); }}
+  .btn-ghost {{
+    background: transparent; color: #E85D04;
+    border: 1px solid #E85D04;
+  }}
+  .btn-ghost:hover {{ background: rgba(232,93,4,0.1); }}
+
+  .today-badge {{
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #161b22; border: 1px solid #30363d;
+    border-radius: 100px; padding: 8px 20px;
+    font-size: 11px; letter-spacing: 1px; color: #8b949e;
+    margin-top: 40px;
+  }}
+  .today-badge .dot {{
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #3fb950; animation: pulse 2s infinite;
+  }}
+  @keyframes pulse {{ 0%,100% {{ opacity: 1; }} 50% {{ opacity: 0.4; }} }}
+
+  .cli-strip {{
+    background: #161b22; border: 1px solid #30363d;
+    border-radius: 8px; padding: 14px 20px;
+    margin-top: 24px; display: inline-flex;
+    align-items: center; gap: 12px;
+  }}
+  .cli-strip code {{ font-size: 13px; color: #7ee787; }}
+  .copy-btn {{
+    background: transparent; border: 1px solid #30363d;
+    color: #8b949e; font-family: inherit; font-size: 11px;
+    padding: 4px 10px; border-radius: 6px; cursor: pointer;
+  }}
+  .copy-btn:hover {{ border-color: #E85D04; color: #E85D04; }}
+
+  /* ── SECTIONS ── */
+  section {{
+    max-width: 640px; margin: 0 auto; padding: 80px 20px;
+  }}
+  .section-label {{
+    font-size: 10px; letter-spacing: 3px; color: #E85D04; margin-bottom: 24px;
+  }}
+  h2 {{
+    font-size: 24px; font-weight: 700; color: #f0f6fc; margin-bottom: 16px;
+  }}
+  p {{ color: #8b949e; font-size: 14px; margin-bottom: 16px; }}
+
+  /* ── QUOTE ── */
+  .quote {{
+    max-width: 640px; margin: 0 auto; padding: 60px 20px;
+    border-left: 3px solid #E85D04; padding-left: 24px;
+  }}
+  .quote-text {{
+    font-size: 14px; color: #c9d1d9; line-height: 1.8;
+    font-style: italic;
+  }}
+  .quote-author {{
+    font-size: 12px; color: #484f58; margin-top: 16px;
+  }}
+
+  /* ── HOW IT WORKS ── */
+  .steps {{ display: flex; flex-direction: column; gap: 24px; margin-top: 32px; }}
+  .step {{ display: flex; gap: 16px; align-items: flex-start; }}
+  .step-num {{ font-size: 24px; font-weight: 800; color: #E85D04; min-width: 32px; }}
+  .step-text {{ font-size: 14px; color: #c9d1d9; }}
+  .step-text strong {{ color: #f0f6fc; }}
+  .step-sub {{ font-size: 12px; color: #484f58; margin-top: 4px; }}
+
+  /* ── SESSION TYPES ── */
+  .types {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 32px; }}
+  .type-card {{
+    background: #161b22; border: 1px solid #21262d;
+    border-radius: 8px; padding: 16px 20px;
+  }}
+  .type-label {{ font-size: 9px; letter-spacing: 2px; margin-bottom: 8px; font-weight: 700; }}
+  .type-name {{ font-size: 14px; font-weight: 700; color: #f0f6fc; margin-bottom: 4px; }}
+  .type-desc {{ font-size: 11px; color: #484f58; }}
+
+  /* ── AGENTS ── */
+  .agents {{ display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }}
+  .agent {{
+    background: #161b22; border: 1px solid #21262d;
+    border-radius: 8px; padding: 16px 20px;
+    display: flex; gap: 16px; align-items: flex-start;
+  }}
+  .agent-icon {{ font-size: 11px; font-weight: 800; color: #E85D04; min-width: 80px; }}
+  .agent-desc {{ font-size: 12px; color: #8b949e; }}
+
+  /* ── JEROME# ── */
+  .identity-block {{
+    background: #161b22; border: 1px solid #30363d;
+    border-radius: 12px; padding: 24px;
+    margin-top: 32px; font-size: 13px; color: #c9d1d9;
+    line-height: 2;
+  }}
+  .identity-block .highlight {{ color: #E85D04; font-weight: 700; }}
+
+  /* ── SCIENCE ── */
+  .science-stats {{
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px;
+  }}
+  .science-stat {{
+    background: #161b22; border: 1px solid #21262d;
+    border-radius: 8px; padding: 16px; text-align: center;
+  }}
+  .science-num {{ font-size: 24px; font-weight: 800; color: #3fb950; }}
+  .science-label {{ font-size: 10px; color: #484f58; letter-spacing: 1px; margin-top: 4px; }}
+
+  /* ── FOOTER ── */
+  .footer {{
+    text-align: center; padding: 40px 20px 60px;
+    border-top: 1px solid #21262d;
+  }}
+  .footer-brand {{ font-size: 11px; letter-spacing: 3px; color: #E85D04; margin-bottom: 8px; }}
+  .footer-text {{ font-size: 12px; color: #484f58; }}
+  .footer a {{ color: #E85D04; text-decoration: none; }}
+  .bottom-cta {{
+    display: inline-block; margin-top: 32px;
+    padding: 14px 40px; background: #E85D04; color: #fff;
+    border-radius: 100px; font-family: inherit; font-size: 14px;
+    font-weight: 700; text-decoration: none; letter-spacing: 1px;
+  }}
+  .bottom-cta:hover {{ background: #ff6b1a; }}
+
+  /* ── STAR CTA ── */
+  .star-bar {{
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; margin-top: 48px; padding: 20px;
+    border: 1px solid #21262d; border-radius: 8px; background: #161b22;
+  }}
+  .star-text {{ font-size: 13px; color: #8b949e; }}
+  .star-btn {{
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 20px; background: #21262d; border: 1px solid #30363d;
+    border-radius: 6px; color: #f0f6fc; font-family: inherit;
+    font-size: 12px; font-weight: 600; text-decoration: none;
+    transition: all 0.2s;
+  }}
+  .star-btn:hover {{ background: #30363d; border-color: #E85D04; }}
+
   @media (max-width: 480px) {{
     .hero {{ padding: 80px 20px 60px; }}
     h1 {{ font-size: 28px; }}
-    .tagline {{ font-size: 14px; }}
     section {{ padding: 60px 16px; }}
-    .install-code {{ font-size: 10px; }}
     .nav-links {{ gap: 12px; }}
     .nav-links a {{ font-size: 11px; }}
+    .types {{ grid-template-columns: 1fr; }}
+    .science-stats {{ grid-template-columns: 1fr; }}
   }}
 </style>
 </head>
@@ -608,65 +253,72 @@ async def landing():
 <nav class="nav">
   <a href="/" class="nav-brand">JEROME7</a>
   <div class="nav-links">
-    <a href="/timer">Timer</a>
     <a href="/globe">Globe</a>
-    <a href="/agents">Agents</a>
     <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
     <a href="https://github.com/odominguez7/Jerome7">GitHub</a>
-    <a href="/leaderboard" class="nav-highlight">WHO'S SHOWING UP</a>
+    <a href="/timer" class="nav-cta">START</a>
   </div>
 </nav>
 
 <!-- HERO -->
-<div class="hero" style="padding-top:80px;">
-  <div class="brand">JEROME7</div>
-  <h1><span>7</span> minutes.<br>Show up.</h1>
-  <div class="tagline">Same session for everyone. Every day. Streak-powered accountability for builders. Free forever.</div>
+<div class="hero">
+  <div class="brand-label">JEROME7</div>
+  <h1><span>7</span> minutes.<br>Show up.<br>The world gets better.</h1>
+  <div class="tagline">Daily guided breathwork, meditation, and reflection for builders, coders, and dreamers.</div>
+  <div class="tagline-sub">No exercise. No equipment. Just earphones and a place to sit.</div>
+
   <div class="cta-row">
-    <a href="/timer" class="btn btn-primary" style="padding:18px 48px;font-size:16px;">START YOUR 7 MINUTES</a>
-    <a href="/globe" class="btn btn-ghost" style="border:1px solid #E85D04;color:#E85D04;">EXPLORE THE GLOBE</a>
-    <a href="https://github.com/odominguez7/Jerome7" class="btn btn-star" target="_blank">
-      <span class="star-icon">⭐</span> Star on GitHub <span class="star-count" id="hero-star-count">...</span>
-    </a>
+    <a href="/timer" class="btn btn-primary">START YOUR 7 MINUTES</a>
+    <a href="/globe" class="btn btn-ghost">THE GLOBE</a>
   </div>
 
-  <div class="compat-bar">
-    <span class="compat-label">WORKS WITH</span>
-    <span class="compat-badge"><span class="compat-dot dot-claude"></span>Claude</span>
-    <span class="compat-badge"><span class="compat-dot dot-gpt"></span>GPT-4</span>
-    <span class="compat-badge"><span class="compat-dot dot-gemini"></span>Gemini</span>
-    <span class="compat-badge"><span class="compat-dot dot-openclaw"></span>OpenClaw</span>
-    <span class="compat-badge"><span class="compat-dot dot-zeroclaw"></span>ZeroClaw</span>
+  <div class="today-badge">
+    <span class="dot"></span>
+    TODAY: {today_label.upper()}
   </div>
 
-  <div style="max-width:580px;margin:0 auto;padding:0 20px;">
-    <div class="install-strip">
-      <span class="install-label">OPENCLAW</span>
-      <code class="install-code" id="install-cmd">curl -fsSL https://raw.githubusercontent.com/odominguez7/Jerome7/main/integrations/openclaw/SKILL.md -o ~/.openclaw/skills/jerome7.md</code>
-      <button class="copy-btn" onclick="copyInstall()">COPY</button>
-    </div>
+  <div class="cli-strip">
+    <code id="cli-cmd">npx jerome7 --wellness</code>
+    <button class="copy-btn" onclick="copyCli()">COPY</button>
   </div>
 </div>
+
+<!-- QUOTE -->
+<div class="quote">
+  <div class="quote-text">
+    "I was 80 lbs overweight. Couldn't run a mile. Started with 7 minutes a day.
+    That became the Boston Marathon. Then Ironman 70.3. Then MIT.
+    Not because I was exceptional — because I was consistent."
+  </div>
+  <div class="quote-author">— Omar, Jerome7 (Founder)</div>
+</div>
+
+<!-- WHAT IS JEROME7 -->
+<section>
+  <div class="section-label">WHAT IS JEROME7</div>
+  <h2>A daily 7-minute guided session.</h2>
+  <p>Breathwork, meditation, reflection, or preparation — powered by AI agents that learn your patterns and match you with accountability partners worldwide.</p>
+  <p>The activity changes every 24 hours. Same session for every builder on Earth. Like Wordle, but for your mind.</p>
+</section>
 
 <!-- HOW IT WORKS -->
 <section>
   <div class="section-label">HOW IT WORKS</div>
   <h2>One session. Everyone. Every day.</h2>
-  <p>Like Wordle, but for your body. Jerome generates one 7-minute session each day. Same moves for everyone on earth. Do it. Log it. Keep the chain.</p>
 
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
       <div>
         <div class="step-text"><strong>SHOW UP</strong></div>
-        <div class="step-sub">Hit the timer. 7 minutes. Same session for everyone on earth.</div>
+        <div class="step-sub">Hit start. 7 minutes of guided audio. Same session for everyone on earth.</div>
       </div>
     </div>
     <div class="step">
       <div class="step-num">2</div>
       <div>
         <div class="step-text"><strong>BUILD YOUR CHAIN</strong></div>
-        <div class="step-sub">Complete sessions daily. Miss 3 and it breaks.</div>
+        <div class="step-sub">Complete sessions daily. Miss 3 and it breaks. 1 save per 30 days.</div>
       </div>
     </div>
     <div class="step">
@@ -679,187 +331,155 @@ async def landing():
   </div>
 </section>
 
-<!-- TODAY'S SESSION -->
+<!-- THE 4 SESSION TYPES -->
 <section>
-  <div class="section-label">TODAY'S SESSION</div>
-  <h2>{session_title}</h2>
-  <p>This is what everyone on earth is doing today. Bodyweight. No equipment. Anywhere.</p>
+  <div class="section-label">ROTATING DAILY</div>
+  <h2>4 session types. One each day.</h2>
+  <p>The session rotates automatically. You don't choose — you show up.</p>
 
-  <div class="session-card">
-    <div class="session-header">
-      <div class="session-title">{session_title}</div>
-      <div class="session-time">7:00</div>
+  <div class="types">
+    <div class="type-card">
+      <div class="type-label" style="color:#4ecdc4">DAY A</div>
+      <div class="type-name">Breathwork</div>
+      <div class="type-desc">Box breathing. 4-4-4-4 count. Calm your nervous system.</div>
     </div>
-    {blocks_html}
+    <div class="type-card">
+      <div class="type-label" style="color:#79c0ff">DAY B</div>
+      <div class="type-name">Meditation</div>
+      <div class="type-desc">Focus meditation. Breath awareness. Gentle redirects.</div>
+    </div>
+    <div class="type-card">
+      <div class="type-label" style="color:#b392f0">DAY C</div>
+      <div class="type-name">Reflection</div>
+      <div class="type-desc">Journaling prompt. Silent reflection. Synthesis.</div>
+    </div>
+    <div class="type-card">
+      <div class="type-label" style="color:#e8713a">DAY D</div>
+      <div class="type-name">Preparation</div>
+      <div class="type-desc">Visualization. 3 priorities. Power statement.</div>
+    </div>
   </div>
 </section>
 
-<!-- AGENTS -->
+<!-- YOUR JEROME# -->
+<section>
+  <div class="section-label">YOUR IDENTITY</div>
+  <h2>Every user is Jerome#.</h2>
+  <p>Your number. Your identity. First come, first served.</p>
+
+  <div class="identity-block">
+    <span class="highlight">Jerome7</span>  &rarr; Omar (Founder)<br>
+    <span class="highlight">Jerome8</span>  &rarr; You? &rarr; <a href="/timer" style="color:#E85D04">jerome7.com/timer</a><br>
+    <span class="highlight">Jerome9</span>  &rarr; The next builder who shows up<br>
+    <span style="color:#484f58">...</span><br>
+    <span class="highlight">Jerome42</span> &rarr; Someone, somewhere, showing up today
+  </div>
+</section>
+
+<!-- THE 5 AI AGENTS -->
 <section>
   <div class="section-label">UNDER THE HOOD</div>
   <h2>5 AI agents. One mission.</h2>
-  <p>Jerome isn't a fitness app. It's a coordination system — agents that learn how you move, when you skip, and who you need beside you.</p>
+  <p>Jerome7 isn't a meditation app. It's a coordination system — agents that learn your patterns, predict burnout, and match you with accountability partners.</p>
 
   <div class="agents">
     <div class="agent">
-      <div class="agent-name">Coach</div>
-      <div class="agent-desc">Generates today's session. Bodyweight, fun, surprising. Never repeats yesterday.</div>
+      <div class="agent-icon">COACH</div>
+      <div class="agent-desc">Generates your daily session via Gemini 2.5 Flash. Reads your feedback. Adjusts tomorrow.</div>
     </div>
     <div class="agent">
-      <div class="agent-name">Nudge</div>
-      <div class="agent-desc">Learns when you're about to skip. DMs you before you break the chain. Never shames.</div>
+      <div class="agent-icon">NUDGE</div>
+      <div class="agent-desc">Learns your skip patterns. Fires a reminder <em>before</em> you ghost. Never shames.</div>
     </div>
     <div class="agent">
-      <div class="agent-name">Streak</div>
-      <div class="agent-desc">Tracks consistency, not perfection. 3 misses breaks it. 1 never does. Saves for life.</div>
+      <div class="agent-icon">STREAK</div>
+      <div class="agent-desc">3-miss rule. Miss 3 days, chain breaks. 1 save per 30 days.</div>
     </div>
     <div class="agent">
-      <div class="agent-name">Community</div>
-      <div class="agent-desc">Matches you with 3-5 builders at your level. Your pod. Your crew.</div>
+      <div class="agent-icon">COMMUNITY</div>
+      <div class="agent-desc">Matches pods of 3-5 builders by timezone + engagement level.</div>
     </div>
     <div class="agent">
-      <div class="agent-name">Scheduler</div>
-      <div class="agent-desc">Finds the window where showing up is easiest. Learns your habits.</div>
+      <div class="agent-icon">SCHEDULER</div>
+      <div class="agent-desc">Finds your optimal session window from your history.</div>
+    </div>
+  </div>
+
+  <p style="margin-top:24px;font-size:12px;color:#484f58">
+    Every agent communicates via <a href="https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/" style="color:#79c0ff;text-decoration:none">A2A protocol</a>.
+    External AI agents can join — <a href="/.well-known/agent.json" style="color:#79c0ff;text-decoration:none">see our AgentCard</a>.
+  </p>
+</section>
+
+<!-- SCIENCE -->
+<section>
+  <div class="section-label">BACKED BY SCIENCE</div>
+  <h2>7 minutes is enough.</h2>
+  <p><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10917090/" style="color:#79c0ff;text-decoration:none">Peking University research (2023)</a> confirms 7-minute breathing reduces stress, increases serenity, and decreases anxiety.</p>
+
+  <div class="science-stats">
+    <div class="science-stat">
+      <div class="science-num">p&lt;.001</div>
+      <div class="science-label">STRESS REDUCTION</div>
+    </div>
+    <div class="science-stat">
+      <div class="science-num">p&lt;.001</div>
+      <div class="science-label">INCREASED SERENITY</div>
+    </div>
+    <div class="science-stat">
+      <div class="science-num">p&lt;.001</div>
+      <div class="science-label">DECREASED ANXIETY</div>
+    </div>
+    <div class="science-stat">
+      <div class="science-num">7 min</div>
+      <div class="science-label">IS ALL IT TAKES</div>
     </div>
   </div>
 </section>
 
-<!-- STREAK RULES -->
+<!-- THE GLOBE -->
 <section>
-  <div class="section-label">THE RULES</div>
-  <h2>The chain.</h2>
-  <p>Simple rules. No ambiguity.</p>
-
-  <div class="rules">
-    <div class="rule">Show up = 7 minutes. That's it.</div>
-    <div class="rule">Miss 1 day? Chain holds.</div>
-    <div class="rule">Miss 2 days? Still holds. Life happens.</div>
-    <div class="rule">Miss 3? Chain breaks. Start over.</div>
-    <div class="rule">1 save per 30 days. Use it when you need it.</div>
-    <div class="rule">Milestones at 7, 14, 30, 50, 100, 200, 365.</div>
-    <div class="rule">Longest streak never resets. That's your record.</div>
-  </div>
+  <div class="section-label">THE GLOBE</div>
+  <h2>Every dot is a builder who showed up.</h2>
+  <p><a href="/globe" style="color:#E85D04;text-decoration:none;font-size:16px;font-weight:700">See the world light up &rarr;</a></p>
 </section>
 
-<!-- LIVE FEED -->
-<section>
-  <div class="section-label">SHOWING UP NOW</div>
-  <h2>Builders worldwide.</h2>
-  <p>Every session logged anywhere on earth, live.</p>
-  <div id="feed-list"><div class="feed-empty">Loading...</div></div>
-  <a href="/leaderboard" class="leaderboard-link">VIEW FULL LEADERBOARD →</a>
-</section>
-
-<!-- GITHUB STAR -->
+<!-- OPEN SOURCE -->
 <section>
   <div class="section-label">OPEN SOURCE</div>
   <h2>MCP-native. Agent-ready.</h2>
-  <p>Jerome7 exposes 6 MCP tools — works inside Claude Desktop, GPT, Gemini, OpenClaw, ZeroClaw, or any agent runtime that speaks Model Context Protocol.</p>
+  <p>Jerome7 exposes MCP tools — works inside Claude Desktop, GPT, Gemini, or any agent runtime that speaks Model Context Protocol.</p>
   <div class="star-bar">
     <span class="star-text">If this moves you, star it.</span>
     <a href="https://github.com/odominguez7/Jerome7" class="star-btn" target="_blank">
-      ⭐ Star on GitHub
+      Star on GitHub
     </a>
   </div>
 </section>
 
-<!-- FLOATING STAR CTA -->
-<a href="https://github.com/odominguez7/Jerome7" class="floating-star" id="floating-star" target="_blank">
-  <span class="star-icon">⭐</span> Star <span class="float-count" id="float-star-count">...</span>
-</a>
-
 <!-- FOOTER -->
 <div class="footer">
   <div class="footer-brand">JEROME7</div>
-  <div class="footer-text">Free forever. Open source. Built at MIT.</div>
+  <div class="footer-text">Free forever. Open source. No premium tier. No paywall.</div>
   <div class="footer-text" style="margin-top: 8px;">
-    <a href="/timer">Timer</a> ·
-    <a href="/globe">Globe</a> ·
-    <a href="/agents">Agents</a> ·
-    <a href="/voice">Voice</a> ·
-    <a href="/coach">Coach</a> ·
-    <a href="/leaderboard">Leaderboard</a> ·
-    <a href="/analytics">Analytics</a> ·
-    <a href="/tokens">Tokens</a> ·
-    <a href="https://github.com/odominguez7/Jerome7">GitHub</a> ·
-    <a href="https://discord.gg/5AZP8DbEJm">Discord</a> ·
-    <a href="/sponsor">Sponsor</a> ·
-    <a href="/embed">Embed</a>
+    <a href="/timer">Session</a> &middot;
+    <a href="/globe">Globe</a> &middot;
+    <a href="https://github.com/odominguez7/Jerome7">GitHub</a> &middot;
+    <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
   </div>
   <a href="/timer" class="bottom-cta">START YOUR 7 MINUTES</a>
+  <div class="footer-text" style="margin-top:24px;color:#30363d">
+    Built by <a href="https://github.com/odominguez7" style="color:#484f58">Omar</a> &middot; Apache 2.0 &middot; <em>It's on YU.</em>
+  </div>
 </div>
 
 <script>
-async function loadFeed() {{
-  try {{
-    const res = await fetch('/leaderboard/data');
-    const data = await res.json();
-    const feed = data.feed || [];
-    const el = document.getElementById('feed-list');
-    if (!feed.length) {{
-      el.innerHTML = '<div class="feed-empty">Quiet right now. Be first today.</div>';
-      return;
-    }}
-    el.innerHTML = feed.slice(0, 8).map(e =>
-      `<div class="feed-row">
-        <span class="feed-flag">${{e.flag}}</span>
-        <span class="feed-name">${{e.name}}</span>
-        <span class="feed-streak">${{e.streak}}d</span>
-        <span class="feed-time">${{e.time_ago}}</span>
-      </div>`
-    ).join('');
-  }} catch(e) {{
-    document.getElementById('feed-list').innerHTML =
-      '<div class="feed-empty">Be the first to show up today.</div>';
-  }}
-}}
-loadFeed();
-setInterval(loadFeed, 30000);
-
-// Fetch GitHub star count
-async function loadStarCount() {{
-  try {{
-    const res = await fetch('https://api.github.com/repos/odominguez7/Jerome7');
-    const data = await res.json();
-    const count = data.stargazers_count;
-    const formatted = count >= 1000 ? (count / 1000).toFixed(1) + 'k' : count;
-    document.getElementById('hero-star-count').textContent = formatted;
-    document.getElementById('float-star-count').textContent = formatted;
-    // Also update the section star bar if it exists
-    const secBtn = document.querySelector('.star-btn');
-    if (secBtn) secBtn.innerHTML = '⭐ Star on GitHub · ' + formatted;
-  }} catch(e) {{
-    document.getElementById('hero-star-count').textContent = '★';
-    document.getElementById('float-star-count').textContent = '★';
-  }}
-}}
-loadStarCount();
-
-// Show floating star after scrolling past hero
-const floatingStar = document.getElementById('floating-star');
-const observer = new IntersectionObserver((entries) => {{
-  entries.forEach(e => {{
-    if (e.isIntersecting) {{
-      floatingStar.classList.remove('visible');
-    }} else {{
-      floatingStar.classList.add('visible');
-    }}
-  }});
-}}, {{ threshold: 0 }});
-observer.observe(document.querySelector('.hero'));
-
-function copyInstall() {{
-  const cmd = document.getElementById('install-cmd').textContent;
-  navigator.clipboard.writeText(cmd).then(() => {{
+function copyCli() {{
+  navigator.clipboard.writeText('npx jerome7 --wellness').then(() => {{
     const btn = document.querySelector('.copy-btn');
     btn.textContent = 'COPIED!';
-    btn.style.color = '#7ee787';
-    btn.style.borderColor = '#7ee787';
-    setTimeout(() => {{
-      btn.textContent = 'COPY';
-      btn.style.color = '';
-      btn.style.borderColor = '';
-    }}, 2000);
+    btn.style.color = '#7ee787'; btn.style.borderColor = '#7ee787';
+    setTimeout(() => {{ btn.textContent = 'COPY'; btn.style.color = ''; btn.style.borderColor = ''; }}, 2000);
   }});
 }}
 </script>

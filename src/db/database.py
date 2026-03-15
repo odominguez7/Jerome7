@@ -49,6 +49,22 @@ def _migrate_add_columns():
                         f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"
                     ))
 
+    # Pods table migrations
+    desired_pod_cols = {
+        "scheduled_time": "JSON",
+        "last_active_at": "TIMESTAMP",
+        "fitness_level_range": "VARCHAR",
+        "discord_channel_id": "VARCHAR",
+    }
+    if "pods" in inspector.get_table_names():
+        existing = {col["name"] for col in inspector.get_columns("pods")}
+        with engine.begin() as conn:
+            for col_name, col_type in desired_pod_cols.items():
+                if col_name not in existing:
+                    conn.execute(text(
+                        f"ALTER TABLE pods ADD COLUMN {col_name} {col_type}"
+                    ))
+
 
 def init_db():
     """Create all tables + run lightweight migrations."""
