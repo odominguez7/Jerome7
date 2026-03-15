@@ -71,12 +71,12 @@ def jerome7_daily(user_id: str = "") -> str:
             lines.append(f"   {b.get('instruction', '')}\n")
 
         lines.append(f"_{closing}_\n")
-        lines.append(f"---")
-        lines.append(f"⏱️ **[Start Timer](https://jerome7.com/timer)** — opens the live 7-minute countdown")
+        lines.append("---")
+        lines.append("⏱️ **[Start Timer](https://jerome7.com/timer)** — opens the live 7-minute countdown")
         if user_id:
             lines.append(f"✅ When done, say **done** or call `jerome7_log` with your user_id `{user_id}`")
         else:
-            lines.append(f"✅ When done, say **done** — I'll log it for you")
+            lines.append("✅ When done, say **done** — I'll log it for you")
 
         return "\n".join(lines)
 

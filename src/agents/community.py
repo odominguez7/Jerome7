@@ -12,7 +12,7 @@ from typing import Optional
 from sqlalchemy.orm import Session as DBSession
 
 from src.agents.context import UserContext
-from src.db.models import User, Pod, PodMember, Streak, PodMemberStatus
+from src.db.models import User, Pod, PodMember, PodMemberStatus
 
 ADJECTIVES = [
     "Iron", "Quiet", "Dawn", "Still", "Wild", "Bright", "Swift",

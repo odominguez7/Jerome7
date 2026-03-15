@@ -1,7 +1,7 @@
 """Pydantic v2 schemas for request/response models."""
 
 from datetime import datetime, date
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 from pydantic import BaseModel, Field
 

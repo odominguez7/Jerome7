@@ -1,7 +1,6 @@
 """Pod Chain — viral invite system. 7-day streak unlocks 1 invite code."""
 
 import secrets
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse

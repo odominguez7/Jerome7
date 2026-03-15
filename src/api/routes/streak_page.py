@@ -1,7 +1,7 @@
 """Public streak page — the viral engine."""
 
 import io
-from datetime import date, timedelta
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse

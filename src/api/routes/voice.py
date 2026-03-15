@@ -1,6 +1,5 @@
 """GET /voice — hands-free voice-guided Jerome7 session using Web Speech API."""
 
-from datetime import datetime
 
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse

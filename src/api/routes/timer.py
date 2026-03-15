@@ -3,11 +3,9 @@
 import json
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
-from sqlalchemy.orm import Session as DBSession
 
-from src.db.database import get_db
 from src.agents.coach import CoachAgent
 
 router = APIRouter()

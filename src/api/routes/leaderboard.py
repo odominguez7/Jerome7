@@ -1,9 +1,9 @@
 """GET /leaderboard — who's showing up. Global feed. Live streaks."""
 
 import logging
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy.orm import Session as DBSession
 

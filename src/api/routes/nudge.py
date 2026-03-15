@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session as DBSession
 
 from src.db.database import get_db
-from src.db.models import User, Streak, Session, Nudge
+from src.db.models import User, Streak, Nudge
 from src.agents.nudge import NudgeAgent
 from src.agents.context import build_user_context
 

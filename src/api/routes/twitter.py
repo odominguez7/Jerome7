@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session as DBSession
 
 from src.db.database import get_db
-from src.api.routes.daily import get_daily
 from src.api.routes.analytics import analytics_overview
 from src.api.routes.leaderboard import leaderboard_data
 

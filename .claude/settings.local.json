@@ -58,7 +58,24 @@
       "WebFetch(domain:deepwiki.com)",
       "WebFetch(domain:judyailab.com)",
       "WebFetch(domain:eu.36kr.com)",
-      "WebFetch(domain:topaiproduct.com)"
+      "WebFetch(domain:topaiproduct.com)",
+      "Bash(curl -s -X POST https://jerome7.com/twitter/post-daily)",
+      "Bash(curl -s --max-time 30 -X POST https://jerome7.com/twitter/post-daily)",
+      "Bash(curl -s --max-time 30 -X POST https://jerome7.com/twitter/post-leaderboard)",
+      "Bash(find '/Users/odominguez7/Desktop/YU/Jerome 7 - github/src/api/routes' -type f -name *.py)",
+      "Bash(python3 -c \"import sys; print\\(sys.version\\)\")",
+      "Bash(grep -r 'from src' '/Users/odominguez7/Desktop/YU/Jerome 7 - github/src/' --include=*.py)",
+      "Bash(chmod +x \"/Users/odominguez7/Desktop/YU/Jerome 7 - github/cli/index.js\")",
+      "Bash(grep \"\\\\.py$\")",
+      "Bash(wc -l '/Users/odominguez7/Desktop/YU/Jerome 7 - github/src/agents'/*.py)",
+      "Bash(gh repo:*)",
+      "Bash(brew list:*)",
+      "Bash(brew install:*)",
+      "Bash(gh run:*)",
+      "Bash(pip install:*)",
+      "Bash(ruff check:*)",
+      "Bash(python3 -m ruff check src/ mcp_server/ --ignore E501)",
+      "Bash(python3 -m ruff check src/ mcp_server/ --ignore E501 --fix)"
     ]
   }
 }

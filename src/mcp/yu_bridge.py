@@ -5,7 +5,6 @@ The bridge opens at 14 days unbroken.
 
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 from src.agents.context import UserContext
 

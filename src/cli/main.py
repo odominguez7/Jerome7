@@ -1,7 +1,6 @@
 """Jerome 7 CLI — yu seven7 / yu log / yu streak / yu pod."""
 
 import json
-import os
 import sys
 from pathlib import Path
 

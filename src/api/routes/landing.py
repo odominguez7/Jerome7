@@ -1,6 +1,5 @@
 """GET / — jerome7.com landing page. The front door."""
 
-import asyncio
 
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
