@@ -118,6 +118,9 @@ def post_leaderboard_tweet(db: DBSession = Depends(get_db)):
     """Post top 5 streaks as a tweet with country flags."""
     # 1. Get leaderboard data
     data = leaderboard_data(db)
+    # leaderboard_data may return a JSONResponse on DB error instead of a dict
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=500, detail="Leaderboard data unavailable.")
     leaderboard = data.get("leaderboard", [])
 
     if not leaderboard:

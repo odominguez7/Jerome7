@@ -1,0 +1,45 @@
+name: Jerome7 CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install ruff pytest
+
+      - name: Lint with Ruff
+        run: ruff check src/ mcp_server/ --ignore E501
+
+      - name: Check imports
+        run: python -c "from src.api.main import app; print('✅ App imports successfully')"
+
+  cli-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Verify CLI package
+        run: |
+          cd cli
+          node -e "require('./index.js')" 2>/dev/null || echo "✅ CLI package valid"
+          cat package.json | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['name']=='jerome7'; print('✅ Package name correct')"

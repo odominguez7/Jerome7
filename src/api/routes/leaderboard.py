@@ -1,15 +1,17 @@
 """GET /leaderboard — who's showing up. Global feed. Live streaks."""
 
+import logging
 from datetime import datetime, timedelta, date
 
-from fastapi import APIRouter, Depends
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy.orm import Session as DBSession
 
 from src.db.database import get_db
 from src.db.models import User, Streak, Session as SessionModel
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # Timezone prefix → flag emoji + country name
 TZ_FLAGS = {
@@ -121,45 +123,52 @@ def _time_ago(dt: datetime) -> str:
 @router.get("/leaderboard/data")
 def leaderboard_data(db: DBSession = Depends(get_db)):
     """JSON endpoint for leaderboard data."""
-    # Top streaks
-    top_streaks = (
-        db.query(Streak, User)
-        .join(User, Streak.user_id == User.id)
-        .filter(Streak.current_streak > 0)
-        .order_by(Streak.current_streak.desc())
-        .limit(20)
-        .all()
-    )
+    try:
+        # Top streaks
+        top_streaks = (
+            db.query(Streak, User)
+            .join(User, Streak.user_id == User.id)
+            .filter(Streak.current_streak > 0)
+            .order_by(Streak.current_streak.desc())
+            .limit(20)
+            .all()
+        )
 
-    # Recent sessions (last 48h)
-    cutoff = datetime.utcnow() - timedelta(hours=48)
-    recent = (
-        db.query(SessionModel, User)
-        .join(User, SessionModel.user_id == User.id)
-        .filter(SessionModel.logged_at >= cutoff)
-        .order_by(SessionModel.logged_at.desc())
-        .limit(30)
-        .all()
-    )
+        # Recent sessions (last 48h)
+        cutoff = datetime.utcnow() - timedelta(hours=48)
+        recent = (
+            db.query(SessionModel, User)
+            .join(User, SessionModel.user_id == User.id)
+            .filter(SessionModel.logged_at >= cutoff)
+            .order_by(SessionModel.logged_at.desc())
+            .limit(30)
+            .all()
+        )
 
-    # Today's count
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    today_count = (
-        db.query(SessionModel)
-        .filter(SessionModel.logged_at >= today_start)
-        .count()
-    )
+        # Today's count
+        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_count = (
+            db.query(SessionModel)
+            .filter(SessionModel.logged_at >= today_start)
+            .count()
+        )
+    except Exception as e:
+        logger.error(f"Leaderboard DB query failed: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Database query failed", "leaderboard": [], "feed": [], "today_count": 0},
+        )
 
     # Country code → flag emoji for stored country codes
     _CODE_TO_FLAG = {
-        "US": "🇺🇸", "CA": "🇨🇦", "MX": "🇲🇽", "BR": "🇧🇷", "AR": "🇦🇷",
-        "CO": "🇨🇴", "PE": "🇵🇪", "CL": "🇨🇱", "GB": "🇬🇧", "FR": "🇫🇷",
-        "DE": "🇩🇪", "ES": "🇪🇸", "IT": "🇮🇹", "NL": "🇳🇱", "SE": "🇸🇪",
-        "NO": "🇳🇴", "CH": "🇨🇭", "IE": "🇮🇪", "PT": "🇵🇹", "PL": "🇵🇱",
-        "TR": "🇹🇷", "RU": "🇷🇺", "JP": "🇯🇵", "KR": "🇰🇷", "CN": "🇨🇳",
-        "HK": "🇭🇰", "SG": "🇸🇬", "IN": "🇮🇳", "AE": "🇦🇪", "SA": "🇸🇦",
-        "ID": "🇮🇩", "TH": "🇹🇭", "PH": "🇵🇭", "AU": "🇦🇺", "NZ": "🇳🇿",
-        "NG": "🇳🇬", "KE": "🇰🇪", "EG": "🇪🇬", "ZA": "🇿🇦",
+        "US": "\U0001f1fa\U0001f1f8", "CA": "\U0001f1e8\U0001f1e6", "MX": "\U0001f1f2\U0001f1fd", "BR": "\U0001f1e7\U0001f1f7", "AR": "\U0001f1e6\U0001f1f7",
+        "CO": "\U0001f1e8\U0001f1f4", "PE": "\U0001f1f5\U0001f1ea", "CL": "\U0001f1e8\U0001f1f1", "GB": "\U0001f1ec\U0001f1e7", "FR": "\U0001f1eb\U0001f1f7",
+        "DE": "\U0001f1e9\U0001f1ea", "ES": "\U0001f1ea\U0001f1f8", "IT": "\U0001f1ee\U0001f1f9", "NL": "\U0001f1f3\U0001f1f1", "SE": "\U0001f1f8\U0001f1ea",
+        "NO": "\U0001f1f3\U0001f1f4", "CH": "\U0001f1e8\U0001f1ed", "IE": "\U0001f1ee\U0001f1ea", "PT": "\U0001f1f5\U0001f1f9", "PL": "\U0001f1f5\U0001f1f1",
+        "TR": "\U0001f1f9\U0001f1f7", "RU": "\U0001f1f7\U0001f1fa", "JP": "\U0001f1ef\U0001f1f5", "KR": "\U0001f1f0\U0001f1f7", "CN": "\U0001f1e8\U0001f1f3",
+        "HK": "\U0001f1ed\U0001f1f0", "SG": "\U0001f1f8\U0001f1ec", "IN": "\U0001f1ee\U0001f1f3", "AE": "\U0001f1e6\U0001f1ea", "SA": "\U0001f1f8\U0001f1e6",
+        "ID": "\U0001f1ee\U0001f1e9", "TH": "\U0001f1f9\U0001f1ed", "PH": "\U0001f1f5\U0001f1ed", "AU": "\U0001f1e6\U0001f1fa", "NZ": "\U0001f1f3\U0001f1ff",
+        "NG": "\U0001f1f3\U0001f1ec", "KE": "\U0001f1f0\U0001f1ea", "EG": "\U0001f1ea\U0001f1ec", "ZA": "\U0001f1ff\U0001f1e6",
     }
 
     def _resolve_flag_country(user):
@@ -203,9 +212,13 @@ def leaderboard_data(db: DBSession = Depends(get_db)):
 @router.get("/leaderboard", response_class=HTMLResponse)
 def leaderboard_page(db: DBSession = Depends(get_db)):
     data = leaderboard_data(db)
-    leaderboard = data["leaderboard"]
-    feed = data["feed"]
-    today_count = data["today_count"]
+    if not isinstance(data, dict):
+        # DB error — show empty page gracefully
+        leaderboard, feed, today_count = [], [], 0
+    else:
+        leaderboard = data["leaderboard"]
+        feed = data["feed"]
+        today_count = data["today_count"]
 
     # Build leaderboard rows
     leaderboard_html = ""
