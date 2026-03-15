@@ -426,7 +426,46 @@ async def landing():
   }}
   .copy-btn:hover {{ border-color: #E85D04; color: #E85D04; }}
 
-  /* --- GITHUB STAR --- */
+  /* --- GITHUB STAR CTA (hero) --- */
+  .btn-star {{
+    background: linear-gradient(135deg, #21262d 0%, #161b22 100%);
+    color: #f0f6fc;
+    border: 2px solid #E85D04;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }}
+  .btn-star:hover {{
+    background: linear-gradient(135deg, #E85D04 0%, #d45200 100%);
+    color: #fff;
+    border-color: #ff6b1a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(232,93,4,0.4);
+  }}
+  .btn-star .star-icon {{
+    font-size: 16px;
+    transition: transform 0.3s;
+  }}
+  .btn-star:hover .star-icon {{
+    transform: rotate(72deg) scale(1.2);
+  }}
+  .btn-star .star-count {{
+    background: rgba(232,93,4,0.2);
+    color: #E85D04;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-weight: 700;
+    transition: all 0.2s;
+  }}
+  .btn-star:hover .star-count {{
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+  }}
+
+  /* --- GITHUB STAR (section) --- */
   .star-bar {{
     display: flex;
     align-items: center;
@@ -458,6 +497,54 @@ async def landing():
     transition: all 0.2s;
   }}
   .star-btn:hover {{ background: #30363d; border-color: #E85D04; }}
+
+  /* --- FLOATING STAR (sticky) --- */
+  .floating-star {{
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 99;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #E85D04 0%, #d45200 100%);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    border-radius: 100px;
+    text-decoration: none;
+    box-shadow: 0 4px 24px rgba(232,93,4,0.5);
+    transition: all 0.3s;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+  }}
+  .floating-star.visible {{
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }}
+  .floating-star:hover {{
+    transform: translateY(-3px);
+    box-shadow: 0 6px 32px rgba(232,93,4,0.6);
+  }}
+  .floating-star .star-icon {{
+    font-size: 16px;
+    animation: float-pulse 2s ease-in-out infinite;
+  }}
+  @keyframes float-pulse {{
+    0%,100% {{ transform: scale(1); }}
+    50% {{ transform: scale(1.15); }}
+  }}
+  .floating-star .float-count {{
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 11px;
+  }}
 
   /* --- NAV BAR --- */
   .nav {{
@@ -539,7 +626,9 @@ async def landing():
   <div class="cta-row">
     <a href="https://discord.gg/5AZP8DbEJm" class="btn btn-primary">JOIN DISCORD</a>
     <a href="/leaderboard" class="btn btn-primary" style="background:#161b22;border:1px solid #E85D04;color:#E85D04;">LEADERBOARD</a>
-    <a href="https://github.com/odominguez7/Jerome7" class="btn btn-ghost">⭐ GitHub</a>
+    <a href="https://github.com/odominguez7/Jerome7" class="btn btn-star" target="_blank">
+      <span class="star-icon">⭐</span> Star on GitHub <span class="star-count" id="hero-star-count">...</span>
+    </a>
   </div>
 
   <div class="compat-bar">
@@ -675,6 +764,11 @@ async def landing():
   </div>
 </section>
 
+<!-- FLOATING STAR CTA -->
+<a href="https://github.com/odominguez7/Jerome7" class="floating-star" id="floating-star" target="_blank">
+  <span class="star-icon">⭐</span> Star <span class="float-count" id="float-star-count">...</span>
+</a>
+
 <!-- FOOTER -->
 <div class="footer">
   <div class="footer-brand">JEROME7</div>
@@ -716,6 +810,38 @@ async function loadFeed() {{
 }}
 loadFeed();
 setInterval(loadFeed, 30000);
+
+// Fetch GitHub star count
+async function loadStarCount() {{
+  try {{
+    const res = await fetch('https://api.github.com/repos/odominguez7/Jerome7');
+    const data = await res.json();
+    const count = data.stargazers_count;
+    const formatted = count >= 1000 ? (count / 1000).toFixed(1) + 'k' : count;
+    document.getElementById('hero-star-count').textContent = formatted;
+    document.getElementById('float-star-count').textContent = formatted;
+    // Also update the section star bar if it exists
+    const secBtn = document.querySelector('.star-btn');
+    if (secBtn) secBtn.innerHTML = '⭐ Star on GitHub · ' + formatted;
+  }} catch(e) {{
+    document.getElementById('hero-star-count').textContent = '★';
+    document.getElementById('float-star-count').textContent = '★';
+  }}
+}}
+loadStarCount();
+
+// Show floating star after scrolling past hero
+const floatingStar = document.getElementById('floating-star');
+const observer = new IntersectionObserver((entries) => {{
+  entries.forEach(e => {{
+    if (e.isIntersecting) {{
+      floatingStar.classList.remove('visible');
+    }} else {{
+      floatingStar.classList.add('visible');
+    }}
+  }});
+}}, {{ threshold: 0 }});
+observer.observe(document.querySelector('.hero'));
 
 function copyInstall() {{
   const cmd = document.getElementById('install-cmd').textContent;

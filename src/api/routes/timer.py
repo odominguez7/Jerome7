@@ -117,6 +117,37 @@ async def timer_page():
   .share-btn:hover {{ border-color: #E85D04; color: #E85D04; }}
   .share-btn.primary {{ background: #E85D04; color: #fff; border-color: #E85D04; }}
 
+  .card-preview {{
+    background: #0f1419; border: 1px solid #30363d; border-radius: 12px;
+    padding: 20px 24px; margin: 24px auto 0; max-width: 320px;
+    text-align: left; font-size: 13px; line-height: 1.7;
+    white-space: pre-line; color: #c9d1d9;
+  }}
+  .card-preview .card-header {{
+    color: #E85D04; font-weight: 700; font-size: 14px;
+  }}
+  .card-preview .card-divider {{ color: #30363d; }}
+  .card-preview .card-exercise {{ color: #c9d1d9; }}
+  .card-preview .card-footer {{
+    color: #484f58; font-size: 12px;
+  }}
+  .card-preview .card-site {{
+    color: #E85D04; font-size: 12px; font-weight: 600;
+  }}
+
+  .share-section {{ margin-top: 20px; }}
+  .share-section .share-row {{ margin-bottom: 12px; }}
+  .view-card-link {{
+    display: inline-block; margin-top: 8px;
+    color: #484f58; font-size: 11px; text-decoration: none;
+    letter-spacing: 1px; transition: color 0.2s;
+  }}
+  .view-card-link:hover {{ color: #E85D04; }}
+  .copied-toast {{
+    display: none; color: #7ee787; font-size: 11px;
+    margin-top: 6px; letter-spacing: 1px;
+  }}
+
   @keyframes pulse {{ 0%,100% {{ opacity: 1; }} 50% {{ opacity: 0.7; }} }}
   .pulsing {{ animation: pulse 1s ease-in-out infinite; }}
 </style>
@@ -140,9 +171,17 @@ async def timer_page():
   <div class="done-mark">◉</div>
   <div class="done-text">done.</div>
   <div class="done-sub">yu showed up.</div>
-  <div class="share-row">
-    <button class="share-btn primary" onclick="shareNative()">Share</button>
-    <button class="share-btn" onclick="copyText()">Copy</button>
+  <div class="card-preview" id="card-preview"></div>
+  <div class="share-section">
+    <div class="share-row">
+      <button class="share-btn primary" onclick="copyCard()">Copy to Clipboard</button>
+      <button class="share-btn" onclick="shareTwitter()">Share on Twitter</button>
+    </div>
+    <div class="share-row">
+      <button class="share-btn" onclick="shareNative()">Share</button>
+    </div>
+    <div class="copied-toast" id="copied-toast">copied to clipboard ✓</div>
+    <a class="view-card-link" id="view-card-link" href="/card/" target="_blank">VIEW YOUR CARD ▸</a>
   </div>
 </div>
 
@@ -199,20 +238,58 @@ function skip() {{
   else {{ clearInterval(interval); finish(); }}
 }}
 
+function buildCardText() {{
+  const dayNum = new URLSearchParams(window.location.search).get('day') || '?';
+  const sep = '━━━━━━━━━━━━━━━━━';
+  const exercises = blocks.map(b => '🟧 ' + b.name).join('\\n');
+  return 'JEROME7 \\u00b7 Day ' + dayNum + ' \\ud83d\\udd25\\n'
+    + sep + '\\n'
+    + exercises + '\\n'
+    + sep + '\\n'
+    + dayNum + '-day chain \\ud83d\\udd17 unbroken\\n'
+    + 'jerome7.com';
+}}
+
+function renderCardPreview() {{
+  const dayNum = new URLSearchParams(window.location.search).get('day') || '?';
+  const sep = '━━━━━━━━━━━━━━━━━';
+  const header = '<span class="card-header">JEROME7 \\u00b7 Day ' + dayNum + ' \\ud83d\\udd25</span>';
+  const divider = '<span class="card-divider">' + sep + '</span>';
+  const exercises = blocks.map(b => '<span class="card-exercise">\\ud83d\\udfe7 ' + b.name + '</span>').join('\\n');
+  const footer = '<span class="card-footer">' + dayNum + '-day chain \\ud83d\\udd17 unbroken</span>';
+  const site = '<span class="card-site">jerome7.com</span>';
+  document.getElementById('card-preview').innerHTML =
+    header + '\\n' + divider + '\\n' + exercises + '\\n' + divider + '\\n' + footer + '\\n' + site;
+}}
+
 function finish() {{
   document.getElementById('main').style.display = 'none';
   document.getElementById('done').style.display = 'block';
+  renderCardPreview();
+  const uid = new URLSearchParams(window.location.search).get('user_id');
+  if (uid) document.getElementById('view-card-link').href = '/card/' + uid;
+  else document.getElementById('view-card-link').style.display = 'none';
 }}
 
-const SHARE = "◉ Day complete.\\n\\n🟧🟧🟧🟧🟧🟧🟧\\n\\nJerome7 — 7 min/day\\nhttps://github.com/odominguez7/Jerome7";
-function shareNative() {{
-  if (navigator.share) navigator.share({{text: SHARE}});
-  else copyText();
-}}
-function copyText() {{
-  navigator.clipboard.writeText(SHARE).then(() => {{
-    document.querySelector('.share-btn:last-child').textContent = 'copied ✓';
+function copyCard() {{
+  const text = buildCardText();
+  navigator.clipboard.writeText(text).then(() => {{
+    const toast = document.getElementById('copied-toast');
+    toast.style.display = 'block';
+    setTimeout(() => {{ toast.style.display = 'none'; }}, 2000);
   }});
+}}
+
+function shareTwitter() {{
+  const text = buildCardText();
+  const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text);
+  window.open(url, '_blank');
+}}
+
+function shareNative() {{
+  const text = buildCardText();
+  if (navigator.share) navigator.share({{text: text}});
+  else copyCard();
 }}
 init();
 </script>
