@@ -1,4 +1,4 @@
-"""GET /share/{user_id} — shareable streak card. Terminal aesthetic. Screenshotable."""
+"""GET /share-legacy/{user_id} — old shareable streak card. Superseded by share_card.py."""
 
 from datetime import datetime
 
@@ -14,8 +14,8 @@ router = APIRouter()
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 
-@router.get("/share/{user_id}", response_class=HTMLResponse)
-def share_card(user_id: str, db: DBSession = Depends(get_db)):
+@router.get("/share-legacy/{user_id}", response_class=HTMLResponse)
+def share_card_legacy(user_id: str, db: DBSession = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

@@ -52,7 +52,13 @@
       "Bash(osascript -e 'quit app \"\"Claude\"\"')",
       "Bash(open -a Claude)",
       "Bash(curl -s https://jerome7.com/daily)",
-      "Bash(python3 -m json.tool)"
+      "Bash(python3 -m json.tool)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:deepwiki.com)",
+      "WebFetch(domain:judyailab.com)",
+      "WebFetch(domain:eu.36kr.com)",
+      "WebFetch(domain:topaiproduct.com)"
     ]
   }
 }
