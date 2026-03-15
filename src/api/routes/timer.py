@@ -5,6 +5,7 @@ Session type rotates daily: breathwork → meditation → reflection → prepara
 """
 
 import json
+import os
 from datetime import datetime
 
 from fastapi import APIRouter
@@ -53,6 +54,7 @@ async def timer_page():
         "preparation": "Visualization. 3 priorities. Launch into the day.",
     }
     type_desc = type_descriptions.get(session_type, "7 minutes of guided wellness.")
+    ai_available = "true" if os.getenv("ELEVENLABS_API_KEY", "") else "false"
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -370,8 +372,17 @@ async def timer_page():
 
     <div class="blocks-preview" id="blocksPreview"></div>
 
+    <!-- Voice mode toggle -->
+    <div id="voiceToggle" class="voice-toggle" style="display:inline-flex;background:#161b22;border:1px solid #21262d;border-radius:100px;margin-bottom:20px;overflow:hidden">
+      <button id="btnAiVoice" style="padding:8px 20px;font-size:10px;letter-spacing:2px;background:#E85D04;border:none;color:#fff;cursor:pointer;font-family:inherit;font-weight:600;border-radius:100px 0 0 100px" onclick="selectVoice('ai')">AI VOICE</button>
+      <button id="btnBrowserVoice" style="padding:8px 20px;font-size:10px;letter-spacing:2px;background:none;border:none;color:#484f58;cursor:pointer;font-family:inherit;font-weight:600;border-radius:0 100px 100px 0" onclick="selectVoice('browser')">BROWSER</button>
+    </div>
+
+    <!-- AI voice status -->
+    <div id="aiStatus" class="voice-note" style="color:#484f58;margin-bottom:16px"></div>
+
     <button class="start-btn" id="startBtn" onclick="beginSession()">BEGIN SESSION</button>
-    <div class="voice-note">Voice-guided with ambient 432Hz audio. Use earphones.</div>
+    <div class="voice-note" id="voiceNote">Voice-guided with ambient 432Hz audio. Use earphones.</div>
   </div>
 
   <!-- ACTIVE SESSION -->
@@ -417,6 +428,7 @@ async def timer_page():
 const blocks = {blocks_json};
 const sessionType = '{session_type}';
 const closingText = '{closing}';
+const aiAvailable = {ai_available};
 const TOTAL = blocks.reduce((s, b) => s + (b.duration_seconds || 60), 0);
 
 const TYPE_COLORS = {{
@@ -435,6 +447,77 @@ let interval = null;
 let userName = '';
 let jeromeNumber = null;
 let communityData = {{ total_jeromes: 0, sessions_today: 0, countries: 0 }};
+
+// ── ElevenLabs AI Voice ──
+let voiceMode = aiAvailable ? 'ai' : 'browser';
+let aiAudio = null;
+let aiReady = false;
+let aiGenerating = false;
+
+function selectVoice(mode) {{
+  if (mode === 'ai' && !aiAvailable) return;
+  voiceMode = mode;
+  const btnAi = document.getElementById('btnAiVoice');
+  const btnBrowser = document.getElementById('btnBrowserVoice');
+  btnAi.style.background = mode === 'ai' ? '#E85D04' : 'none';
+  btnAi.style.color = mode === 'ai' ? '#fff' : '#484f58';
+  btnBrowser.style.background = mode === 'browser' ? '#E85D04' : 'none';
+  btnBrowser.style.color = mode === 'browser' ? '#fff' : '#484f58';
+  document.getElementById('voiceNote').textContent = mode === 'ai'
+    ? 'AI-narrated by ElevenLabs. Use earphones.'
+    : 'Browser voice with ambient 432Hz audio. Use earphones.';
+}}
+
+async function prepareAiVoice() {{
+  if (!aiAvailable || aiReady || aiGenerating) return;
+  aiGenerating = true;
+  const status = document.getElementById('aiStatus');
+  status.textContent = 'Generating AI voice...';
+
+  try {{
+    const resp = await fetch('/voice/wellness/generate', {{ method: 'POST' }});
+    const data = await resp.json();
+    if (resp.ok) {{
+      aiAudio = new Audio('/voice/wellness/audio');
+      aiAudio.preload = 'auto';
+      aiAudio.addEventListener('canplaythrough', () => {{
+        aiReady = true;
+        status.textContent = 'AI voice ready.';
+      }}, {{ once: true }});
+      aiAudio.addEventListener('error', () => {{
+        status.textContent = 'Audio load failed. Using browser voice.';
+        voiceMode = 'browser';
+      }});
+      // Timeout fallback
+      setTimeout(() => {{
+        if (!aiReady) {{
+          status.textContent = 'AI voice ready.';
+          aiReady = true;
+        }}
+      }}, 5000);
+    }} else {{
+      status.textContent = (data.error || 'AI voice unavailable') + '. Using browser voice.';
+      voiceMode = 'browser';
+    }}
+  }} catch(e) {{
+    status.textContent = 'Network error. Using browser voice.';
+    voiceMode = 'browser';
+  }}
+  aiGenerating = false;
+}}
+
+function initVoiceToggle() {{
+  if (!aiAvailable) {{
+    document.getElementById('btnAiVoice').disabled = true;
+    document.getElementById('btnAiVoice').style.opacity = '0.3';
+    document.getElementById('btnAiVoice').style.cursor = 'not-allowed';
+    voiceMode = 'browser';
+    selectVoice('browser');
+  }} else {{
+    // Auto-generate AI voice in background
+    prepareAiVoice();
+  }}
+}}
 
 // ── Ambient 432Hz Audio (Web Audio API) ──
 let ambientCtx = null;
@@ -603,14 +686,20 @@ function beginSession() {{
   document.getElementById('dots').innerHTML = blocks.map((_, i) =>
     '<div class="dot" id="d' + i + '"></div>').join('');
 
-  // Personalized welcome with Jerome#
-  let greeting = 'Welcome to Jerome 7.';
-  if (userName && jeromeNumber) {{
-    greeting = 'Good morning, Jerome' + jeromeNumber + '.';
-  }} else if (userName && userName !== 'builder') {{
-    greeting = 'Welcome, ' + userName + '.';
+  // Start AI voice narration OR browser speech
+  if (voiceMode === 'ai' && aiReady && aiAudio) {{
+    aiAudio.currentTime = 0;
+    aiAudio.play().catch(() => {{}});
+  }} else {{
+    // Personalized welcome with Jerome# (browser speech fallback)
+    let greeting = 'Welcome to Jerome 7.';
+    if (userName && jeromeNumber) {{
+      greeting = 'Good morning, Jerome' + jeromeNumber + '.';
+    }} else if (userName && userName !== 'builder') {{
+      greeting = 'Welcome, ' + userName + '.';
+    }}
+    speak(greeting + ' Today is a ' + sessionType + ' session. Let\\'s begin.');
   }}
-  speak(greeting + ' Today is a ' + sessionType + ' session. Let\\'s begin.');
 
   currentBlock = 0;
   totalElapsed = 0;
@@ -635,8 +724,10 @@ function showBlock(i) {{
     dot.className = 'dot' + (j < i ? ' done' : j === i ? ' active' : '');
   }});
 
-  // Narrate block
-  speak(b.name + '. ' + (b.instruction || ''));
+  // Narrate block (only with browser speech — AI voice handles its own pacing)
+  if (voiceMode !== 'ai' || !aiReady) {{
+    speak(b.name + '. ' + (b.instruction || ''));
+  }}
 }}
 
 function tick() {{
@@ -683,9 +774,16 @@ function finishSession() {{
       jCount + ' Jeromes also showed up today.';
   }}
 
-  // Personalized closing narration
-  const closingNarration = 'Session complete. Day ' + day + '. ' + jLabel + ' showed up. ' + closingText;
-  speak(closingNarration);
+  // Stop AI audio if playing
+  if (aiAudio && !aiAudio.paused) {{
+    aiAudio.pause();
+  }}
+
+  // Personalized closing narration (browser speech only — AI voice includes its own closing)
+  if (voiceMode !== 'ai' || !aiReady) {{
+    const closingNarration = 'Session complete. Day ' + day + '. ' + jLabel + ' showed up. ' + closingText;
+    speak(closingNarration);
+  }}
 }}
 
 function formatTime(s) {{
@@ -757,6 +855,7 @@ if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
 renderPreview();
 checkOnboarding();
 loadCommunityStats();
+initVoiceToggle();
 </script>
 </body>
 </html>"""
