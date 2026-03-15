@@ -1,27 +1,31 @@
-# Jerome7
+<div align="center">
+  <h1>Jerome7</h1>
+  <p><strong>7 minutes. Show up. The world gets better.</strong></p>
+  <p>The largest open-source AI wellness infrastructure for builders, coders, and dreamers.</p>
 
-**5 autonomous AI agents. 7 minutes. One daily session for everyone on earth.**
+  ![GitHub Stars](https://img.shields.io/github/stars/odominguez7/Jerome7?style=flat-square&color=e8713a)
+  ![License](https://img.shields.io/github/license/odominguez7/Jerome7?style=flat-square)
+  ![GitHub Release](https://img.shields.io/github/v/release/odominguez7/Jerome7?style=flat-square&color=e8713a)
+  ![npm](https://img.shields.io/npm/v/jerome7?style=flat-square&color=e8713a)
 
-[![Live](https://img.shields.io/badge/live-jerome7.com-E85D04?style=flat-square)](https://jerome7.com)
-[![npm](https://img.shields.io/badge/npx-jerome7-CB3837?style=flat-square)](https://www.npmjs.com/package/jerome7)
-[![Discord](https://img.shields.io/badge/discord-join-5865F2?style=flat-square)](https://discord.gg/5AZP8DbEJm)
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](LICENSE)
+  <a href="https://jerome7.com">Live Site</a> &bull;
+  <a href="#quick-start">Quick Start</a> &bull;
+  <a href="https://discord.gg/5AZP8DbEJm">Discord</a> &bull;
+  <a href="https://jerome7.com/globe">The Globe</a> &bull;
+  <a href="https://jerome7.com/sponsor">Sponsor</a>
+</div>
 
 ---
 
 ## The Story
 
-I was 80 pounds heavier than I am today. I started with 7 minutes of walking. Every single day. That was the whole thing. I ended up running the **Boston Marathon** and finishing an **Ironman 70.3** — not because I was exceptional, but because I was consistent. Jerome7 is that system, open sourced and free forever.
+I was 80 pounds overweight. Couldn't run a mile. Started with 7 minutes of walking a day. That turned into the Boston Marathon. Then an Ironman 70.3. Then MIT. Not because I was exceptional -- because I was consistent.
 
----
+I met my co-founder Miguel through a LinkedIn cold message. One person. That's all it took. Cold plunge baths, saunas, running together. YU are just one person away from someone who will transform your life.
 
-## What is Jerome7
+## Why This Exists
 
-- **One AI-generated session per day.** Same for everyone. Like Wordle, but you move.
-- **5 agents that learn from you.** They adapt difficulty, prevent skips, form accountability pods, and track streaks — autonomously.
-- **Bodyweight only. 7 blocks. 60 seconds each.** No equipment. Life happens — 3 misses, then the chain breaks.
-
----
+Being a coder, founder, student, leader... is solitary. 86% of Gen Z report burnout before 25. Jerome7 is the daily 7-minute ritual for builders who ship. Same session for everyone on earth. Every day. Like Wordle, but you move.
 
 ## Quick Start
 
@@ -29,36 +33,44 @@ I was 80 pounds heavier than I am today. I started with 7 minutes of walking. Ev
 npx jerome7
 ```
 
-Or visit **[jerome7.com](https://jerome7.com)** | Or type `/seven7` in [Discord](https://discord.gg/5AZP8DbEJm)
+Or visit [jerome7.com](https://jerome7.com) | Or join [Discord](https://discord.gg/5AZP8DbEJm)
 
----
+## The 5 AI Agents + Agent Mesh
 
-## The 5 AI Agents
-
-| Agent | What it does |
+| Agent | Role |
 |---|---|
-| **Coach** | Generates daily sessions via Gemini 2.5 Flash. Reads your feedback — if you said "knees hurt," tomorrow avoids impact. |
-| **Nudge** | Learns your skip patterns. If you ghost Wednesdays at 6pm, the nudge hits at 4pm. |
-| **Streak** | 3-miss rule: miss 1, chain holds. Miss 2, still holds. Miss 3, breaks. 1 save per 30 days. |
-| **Community** | Matches you into pods of 3-5 by timezone + fitness level. You don't do this alone. |
-| **Scheduler** | Finds your optimal training window from session history. For pods, finds the time that works for everyone. |
+| **Coach** | Generates daily sessions via Gemini 2.5 Flash. Reads your feedback -- adjusts tomorrow. |
+| **Nudge** | Learns your skip patterns. Fires before you ghost. |
+| **Streak** | 3-miss rule. Miss 3, chain breaks. 1 save per 30 days. |
+| **Community** | Matches pods of 3-5 by timezone + fitness level. |
+| **Scheduler** | Finds your optimal training window from session history. |
 
----
+Every user gets a personal AI agent. These agents communicate via our A2A protocol -- sharing anonymized wellness patterns, predicting burnout, and matching accountability partners.
 
-## Why "Jerome 7"?
+## The Global Graph
 
-Jerome Morrow is the character from *Gattaca* (1997) — genetically engineered for perfection, and still fell. This project is for the opposite person: the one who was told they were average. The one who decides that's not the whole story.
+Every dot is a builder who showed up today. See the world light up at [jerome7.com/globe](https://jerome7.com/globe).
 
-7 minutes a day. Unbroken.
+## The $1,000 Promise
 
----
+I'm investing $1,000 of my own money into this community. Because YU matter. Every dollar is tracked publicly at [jerome7.com/sponsor](https://jerome7.com/sponsor).
+
+## Add Jerome7 to Your README
+
+```markdown
+![Jerome7 Streak](https://jerome7.com/embed/badge/YOUR_USER_ID)
+```
+
+## Star This Repo
 
 If you believe 7 minutes can change a life, **star this repo.**
 
----
+## YU Are Welcome
 
-**[jerome7.com](https://jerome7.com)** | **[Discord](https://discord.gg/5AZP8DbEJm)** | **[npm](https://www.npmjs.com/package/jerome7)** | **[Architecture](ARCHITECTURE.md)**
+Share. Bring feedback. Let us take care of each other.
+
+[Website](https://jerome7.com) | [Discord](https://discord.gg/5AZP8DbEJm) | [npm](https://www.npmjs.com/package/jerome7) | [Architecture](ARCHITECTURE.md) | [Docs](https://jerome7.com/docs)
 
 Apache 2.0. Free forever. No premium tier. No paywall.
 
-*Built by [Omar](https://github.com/odominguez7). It's on YU. It's for YU.*
+*Built by [Omar](https://github.com/odominguez7) & [Miguel](https://jerome7.com). It's on YU.*

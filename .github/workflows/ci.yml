@@ -20,13 +20,20 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install ruff pytest
+          pip install ruff
 
       - name: Lint with Ruff
         run: ruff check src/ mcp_server/ --ignore E501
 
       - name: Check imports
         run: python -c "from src.api.main import app; print('✅ App imports successfully')"
+
+      - name: Verify agent modules
+        run: |
+          python -c "from src.agents.mesh import AgentMesh; print('✅ Agent Mesh')"
+          python -c "from src.agents.personal import PersonalAgent; print('✅ Personal Agent')"
+          python -c "from src.agents.daily_checkup import CheckupOrchestrator; print('✅ Daily Checkup')"
+          python -c "from src.agents.social import MicroForum; print('✅ Social Layer')"
 
   cli-check:
     runs-on: ubuntu-latest
