@@ -524,7 +524,7 @@ async def landing():
   <div class="nav-links">
     <a href="/timer">Timer</a>
     <a href="/leaderboard">Leaderboard</a>
-    <a href="/analytics/overview">Analytics</a>
+    <a href="/analytics">Analytics</a>
     <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
     <a href="https://github.com/odominguez7/Jerome7">GitHub</a>
     <a href="/leaderboard" class="nav-highlight">WHO'S SHOWING UP</a>
@@ -682,7 +682,7 @@ async def landing():
   <div class="footer-text" style="margin-top: 8px;">
     <a href="/timer">Timer</a> ·
     <a href="/leaderboard">Leaderboard</a> ·
-    <a href="/analytics/overview">Analytics</a> ·
+    <a href="/analytics">Analytics</a> ·
     <a href="https://github.com/odominguez7/Jerome7">GitHub</a> ·
     <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
   </div>
