@@ -379,13 +379,10 @@ async def sponsor_page():
   <div class="divider"></div>
   <div class="section-label">WALL OF GRATITUDE</div>
   <h2>Those who showed up first.</h2>
-  <p>Every sponsor gets their name here. You believed before it was obvious.</p>
-  <div class="sponsors-grid">
-    <div class="sponsor-badge anon">A builder who cares &#10084;&#65039;</div>
-    <div class="sponsor-badge anon">A builder who cares &#10084;&#65039;</div>
-    <div class="sponsor-badge anon">A builder who cares &#10084;&#65039;</div>
+  <p>Be the first sponsor. Your name appears here.</p>
+  <div class="cta-row" style="margin-top:24px;">
+    <a href="https://github.com/sponsors/odominguez7" class="btn btn-primary" target="_blank">SPONSOR ON GITHUB</a>
   </div>
-  <p style="margin-top:24px;font-size:12px;color:#484f58;">Your name here. Be the first.</p>
 </div>
 
 <!-- FOOTER -->

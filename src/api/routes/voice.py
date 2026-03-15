@@ -1,4 +1,8 @@
-"""Voice-guided Jerome7 sessions — Web Speech API fallback + ElevenLabs AI TTS."""
+"""Voice-guided Jerome7 sessions — 5-phase wellness structure.
+
+Phases: ARRIVAL (30s) → BREATHWORK (90s) → MOVEMENT (180s) → INTENTION (60s) → COMMUNITY (60s)
+Uses Web Speech API fallback + ElevenLabs AI TTS.
+"""
 
 import os
 from datetime import datetime, timezone
@@ -22,21 +26,76 @@ def _get_voice_id():
 
 
 def _build_narration(blocks: list[dict], closing: str) -> str:
-    """Turn session blocks into a narration script for TTS."""
-    lines = [
-        "Welcome to Jerome 7.",
-        "Today's session. 7 blocks. 60 seconds each.",
-        "Let's go.",
-    ]
+    """Build the 5-phase narration script for TTS.
+
+    Phases:
+      ARRIVAL    (0:00-0:30)  — warm welcome, ambient
+      BREATHWORK (0:30-2:00)  — box breathing, 4-count cycles
+      MOVEMENT   (2:00-5:00)  — 7 exercise blocks from daily session
+      INTENTION  (5:00-6:00)  — affirmation / what are you shipping
+      COMMUNITY  (6:00-7:00)  — streak celebration, see you tomorrow
+    """
+    lines = []
+
+    # ── ARRIVAL (30s) ────────────────────────────────────────────────────
+    lines.append(
+        "Welcome to Jerome 7. "
+        "Today is your session. "
+        "Builders around the world are showing up with you right now. "
+        "Take a breath. You're here. That's what matters."
+    )
+    lines.append("...")
+
+    # ── BREATHWORK (90s) ─────────────────────────────────────────────────
+    lines.append(
+        "Let's begin with box breathing. "
+        "Find a comfortable position. Relax your shoulders."
+    )
+    # 4 cycles of box breathing (~20s each with pauses)
+    for cycle in range(1, 5):
+        lines.append(
+            f"Cycle {cycle}. "
+            "Breathe in... two... three... four. "
+            "Hold... two... three... four. "
+            "Breathe out... two... three... four. "
+            "Hold... two... three... four."
+        )
+        lines.append("...")
+    lines.append("Good. Let that settle.")
+    lines.append("...")
+
+    # ── MOVEMENT (180s) ──────────────────────────────────────────────────
+    lines.append(
+        "Time to move. "
+        "Seven blocks. Follow along at your own pace."
+    )
     for i, b in enumerate(blocks, 1):
         name = b.get("name", f"Block {i}")
         instruction = b.get("instruction", "")
-        lines.append(f"Block {i}: {name}. {instruction}. Starting now.")
-        # Add a brief pause marker between blocks (period + ellipsis)
+        lines.append(f"Block {i}. {name}. {instruction}. Let's go.")
         if i < len(blocks):
             lines.append("...")
-    lines.append("Session complete. You showed up. 7 minutes. Chain unbroken.")
+    lines.append("...")
+
+    # ── INTENTION (60s) ──────────────────────────────────────────────────
+    lines.append(
+        "Take a moment. "
+        "What are you building today? "
+        "Hold that intention. "
+        "You showed up. That compounds. "
+        "Every day you show up, you become harder to stop."
+    )
+    lines.append("...")
+
+    # ── COMMUNITY (60s) ──────────────────────────────────────────────────
+    lines.append(
+        "Session complete. "
+        "You just showed up with builders across the world. "
+        "Your chain continues. "
+        "See you tomorrow."
+    )
     lines.append(closing)
+
     return "\n".join(lines)
 
 
@@ -141,7 +200,7 @@ async def voice_audio():
 
 @router.get("/voice", response_class=HTMLResponse)
 async def voice_session():
-    """Voice-guided session — AI voice (ElevenLabs) or browser speech fallback."""
+    """Voice-guided session — 5-phase wellness structure with AI or browser voice."""
     session = await get_daily()
     if hasattr(session, "model_dump"):
         session = session.model_dump()
@@ -169,7 +228,7 @@ async def voice_session():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome7 — Voice Session</title>
-<meta name="description" content="Hands-free 7-minute session with AI voice narration.">
+<meta name="description" content="Guided 7-minute wellness session with AI voice narration.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -179,7 +238,7 @@ async def voice_session():
     font-family: 'JetBrains Mono', monospace;
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
   }}
-  .container {{ max-width: 520px; width: 100%; padding: 40px 20px; text-align: center; }}
+  .container {{ max-width: 560px; width: 100%; padding: 40px 20px; text-align: center; }}
 
   .nav {{
     display: flex; justify-content: space-between; align-items: center;
@@ -207,7 +266,34 @@ async def voice_session():
   }}
 
   .title {{ font-size: 28px; font-weight: 800; color: #f0f6fc; margin-bottom: 8px; }}
-  .subtitle {{ font-size: 12px; color: #484f58; margin-bottom: 48px; letter-spacing: 1px; }}
+  .subtitle {{ font-size: 12px; color: #484f58; margin-bottom: 32px; letter-spacing: 1px; }}
+
+  /* ── Phase indicators ─────────────────────────── */
+  .phase-bar {{
+    display: flex; justify-content: center; gap: 4px;
+    margin-bottom: 32px; flex-wrap: wrap;
+  }}
+  .phase-pill {{
+    font-size: 9px; letter-spacing: 1.5px; font-weight: 700;
+    padding: 5px 12px; border-radius: 100px;
+    background: #161b22; border: 1px solid #21262d;
+    color: #484f58; transition: all 0.4s;
+  }}
+  .phase-pill.active {{
+    border-color: var(--phase-color);
+    color: var(--phase-color);
+    background: color-mix(in srgb, var(--phase-color) 10%, #161b22);
+  }}
+  .phase-pill.done {{
+    border-color: #30363d;
+    color: #30363d;
+    background: #161b22;
+  }}
+  .phase-pill[data-phase="arrival"]    {{ --phase-color: #79c0ff; }}
+  .phase-pill[data-phase="breathwork"] {{ --phase-color: #4ecdc4; }}
+  .phase-pill[data-phase="movement"]   {{ --phase-color: #e8713a; }}
+  .phase-pill[data-phase="intention"]  {{ --phase-color: #b392f0; }}
+  .phase-pill[data-phase="community"]  {{ --phase-color: #7ee787; }}
 
   /* ── Voice toggle ─────────────────────────── */
   .voice-toggle {{
@@ -277,9 +363,10 @@ async def voice_session():
   .generate-btn:hover {{ background: #c45f2e; }}
   .generate-btn:disabled {{ background: #21262d; color: #484f58; cursor: default; }}
 
-  /* ── Current block ────────────────────────── */
-  .block-phase {{
-    font-size: 10px; letter-spacing: 3px; color: #e8713a; margin-bottom: 8px;
+  /* ── Active session content ────────────────── */
+  .phase-label {{
+    font-size: 10px; letter-spacing: 3px; margin-bottom: 8px;
+    transition: color 0.4s;
   }}
   .block-name {{
     font-size: 36px; font-weight: 800; color: #f0f6fc; margin-bottom: 12px;
@@ -287,6 +374,7 @@ async def voice_session():
   }}
   .block-instruction {{
     font-size: 14px; color: #8b949e; margin-bottom: 32px; line-height: 1.6;
+    max-width: 420px; margin-left: auto; margin-right: auto;
   }}
 
   /* Timer */
@@ -297,24 +385,28 @@ async def voice_session():
   }}
   .timer-label {{ font-size: 10px; color: #484f58; letter-spacing: 2px; margin-bottom: 32px; }}
 
-  /* Progress */
-  .progress-bar {{
+  /* Session-wide progress */
+  .session-progress {{
     width: 100%; height: 4px; background: #21262d;
-    border-radius: 2px; margin-bottom: 24px; overflow: hidden;
+    border-radius: 2px; margin-bottom: 12px; overflow: hidden;
+    position: relative;
   }}
-  .progress-fill {{
-    height: 100%; background: #e8713a; border-radius: 2px;
-    transition: width 1s linear;
+  .session-progress-fill {{
+    height: 100%; border-radius: 2px;
+    transition: width 1s linear, background-color 0.4s;
+    width: 0%;
   }}
-  .block-dots {{
-    display: flex; justify-content: center; gap: 8px; margin-bottom: 48px;
+
+  /* Phase progress segments */
+  .phase-segments {{
+    display: flex; gap: 3px; margin-bottom: 48px;
   }}
-  .dot {{
-    width: 10px; height: 10px; border-radius: 50%;
-    background: #21262d; transition: background 0.3s;
+  .phase-seg {{
+    height: 3px; border-radius: 2px; background: #21262d;
+    transition: background 0.4s;
   }}
-  .dot.done {{ background: #3fb950; }}
-  .dot.active {{ background: #e8713a; animation: pulse 1s infinite; }}
+  .phase-seg.done {{ background: #30363d; }}
+  .phase-seg.active {{ animation: pulse 1.5s infinite; }}
 
   /* Start button */
   .start-btn {{
@@ -332,14 +424,16 @@ async def voice_session():
   /* Complete state */
   .complete {{ display: none; }}
   .complete.show {{ display: block; }}
-  .complete-check {{ font-size: 64px; margin-bottom: 16px; }}
+  .complete-check {{ font-size: 64px; margin-bottom: 16px; color: #7ee787; }}
   .complete-text {{ font-size: 14px; color: #8b949e; line-height: 1.6; }}
 
   .hidden {{ display: none; }}
 
   @media (max-width: 480px) {{
     .timer {{ font-size: 56px; }}
-    .block-name {{ font-size: 28px; }}
+    .block-name {{ font-size: 24px; }}
+    .phase-pill {{ font-size: 8px; padding: 4px 8px; }}
+    .phase-bar {{ gap: 3px; }}
   }}
 </style>
 </head>
@@ -361,7 +455,16 @@ async def voice_session():
 
   <div id="preStart">
     <div class="title">{title.upper()}</div>
-    <div class="subtitle">HANDS-FREE · AI NARRATION OR BROWSER VOICE</div>
+    <div class="subtitle">GUIDED SESSION · 5 PHASES · 7 MINUTES</div>
+
+    <!-- Phase overview -->
+    <div class="phase-bar" id="phaseBarPre">
+      <div class="phase-pill" data-phase="arrival">ARRIVAL</div>
+      <div class="phase-pill" data-phase="breathwork">BREATHWORK</div>
+      <div class="phase-pill" data-phase="movement">MOVEMENT</div>
+      <div class="phase-pill" data-phase="intention">INTENTION</div>
+      <div class="phase-pill" data-phase="community">COMMUNITY</div>
+    </div>
 
     <!-- Voice toggle -->
     <div class="voice-toggle" id="voiceToggle">
@@ -393,18 +496,39 @@ async def voice_session():
       </div>
     </div>
 
-    <button class="start-btn" id="startBtn" onclick="startSession()">START VOICE SESSION</button>
-    <div class="note" id="voiceNote">AI-powered narration by ElevenLabs. Silky smooth.</div>
+    <button class="start-btn" id="startBtn" onclick="startSession()">BEGIN SESSION</button>
+    <div class="note" id="voiceNote">AI-powered narration by ElevenLabs.</div>
   </div>
 
   <div id="activeSession" class="hidden">
-    <div class="block-phase" id="blockPhase">PRIME</div>
+    <!-- Phase bar during session -->
+    <div class="phase-bar" id="phaseBarActive">
+      <div class="phase-pill" data-phase="arrival">ARRIVAL</div>
+      <div class="phase-pill" data-phase="breathwork">BREATHWORK</div>
+      <div class="phase-pill" data-phase="movement">MOVEMENT</div>
+      <div class="phase-pill" data-phase="intention">INTENTION</div>
+      <div class="phase-pill" data-phase="community">COMMUNITY</div>
+    </div>
+
+    <div class="phase-label" id="phaseLabel">ARRIVAL</div>
     <div class="block-name" id="blockName">—</div>
     <div class="block-instruction" id="blockInstruction">—</div>
-    <div class="timer" id="timer">1:00</div>
+    <div class="timer" id="timer">0:30</div>
     <div class="timer-label">REMAINING</div>
-    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-    <div class="block-dots" id="blockDots"></div>
+
+    <!-- Full session progress bar -->
+    <div class="session-progress">
+      <div class="session-progress-fill" id="sessionProgressFill"></div>
+    </div>
+
+    <!-- Phase segment indicators -->
+    <div class="phase-segments" id="phaseSegments">
+      <div class="phase-seg" data-phase="arrival"    style="flex:30"></div>
+      <div class="phase-seg" data-phase="breathwork" style="flex:90"></div>
+      <div class="phase-seg" data-phase="movement"   style="flex:180"></div>
+      <div class="phase-seg" data-phase="intention"  style="flex:60"></div>
+      <div class="phase-seg" data-phase="community"  style="flex:60"></div>
+    </div>
   </div>
 
   <div class="complete" id="complete">
@@ -421,21 +545,119 @@ async def voice_session():
 </div>
 
 <script>
-  const blocks = {blocks_js};
+  // ── Data from server ────────────────────────────────────────────────
+  const exerciseBlocks = {blocks_js};
   const closing = '{closing_text}';
   const aiAvailable = {ai_available};
 
-  let voiceMode = aiAvailable ? 'ai' : 'browser';  // 'ai' or 'browser'
-  let currentBlock = 0;
+  // ── Phase colors ────────────────────────────────────────────────────
+  const PHASE_COLORS = {{
+    arrival:    '#79c0ff',
+    breathwork: '#4ecdc4',
+    movement:   '#e8713a',
+    intention:  '#b392f0',
+    community:  '#7ee787',
+  }};
+
+  // ── 5-phase session structure ───────────────────────────────────────
+  // Each phase is an array of "steps" with name, instruction, duration.
+  function buildPhases() {{
+    const phases = [
+      {{
+        id: 'arrival', label: 'ARRIVAL', totalDuration: 30,
+        steps: [{{
+          name: 'Welcome',
+          instruction: 'Builders around the world are showing up with you right now. Take a breath. You are here. That is what matters.',
+          duration: 30,
+        }}],
+      }},
+      {{
+        id: 'breathwork', label: 'BREATHWORK', totalDuration: 90,
+        steps: [
+          {{ name: 'Box Breathing', instruction: 'Breathe in for 4... hold for 4... breathe out for 4... hold for 4. Repeat with me.', duration: 90 }},
+        ],
+      }},
+      {{
+        id: 'movement', label: 'MOVEMENT', totalDuration: 180,
+        steps: exerciseBlocks.map((b, i) => ({{
+          name: b.name,
+          instruction: b.instruction,
+          duration: Math.floor(180 / exerciseBlocks.length),
+        }})),
+      }},
+      {{
+        id: 'intention', label: 'INTENTION', totalDuration: 60,
+        steps: [{{
+          name: 'Set Your Intention',
+          instruction: 'What are you building today? Hold that intention. You showed up. That compounds.',
+          duration: 60,
+        }}],
+      }},
+      {{
+        id: 'community', label: 'COMMUNITY', totalDuration: 60,
+        steps: [{{
+          name: 'Chain Unbroken',
+          instruction: 'You just showed up with builders across the world. Your chain continues. See you tomorrow.',
+          duration: 60,
+        }}],
+      }},
+    ];
+
+    // Ensure movement step durations add up to exactly 180
+    const mv = phases[2];
+    const perStep = Math.floor(180 / mv.steps.length);
+    let remainder = 180 - perStep * mv.steps.length;
+    mv.steps.forEach((s, i) => {{
+      s.duration = perStep + (i < remainder ? 1 : 0);
+    }});
+
+    return phases;
+  }}
+
+  const SESSION_PHASES = buildPhases();
+  const TOTAL_DURATION = 420; // 7 minutes
+
+  // ── State ───────────────────────────────────────────────────────────
+  let voiceMode = aiAvailable ? 'ai' : 'browser';
+  let currentPhaseIdx = 0;
+  let currentStepIdx = 0;
   let timerInterval = null;
+  let sessionStartTime = null;
   let aiAudio = null;
   let aiAudioReady = false;
   let aiSessionActive = false;
 
+  // ── Browser speech narration scripts per phase ──────────────────────
+  const PHASE_NARRATION = {{
+    arrival: [
+      'Welcome to Jerome 7.',
+      'Today is your session.',
+      'Builders around the world are showing up with you right now.',
+      'Take a breath. You are here. That is what matters.',
+    ],
+    breathwork: [
+      'Let us begin with box breathing. Find a comfortable position.',
+      'Breathe in for four. Hold for four. Breathe out for four. Hold for four.',
+      'Again. Breathe in... hold... breathe out... hold.',
+      'One more cycle. In... hold... out... hold.',
+      'Good. Let that settle.',
+    ],
+    movement_intro: 'Time to move. Follow along at your own pace.',
+    intention: [
+      'Take a moment.',
+      'What are you building today?',
+      'Hold that intention. You showed up. That compounds.',
+    ],
+    community: [
+      'Session complete.',
+      'You just showed up with builders across the world.',
+      'Your chain continues. See you tomorrow.',
+    ],
+  }};
+
   // ── Initialization ──────────────────────────────────────────────────
   function init() {{
     if (!aiAvailable) {{
-      // No API key — disable AI voice
       document.getElementById('btnAiVoice').disabled = true;
       document.getElementById('btnAiVoice').classList.remove('active');
       document.getElementById('btnBrowserVoice').classList.add('active');
@@ -443,7 +665,6 @@ async def voice_session():
       document.getElementById('voiceNote').textContent =
         'Uses your browser\\'s speech synthesis. No data leaves your device.';
     }} else {{
-      // Try to load existing audio
       checkExistingAudio();
     }}
     updateToggleUI();
@@ -477,9 +698,7 @@ async def voice_session():
   async function checkExistingAudio() {{
     try {{
       const resp = await fetch('/voice/audio', {{ method: 'HEAD' }});
-      if (resp.ok) {{
-        loadAudioPlayer();
-      }}
+      if (resp.ok) loadAudioPlayer();
     }} catch(e) {{ /* no audio yet */ }}
   }}
 
@@ -522,16 +741,12 @@ async def voice_session():
       const pct = (aiAudio.currentTime / aiAudio.duration) * 100;
       document.getElementById('aiProgressFill').style.width = pct + '%';
       document.getElementById('aiTimeCurrent').textContent = fmtAudioTime(aiAudio.currentTime);
-
-      // Sync blocks with audio playback if session is active
-      if (aiSessionActive) syncBlocksWithAudio();
     }});
 
     aiAudio.addEventListener('ended', () => {{
       document.getElementById('aiPlayIcon').innerHTML = '<polygon points="6,4 20,12 6,20"/>';
     }});
 
-    // Show playback controls, hide generate button
     document.getElementById('aiGenerate').style.display = 'none';
     document.getElementById('aiPlayback').style.display = 'block';
   }}
@@ -563,29 +778,12 @@ async def voice_session():
     return m + ':' + sec.toString().padStart(2, '0');
   }}
 
-  // ── AI mode: narration timestamps per block ─────────────────────────
-  // We estimate where each block starts in the narration audio.
-  // Intro ~5s, each block instruction ~8-12s, closing ~5s.
-  function getBlockAudioTimestamps() {{
-    if (!aiAudio || !aiAudio.duration) return null;
-    const dur = aiAudio.duration;
-    const introSec = 5;
-    const closingSec = 5;
-    const bodyDur = dur - introSec - closingSec;
-    const perBlock = bodyDur / blocks.length;
-    const timestamps = [];
-    for (let i = 0; i < blocks.length; i++) {{
-      timestamps.push(introSec + i * perBlock);
-    }}
-    return {{ timestamps, perBlock }};
-  }}
-
   // ── Browser speech ──────────────────────────────────────────────────
   function speak(text) {{
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.9; u.pitch = 1.0; u.volume = 1.0;
+    u.rate = 0.85; u.pitch = 1.0; u.volume = 1.0;
     const voices = window.speechSynthesis.getVoices();
     const preferred = voices.find(v =>
       v.name.includes('Samantha') || v.name.includes('Daniel') || v.name.includes('Google'));
@@ -593,28 +791,70 @@ async def voice_session():
     window.speechSynthesis.speak(u);
   }}
 
-  // ── Block display ───────────────────────────────────────────────────
-  function updateDots() {{
-    const container = document.getElementById('blockDots');
-    container.innerHTML = '';
-    for (let i = 0; i < blocks.length; i++) {{
-      const dot = document.createElement('div');
-      dot.className = 'dot' + (i < currentBlock ? ' done' : i === currentBlock ? ' active' : '');
-      container.appendChild(dot);
-    }}
+  function speakSequence(texts, delay) {{
+    // Speak an array of texts with a delay between each
+    let d = 0;
+    texts.forEach(t => {{
+      setTimeout(() => speak(t), d);
+      d += delay;
+    }});
   }}
 
-  function showBlock(index) {{
-    if (index < 0 || index >= blocks.length) return;
-    const block = blocks[index];
-    document.getElementById('blockPhase').textContent = (block.phase || 'BUILD').toUpperCase();
-    document.getElementById('blockName').textContent = block.name.toUpperCase();
-    document.getElementById('blockInstruction').textContent = block.instruction;
-    updateDots();
+  // ── Phase UI helpers ────────────────────────────────────────────────
+  function updatePhasePills() {{
+    const pills = document.querySelectorAll('#phaseBarActive .phase-pill');
+    const segments = document.querySelectorAll('#phaseSegments .phase-seg');
+    pills.forEach((pill, i) => {{
+      pill.classList.remove('active', 'done');
+      if (i < currentPhaseIdx) pill.classList.add('done');
+      else if (i === currentPhaseIdx) pill.classList.add('active');
+    }});
+    segments.forEach((seg, i) => {{
+      seg.classList.remove('active', 'done');
+      seg.style.background = '#21262d';
+      if (i < currentPhaseIdx) {{
+        seg.classList.add('done');
+        seg.style.background = '#30363d';
+      }} else if (i === currentPhaseIdx) {{
+        seg.classList.add('active');
+        seg.style.background = PHASE_COLORS[SESSION_PHASES[i].id];
+      }}
+    }});
+  }}
 
-    if (voiceMode === 'browser') {{
-      speak(block.name + '. ' + block.instruction);
+  function showPhaseStep(phaseIdx, stepIdx) {{
+    const phase = SESSION_PHASES[phaseIdx];
+    const step = phase.steps[stepIdx];
+    const color = PHASE_COLORS[phase.id];
+
+    document.getElementById('phaseLabel').textContent = phase.label;
+    document.getElementById('phaseLabel').style.color = color;
+    document.getElementById('blockName').textContent = step.name.toUpperCase();
+    document.getElementById('blockInstruction').textContent = step.instruction;
+    document.getElementById('sessionProgressFill').style.backgroundColor = color;
+    updatePhasePills();
+  }}
+
+  function updateSessionProgress() {{
+    // Calculate total elapsed seconds across all completed phases + current
+    let elapsed = 0;
+    for (let p = 0; p < currentPhaseIdx; p++) {{
+      elapsed += SESSION_PHASES[p].totalDuration;
     }}
+    // Add elapsed within current phase
+    const phase = SESSION_PHASES[currentPhaseIdx];
+    for (let s = 0; s < currentStepIdx; s++) {{
+      elapsed += phase.steps[s].duration;
+    }}
+    // Current step: its duration minus what the timer shows
+    const timerEl = document.getElementById('timer');
+    const parts = timerEl.textContent.split(':');
+    const remaining = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    const stepDuration = phase.steps[currentStepIdx] ? phase.steps[currentStepIdx].duration : 0;
+    elapsed += stepDuration - remaining;
+
+    const pct = Math.min(100, (elapsed / TOTAL_DURATION) * 100);
+    document.getElementById('sessionProgressFill').style.width = pct + '%';
   }}
 
   function formatTime(s) {{
@@ -623,21 +863,16 @@ async def voice_session():
     return m + ':' + sec.toString().padStart(2, '0');
   }}
 
+  // ── Timer ───────────────────────────────────────────────────────────
   function runTimer(seconds, onDone) {{
     let remaining = seconds;
-    const total = seconds;
     document.getElementById('timer').textContent = formatTime(remaining);
-    document.getElementById('progressFill').style.width = '0%';
+    updateSessionProgress();
 
     timerInterval = setInterval(() => {{
       remaining--;
       document.getElementById('timer').textContent = formatTime(remaining);
-      const pct = ((total - remaining) / total) * 100;
-      document.getElementById('progressFill').style.width = pct + '%';
-
-      if (remaining === 5) {{
-        speak('5 seconds');
-      }}
+      updateSessionProgress();
 
       if (remaining <= 0) {{
         clearInterval(timerInterval);
@@ -646,58 +881,75 @@ async def voice_session():
     }}, 1000);
   }}
 
-  function nextBlock() {{
-    currentBlock++;
-    if (currentBlock >= blocks.length) {{
+  // ── Phase runner ────────────────────────────────────────────────────
+  function runStep() {{
+    if (currentPhaseIdx >= SESSION_PHASES.length) {{
       finishSession();
       return;
     }}
-    showBlock(currentBlock);
-    if (voiceMode === 'ai') {{
-      playBlockNarration(currentBlock, () => {{
-        runTimer(blocks[currentBlock].duration || 60, nextBlock);
-      }});
-    }} else {{
-      runTimer(blocks[currentBlock].duration || 60, nextBlock);
+
+    const phase = SESSION_PHASES[currentPhaseIdx];
+    if (currentStepIdx >= phase.steps.length) {{
+      // Move to next phase
+      currentPhaseIdx++;
+      currentStepIdx = 0;
+      runStep();
+      return;
+    }}
+
+    const step = phase.steps[currentStepIdx];
+    showPhaseStep(currentPhaseIdx, currentStepIdx);
+
+    // Browser voice narration for each phase
+    if (voiceMode === 'browser') {{
+      narratePhaseStep(phase.id, currentStepIdx);
+    }}
+
+    runTimer(step.duration, () => {{
+      currentStepIdx++;
+      runStep();
+    }});
+  }}
+
+  function narratePhaseStep(phaseId, stepIdx) {{
+    if (phaseId === 'arrival' && stepIdx === 0) {{
+      speakSequence(PHASE_NARRATION.arrival, 4000);
+    }} else if (phaseId === 'breathwork' && stepIdx === 0) {{
+      speakSequence(PHASE_NARRATION.breathwork, 8000);
+    }} else if (phaseId === 'movement') {{
+      if (stepIdx === 0) speak(PHASE_NARRATION.movement_intro);
+      const block = exerciseBlocks[stepIdx];
+      if (block) {{
+        setTimeout(() => {{
+          speak('Block ' + (stepIdx + 1) + '. ' + block.name + '. ' + block.instruction + '. Let\\'s go.');
+        }}, stepIdx === 0 ? 3000 : 500);
+      }}
+    }} else if (phaseId === 'intention' && stepIdx === 0) {{
+      speakSequence(PHASE_NARRATION.intention, 5000);
+    }} else if (phaseId === 'community' && stepIdx === 0) {{
+      speakSequence(PHASE_NARRATION.community, 4000);
     }}
   }}
 
-  // Play just the narration for one block, then call onDone
-  function playBlockNarration(index, onDone) {{
-    if (!aiAudio || !aiAudioReady) {{ onDone(); return; }}
-    const ts = getBlockAudioTimestamps();
-    if (!ts) {{ onDone(); return; }}
-
-    const startTime = ts.timestamps[index];
-    const endTime = index < blocks.length - 1 ? ts.timestamps[index + 1] : aiAudio.duration - 3;
-
-    aiAudio.currentTime = startTime;
+  // ── AI mode: play narration alongside the session ──────────────────
+  function startAiNarration() {{
+    if (!aiAudio || !aiAudioReady) return;
+    aiSessionActive = true;
+    aiAudio.currentTime = 0;
     aiAudio.play();
-
-    const checkEnd = setInterval(() => {{
-      if (aiAudio.currentTime >= endTime || aiAudio.paused) {{
-        clearInterval(checkEnd);
-        aiAudio.pause();
-        onDone();
-      }}
-    }}, 100);
   }}
 
+  // ── Finish ──────────────────────────────────────────────────────────
   function finishSession() {{
     document.getElementById('activeSession').classList.add('hidden');
     document.getElementById('complete').classList.add('show');
     document.getElementById('closingText').textContent = closing;
     document.getElementById('voicePulse').classList.remove('active');
     aiSessionActive = false;
-    if (voiceMode === 'ai' && aiAudio) {{
-      // Play closing portion of narration
-      const dur = aiAudio.duration || 0;
-      if (dur > 5) {{
-        aiAudio.currentTime = dur - 5;
-        aiAudio.play();
-      }}
+
+    if (voiceMode === 'browser') {{
+      speak('Session complete. ' + closing);
     }}
-    speak('Session complete. ' + closing);
   }}
 
   // ── Start session ───────────────────────────────────────────────────
@@ -705,23 +957,15 @@ async def voice_session():
     document.getElementById('preStart').classList.add('hidden');
     document.getElementById('activeSession').classList.remove('hidden');
     document.getElementById('voicePulse').classList.add('active');
-    currentBlock = 0;
+    sessionStartTime = Date.now();
+    currentPhaseIdx = 0;
+    currentStepIdx = 0;
 
     if (voiceMode === 'ai' && aiAudio && aiAudioReady) {{
-      // AI mode — play block narration, then 60s timer, repeat
-      aiSessionActive = true;
-      showBlock(0);
-      playBlockNarration(0, () => {{
-        runTimer(blocks[0].duration || 60, nextBlock);
-      }});
-    }} else {{
-      // Browser voice mode
-      speak("Starting today's Jerome 7. " + blocks[0].name);
-      setTimeout(() => {{
-        showBlock(0);
-        runTimer(blocks[0].duration || 60, nextBlock);
-      }}, 2000);
+      startAiNarration();
     }}
+
+    runStep();
   }}
 
   // ── Preload ─────────────────────────────────────────────────────────

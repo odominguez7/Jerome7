@@ -609,12 +609,8 @@ async def landing():
   <a href="/" class="nav-brand">JEROME7</a>
   <div class="nav-links">
     <a href="/timer">Timer</a>
-    <a href="/voice">Voice</a>
-    <a href="/coach">Coach</a>
-    <a href="/leaderboard">Leaderboard</a>
-    <a href="/analytics">Analytics</a>
-    <a href="/agents">Agents</a>
     <a href="/globe">Globe</a>
+    <a href="/agents">Agents</a>
     <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
     <a href="https://github.com/odominguez7/Jerome7">GitHub</a>
     <a href="/leaderboard" class="nav-highlight">WHO'S SHOWING UP</a>
@@ -627,8 +623,8 @@ async def landing():
   <h1><span>7</span> minutes.<br>Show up.</h1>
   <div class="tagline">Same session for everyone. Every day. Streak-powered accountability for builders. Free forever.</div>
   <div class="cta-row">
-    <a href="https://discord.gg/5AZP8DbEJm" class="btn btn-primary">JOIN DISCORD</a>
-    <a href="/leaderboard" class="btn btn-primary" style="background:#161b22;border:1px solid #E85D04;color:#E85D04;">LEADERBOARD</a>
+    <a href="/timer" class="btn btn-primary" style="padding:18px 48px;font-size:16px;">START YOUR 7 MINUTES</a>
+    <a href="/globe" class="btn btn-ghost" style="border:1px solid #E85D04;color:#E85D04;">EXPLORE THE GLOBE</a>
     <a href="https://github.com/odominguez7/Jerome7" class="btn btn-star" target="_blank">
       <span class="star-icon">⭐</span> Star on GitHub <span class="star-count" id="hero-star-count">...</span>
     </a>
@@ -662,22 +658,22 @@ async def landing():
     <div class="step">
       <div class="step-num">1</div>
       <div>
-        <div class="step-text"><strong>/seven7</strong> in Discord</div>
-        <div class="step-sub">See today's session. Open the timer.</div>
+        <div class="step-text"><strong>SHOW UP</strong></div>
+        <div class="step-sub">Hit the timer. 7 minutes. Same session for everyone on earth.</div>
       </div>
     </div>
     <div class="step">
       <div class="step-num">2</div>
       <div>
-        <div class="step-text"><strong>7 blocks. 60 seconds each.</strong></div>
-        <div class="step-sub">Prime. Build. Move. Reset. 420 seconds total.</div>
+        <div class="step-text"><strong>BUILD YOUR CHAIN</strong></div>
+        <div class="step-sub">Complete sessions daily. Miss 3 and it breaks.</div>
       </div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
       <div>
-        <div class="step-text"><strong>/log</strong> when done</div>
-        <div class="step-sub">Your streak grows. Share your chain.</div>
+        <div class="step-text"><strong>NEVER WALK ALONE</strong></div>
+        <div class="step-sub">5 AI agents watch your back. Your pod has your six.</div>
       </div>
     </div>
   </div>
@@ -778,15 +774,19 @@ async def landing():
   <div class="footer-text">Free forever. Open source. Built at MIT.</div>
   <div class="footer-text" style="margin-top: 8px;">
     <a href="/timer">Timer</a> ·
+    <a href="/globe">Globe</a> ·
+    <a href="/agents">Agents</a> ·
     <a href="/voice">Voice</a> ·
     <a href="/coach">Coach</a> ·
     <a href="/leaderboard">Leaderboard</a> ·
     <a href="/analytics">Analytics</a> ·
+    <a href="/tokens">Tokens</a> ·
     <a href="https://github.com/odominguez7/Jerome7">GitHub</a> ·
     <a href="https://discord.gg/5AZP8DbEJm">Discord</a> ·
-    <a href="/sponsor">Sponsor</a>
+    <a href="/sponsor">Sponsor</a> ·
+    <a href="/embed">Embed</a>
   </div>
-  <a href="https://discord.gg/5AZP8DbEJm" class="bottom-cta">START YOUR CHAIN</a>
+  <a href="/timer" class="bottom-cta">START YOUR 7 MINUTES</a>
 </div>
 
 <script>
