@@ -238,8 +238,45 @@ function skip() {{
   else {{ clearInterval(interval); finish(); }}
 }}
 
+function getStreakDay() {{
+  // Priority: URL param > localStorage streak
+  const urlDay = new URLSearchParams(window.location.search).get('day');
+  if (urlDay) return urlDay;
+  // localStorage streak tracking
+  const data = JSON.parse(localStorage.getItem('jerome7_streak') || '{{}}'  );
+  return data.day || 1;
+}}
+
+function recordSessionComplete() {{
+  const today = new Date().toISOString().slice(0, 10);
+  const data = JSON.parse(localStorage.getItem('jerome7_streak') || '{{}}');
+  const lastDate = data.lastDate || '';
+  if (lastDate === today) return; // already logged today
+
+  // Check if yesterday was logged (chain continues) or gap (chain breaks after 3 misses)
+  let day = data.day || 0;
+  if (lastDate) {{
+    const last = new Date(lastDate);
+    const now = new Date(today);
+    const diffDays = Math.floor((now - last) / 86400000);
+    if (diffDays <= 3) {{
+      day++; // chain continues
+    }} else {{
+      day = 1; // chain broke, restart
+    }}
+  }} else {{
+    day = 1; // first session
+  }}
+
+  localStorage.setItem('jerome7_streak', JSON.stringify({{
+    day: day,
+    lastDate: today,
+    totalSessions: (data.totalSessions || 0) + 1,
+  }}));
+}}
+
 function buildCardText() {{
-  const dayNum = new URLSearchParams(window.location.search).get('day') || '?';
+  const dayNum = getStreakDay();
   const sep = '━━━━━━━━━━━━━━━━━';
   const exercises = blocks.map(b => '🟧 ' + b.name).join('\\n');
   return 'JEROME7 \\u00b7 Day ' + dayNum + ' \\ud83d\\udd25\\n'
@@ -251,7 +288,7 @@ function buildCardText() {{
 }}
 
 function renderCardPreview() {{
-  const dayNum = new URLSearchParams(window.location.search).get('day') || '?';
+  const dayNum = getStreakDay();
   const sep = '━━━━━━━━━━━━━━━━━';
   const header = '<span class="card-header">JEROME7 \\u00b7 Day ' + dayNum + ' \\ud83d\\udd25</span>';
   const divider = '<span class="card-divider">' + sep + '</span>';
@@ -263,6 +300,7 @@ function renderCardPreview() {{
 }}
 
 function finish() {{
+  recordSessionComplete();
   document.getElementById('main').style.display = 'none';
   document.getElementById('done').style.display = 'block';
   renderCardPreview();
