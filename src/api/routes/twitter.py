@@ -54,11 +54,16 @@ def _tweet_url(tweet_id: str, username: str = "jerome7app") -> str:
 
 
 @router.post("/twitter/post-daily")
-async def post_daily_tweet(db: DBSession = Depends(get_db)):
+def post_daily_tweet(db: DBSession = Depends(get_db)):
     """Post today's session + analytics as a tweet thread."""
-    # 1. Get today's session
-    session = await get_daily()
-    session_title = session.get("title", "the seven 7")
+    # 1. Get today's session title (use cached data via httpx, not internal call)
+    import httpx
+    try:
+        resp = httpx.get("https://jerome7.com/daily", timeout=15)
+        session = resp.json()
+        session_title = session.get("session_title", "the seven 7")
+    except Exception:
+        session_title = "the seven 7"
 
     # 2. Get analytics overview
     overview = analytics_overview(db)
