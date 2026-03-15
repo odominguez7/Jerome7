@@ -273,6 +273,7 @@ def analytics_dashboard(db: DBSession = Depends(get_db)):
     <div class="nav-links">
       <a href="/timer">TIMER</a>
       <a href="/leaderboard">LEADERBOARD</a>
+      <a href="/agents">AGENTS</a>
       <a href="https://discord.gg/5AZP8DbEJm">DISCORD</a>
       <a href="https://github.com/odominguez7/Jerome7">GITHUB</a>
     </div>

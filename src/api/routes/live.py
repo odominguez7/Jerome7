@@ -250,6 +250,7 @@ def live_dashboard(db: DBSession = Depends(get_db)):
       <a href="/timer">TIMER</a>
       <a href="/leaderboard">LEADERBOARD</a>
       <a href="/analytics">ANALYTICS</a>
+      <a href="/agents">AGENTS</a>
     </div>
   </nav>
 
