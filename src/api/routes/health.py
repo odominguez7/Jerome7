@@ -15,5 +15,5 @@ def health_check():
         status="ok",
         env=os.getenv("APP_ENV", "development"),
         db_connected=True,
-        agents_ready=bool(os.getenv("ANTHROPIC_API_KEY")),
+        agents_ready=bool(os.getenv("GEMINI_API_KEY")),
     )
