@@ -22,6 +22,7 @@ class PledgeRequest(BaseModel):
     country: Optional[str] = None       # auto-derived from timezone if not provided
     source: Optional[str] = None        # discord | openclaw | zeroclaw | web | api | mcp
     goal: Optional[str] = None          # move_more | build_strength | destress | just_try
+    invite_code: Optional[str] = None    # pod chain invite code
 
 
 class LogSessionRequest(BaseModel):

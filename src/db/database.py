@@ -28,6 +28,7 @@ def _migrate_add_columns():
         "country": "VARCHAR",
         "source": "VARCHAR",
         "goal": "VARCHAR",
+        "invited_by": "VARCHAR",
     }
 
     if "users" in inspector.get_table_names():

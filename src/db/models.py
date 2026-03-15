@@ -93,6 +93,7 @@ class User(Base):
     country = Column(String, nullable=True)          # auto-derived from timezone
     source = Column(Enum(UserSource), nullable=True)  # how they found jerome7
     goal = Column(Enum(UserGoal), nullable=True)
+    invited_by = Column(String, nullable=True)  # user_id of inviter
 
     created_at = Column(DateTime, default=datetime.utcnow)
     last_active_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -211,6 +212,20 @@ class SessionFeedback(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="feedback")
+
+
+class InviteCode(Base):
+    __tablename__ = "invite_codes"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    code = Column(String, unique=True, nullable=False, index=True)
+    inviter_id = Column(String, ForeignKey("users.id"), nullable=False)
+    used_by_id = Column(String, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    used_at = Column(DateTime, nullable=True)
+
+    inviter = relationship("User", foreign_keys=[inviter_id])
+    used_by = relationship("User", foreign_keys=[used_by_id])
 
 
 class Event(Base):

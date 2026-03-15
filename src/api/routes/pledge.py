@@ -8,8 +8,9 @@ from src.api.models import PledgeRequest, UserResponse
 from src.db.database import get_db
 from src.db.models import (
     User, Streak, FitnessLevel,
-    AgeBracket, Gender, UserSource, UserGoal,
+    AgeBracket, Gender, UserSource, UserGoal, InviteCode,
 )
+from datetime import datetime
 
 router = APIRouter()
 
@@ -155,7 +156,17 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
     if req.source and req.source in _VALID_SOURCES:
         source = UserSource(req.source)
 
-    # --- 8. Create user ---
+    # --- 8. Resolve invite code ---
+    invited_by = None
+    if req.invite_code:
+        invite = db.query(InviteCode).filter(
+            InviteCode.code == req.invite_code,
+            InviteCode.used_by_id.is_(None),
+        ).first()
+        if invite:
+            invited_by = invite.inviter_id
+
+    # --- 9. Create user ---
     user = User(
         name=name,
         email=req.email,
@@ -168,9 +179,15 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
         country=country,
         source=source,
         goal=goal,
+        invited_by=invited_by,
     )
     db.add(user)
     db.flush()
+
+    # Mark invite as used
+    if req.invite_code and invited_by:
+        invite.used_by_id = user.id
+        invite.used_at = datetime.utcnow()
 
     streak = Streak(user_id=user.id)
     db.add(streak)
