@@ -1,6 +1,6 @@
 """GET/POST /pod — pod management endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session as DBSession
 
 from src.api.models import PodResponse, PodMemberInfo
@@ -13,8 +13,27 @@ from src.agents.scheduler import SchedulerAgent
 router = APIRouter()
 
 
+def _authenticate_user(user_id: str, request: Request, db: DBSession) -> User:
+    """Validate Bearer token and return the user, or raise 401/404."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header.")
+
+    token = auth_header[7:]  # strip "Bearer "
+    if not user.auth_token or token != user.auth_token:
+        raise HTTPException(status_code=401, detail="Invalid auth token.")
+
+    return user
+
+
 @router.get("/pod/{user_id}", response_model=PodResponse)
-def get_pod(user_id: str, db: DBSession = Depends(get_db)):
+def get_pod(user_id: str, request: Request, db: DBSession = Depends(get_db)):
+    _authenticate_user(user_id, request, db)
+
     membership = (
         db.query(PodMember)
         .filter(PodMember.user_id == user_id, PodMember.status == "active")
@@ -63,7 +82,8 @@ def _build_pod_response(pod: Pod, db: DBSession) -> PodResponse:
 
 
 @router.post("/pod/{user_id}/match")
-def match_pod(user_id: str, db: DBSession = Depends(get_db)):
+def match_pod(user_id: str, request: Request, db: DBSession = Depends(get_db)):
+    _authenticate_user(user_id, request, db)
     # If user already has an active pod, return it
     membership = (
         db.query(PodMember)

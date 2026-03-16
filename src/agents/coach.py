@@ -5,6 +5,7 @@ Community contributions of other API keys welcome — see CONTRIBUTING.md.
 """
 
 import asyncio
+import copy
 import json
 import logging
 import os
@@ -393,6 +394,6 @@ Start with the gentlest practice possible."""
             return self._fallback_session(ctx)
 
     def _fallback_session(self, ctx: UserContext) -> dict:
-        session = DEFAULT_SESSION.copy()
+        session = copy.deepcopy(DEFAULT_SESSION)
         session["greeting"] = f"Good morning, {ctx.name}. Let's begin."
         return session

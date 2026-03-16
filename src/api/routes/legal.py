@@ -10,8 +10,9 @@ _HEAD = """<meta charset="UTF-8">
 <meta name="theme-color" content="#0d1117">
 <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 <link rel="manifest" href="/static/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #0d1117; color: #c9d1d9; font-family: 'JetBrains Mono', monospace; padding: 40px 20px; line-height: 1.7; }
   .container { max-width: 700px; margin: 0 auto; }

@@ -29,7 +29,7 @@ def public_stats(db: DBSession = Depends(get_db)):
         )
 
     now = datetime.now(timezone.utc)
-    today_start = datetime(now.year, now.month, now.day)
+    today_start = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
 
     total_jeromes = db.query(User).count()
     total_sessions = db.query(SessionModel).count()

@@ -23,8 +23,12 @@ _PLEDGE_RATE_LIMIT = 10
 
 def _prune_rate_limits(rate_dict: dict, max_age: float = 7200):
     cutoff = time.time() - max_age
-    stale = [ip for ip, ts in rate_dict.items() if not ts or ts[-1] < cutoff]
-    for ip in stale:
+    to_delete = []
+    for ip, timestamps in rate_dict.items():
+        rate_dict[ip] = [t for t in timestamps if t > cutoff]
+        if not rate_dict[ip]:
+            to_delete.append(ip)
+    for ip in to_delete:
         del rate_dict[ip]
 
 
@@ -149,9 +153,14 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
             detail=f"'{name}' is not a valid name. Use your real name."
         )
 
-    # --- 2. Require goal and age_bracket (strict) ---
+    # --- 2. Require goal (strict), age_bracket optional ---
     goal = _require_enum(UserGoal, req.goal, "goal")
-    age_bracket = _require_enum(AgeBracket, req.age_bracket, "age_bracket")
+    age_bracket = None
+    if req.age_bracket and str(req.age_bracket).strip():
+        try:
+            age_bracket = AgeBracket(str(req.age_bracket).strip().lower())
+        except ValueError:
+            age_bracket = None
 
     # --- 3. Gender: optional, defaults to "skip" ---
     gender = Gender.skip

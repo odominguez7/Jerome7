@@ -323,7 +323,7 @@ def globe_page():
   <div class="flat-map-grid" id="flat-map-grid"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.min.js" onerror="document.getElementById('globe-canvas').style.display='none';document.querySelector('.title-sub').textContent='Globe visualization unavailable — Three.js failed to load.';"></script>
 <script>
 (function() {
   // --- Data ---
@@ -494,7 +494,7 @@ def globe_page():
   // Stars
   const starGeo = new THREE.BufferGeometry();
   const starVerts = [];
-  for (let i = 0; i < 3000; i++) {
+  for (let i = 0; i < 1000; i++) {
     starVerts.push(
       (Math.random() - 0.5) * 100,
       (Math.random() - 0.5) * 100,

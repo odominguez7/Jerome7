@@ -107,7 +107,7 @@ def jerome7_pledge(
     Args:
         name: User's real first name. Must be at least 2 characters. Do NOT use 'test', 'user', etc.
         age_bracket: REQUIRED. One of: '18-24', '25-34', '35-44', '45-54', '55+'. Ask the user.
-        goal: REQUIRED. One of: 'move_more', 'build_strength', 'destress', 'just_try'. Ask the user.
+        goal: REQUIRED. One of: 'stress_relief', 'focus', 'consistency', 'community', 'move_more', 'build_strength', 'destress', 'just_try'. Ask the user.
         timezone: IANA timezone string (e.g. 'America/New_York'). Default UTC.
         fitness_level: One of 'beginner', 'returning', or 'active'. Default beginner.
         gender: One of 'male', 'female', 'other', 'skip'. Default skip.

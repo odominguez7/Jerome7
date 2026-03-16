@@ -1,6 +1,7 @@
 """Shared <head> meta tags for all HTML pages — OG, favicon, PWA, analytics."""
 
-# Plausible analytics — privacy-friendly, no cookies, GDPR compliant
+# Plausible analytics -- update script filename if Plausible account changes
+# Privacy-friendly, no cookies, GDPR compliant
 _PLAUSIBLE = """<script async src="https://plausible.io/js/pa-Ar14FrKY9n2naAlU6cYFy.js"></script>
 <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>"""
 
@@ -14,7 +15,7 @@ def head_meta(
     """Return HTML meta tags to inject after <head><meta charset> block."""
     return f"""<meta name="theme-color" content="#0d1117">
 <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-<link rel="apple-touch-icon" href="/static/favicon.svg">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
 <link rel="manifest" href="/static/manifest.json">
 <link rel="canonical" href="{url}">
 <meta property="og:title" content="{title}">

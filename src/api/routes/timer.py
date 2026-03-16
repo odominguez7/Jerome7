@@ -44,7 +44,7 @@ async def timer_page():
         b["instruction"] = html_escape(b.get("instruction", ""))
     blocks_json = json.dumps(blocks_raw)
     title = html_escape(data.get("session_title", session_type.title()))
-    closing = html_escape(data.get("closing", "You showed up. That's the win.")).replace("'", "\\'")
+    closing = html_escape(data.get("closing", "You showed up. That's the win."))
 
     type_labels = {
         "breathwork": "Guided Breathwork",
@@ -304,6 +304,23 @@ async def timer_page():
     margin-top: 8px; letter-spacing: 1px;
   }}
 
+  /* ── PAUSE BUTTON ── */
+  .pause-btn {{
+    display: none; padding: 10px 32px;
+    background: transparent; color: #8b949e;
+    border: 1px solid #30363d; border-radius: 100px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 2px;
+    cursor: pointer; transition: all 0.2s; margin-bottom: 16px;
+  }}
+  .pause-btn:hover {{ border-color: #E85D04; color: #E85D04; }}
+  .pause-btn.visible {{ display: inline-block; }}
+  .paused-label {{
+    display: none; font-size: 12px; letter-spacing: 3px;
+    color: #E85D04; margin-bottom: 8px; animation: pulse 1.5s infinite;
+  }}
+  .paused-label.show {{ display: block; }}
+
   @media (max-width: 480px) {{
     .timer {{ font-size: 64px; }}
     .session-title {{ font-size: 24px; }}
@@ -406,7 +423,9 @@ async def timer_page():
     <div class="active-name" id="blockName">—</div>
     <div class="active-instruction" id="blockInstruction">—</div>
     <div class="timer" id="timer">7:00</div>
+    <div class="paused-label" id="pausedLabel">PAUSED</div>
     <div class="timer-label">REMAINING</div>
+    <button class="pause-btn" id="pauseBtn" onclick="togglePause()">PAUSE</button>
     <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
     <div class="dots" id="dots"></div>
   </div>
@@ -472,6 +491,9 @@ let interval = null;
 let userName = '';
 let jeromeNumber = null;
 let communityData = {{ total_jeromes: 0, sessions_today: 0, countries: 0 }};
+let isPaused = false;
+let sessionStarted = false;
+let sessionFinished = false;
 
 // ── ElevenLabs AI Voice ──
 let voiceMode = aiAvailable ? 'ai' : 'browser';
@@ -636,7 +658,7 @@ async function submitOnboarding() {{
     const resp = await fetch('/pledge', {{
       method: 'POST',
       headers: {{ 'Content-Type': 'application/json' }},
-      body: JSON.stringify({{ name: name, goal: goal || 'just_try', age_bracket: '25-34', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', source: 'web' }}),
+      body: JSON.stringify({{ name: name, goal: goal || 'just_try', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', source: 'web' }}),
     }});
     const data = await resp.json();
 
@@ -729,8 +751,39 @@ function beginSession() {{
 
   currentBlock = 0;
   totalElapsed = 0;
+  sessionStarted = true;
+  sessionFinished = false;
+  isPaused = false;
+  document.getElementById('pauseBtn').classList.add('visible');
   showBlock(0);
   tick();
+}}
+
+function togglePause() {{
+  if (!sessionStarted || sessionFinished) return;
+  if (isPaused) {{
+    // Resume
+    isPaused = false;
+    document.getElementById('pauseBtn').textContent = 'PAUSE';
+    document.getElementById('pausedLabel').classList.remove('show');
+    if (voiceMode === 'ai' && aiAudio && !aiAudio.ended) {{
+      aiAudio.play().catch(() => {{}});
+    }}
+    startAmbient();
+    tick();
+  }} else {{
+    // Pause
+    isPaused = true;
+    clearInterval(interval);
+    interval = null;
+    document.getElementById('pauseBtn').textContent = 'RESUME';
+    document.getElementById('pausedLabel').classList.add('show');
+    if (voiceMode === 'ai' && aiAudio && !aiAudio.paused) {{
+      aiAudio.pause();
+    }}
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    stopAmbient();
+  }}
 }}
 
 function showBlock(i) {{
@@ -777,6 +830,9 @@ function tick() {{
 }}
 
 function finishSession() {{
+  sessionFinished = true;
+  document.getElementById('pauseBtn').classList.remove('visible');
+  document.getElementById('pausedLabel').classList.remove('show');
   // Fade out ambient
   stopAmbient();
 

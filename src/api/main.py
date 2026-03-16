@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.db.database import init_db
@@ -102,10 +102,31 @@ async def security_and_logging(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(self), geolocation=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://plausible.io https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data: blob:; "
+        "connect-src 'self' https://plausible.io https://api.elevenlabs.io; "
+        "media-src 'self' blob:; "
+        "worker-src 'self' blob:"
+    )
     if _IS_PROD:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
     return response
+
+
+# ── Root-level static files ───────────────────────────────────────────────────
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt():
+    return FileResponse("static/robots.txt", media_type="text/plain")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap_xml():
+    return FileResponse("static/sitemap.xml", media_type="application/xml")
 
 
 # ── Static files ──────────────────────────────────────────────────────────────

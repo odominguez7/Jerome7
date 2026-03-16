@@ -1,6 +1,7 @@
 """Public streak page — the viral engine."""
 
 import io
+import os
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -14,10 +15,34 @@ from src.agents.streak import StreakAgent
 router = APIRouter()
 streak_agent = StreakAgent()
 
+_FONT_PATHS = [
+    "/System/Library/Fonts/SFMono-Bold.otf",  # macOS
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf",  # Linux/Railway
+    "/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf",  # Alt Linux
+]
+
+
+def _get_font(size: int):
+    """Load a monospace font, trying platform-specific paths."""
+    from PIL import ImageFont
+
+    for path in _FONT_PATHS:
+        if os.path.exists(path):
+            try:
+                return ImageFont.truetype(path, size)
+            except (IOError, OSError):
+                continue
+    return ImageFont.load_default()
+
 
 @router.get("/streak/{username}/page", response_class=HTMLResponse)
 def streak_page(username: str, db: DBSession = Depends(get_db)):
-    user = db.query(User).filter(User.name == username).first()
+    user = (
+        db.query(User)
+        .filter(User.name == username)
+        .order_by(User.jerome_number.asc())
+        .first()
+    )
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -63,7 +88,12 @@ def streak_page(username: str, db: DBSession = Depends(get_db)):
 @router.get("/streak/{username}/card.png")
 def streak_card(username: str, db: DBSession = Depends(get_db)):
     """Generate a 1200x630 OG image for social sharing."""
-    user = db.query(User).filter(User.name == username).first()
+    user = (
+        db.query(User)
+        .filter(User.name == username)
+        .order_by(User.jerome_number.asc())
+        .first()
+    )
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -72,20 +102,14 @@ def streak_card(username: str, db: DBSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No streak data")
 
     try:
-        from PIL import Image, ImageDraw, ImageFont
+        from PIL import Image, ImageDraw
 
         img = Image.new("RGB", (1200, 630), color=(15, 28, 46))
         draw = ImageDraw.Draw(img)
 
-        # Use default font (Pillow built-in)
-        try:
-            font_large = ImageFont.truetype("/System/Library/Fonts/SFMono-Bold.otf", 120)
-            font_medium = ImageFont.truetype("/System/Library/Fonts/SFMono-Regular.otf", 36)
-            font_small = ImageFont.truetype("/System/Library/Fonts/SFMono-Regular.otf", 24)
-        except (IOError, OSError):
-            font_large = ImageFont.load_default()
-            font_medium = ImageFont.load_default()
-            font_small = ImageFont.load_default()
+        font_large = _get_font(120)
+        font_medium = _get_font(36)
+        font_small = _get_font(24)
 
         # Username
         draw.text((60, 40), user.name, fill=(232, 93, 4), font=font_medium)

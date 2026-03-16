@@ -1,18 +1,19 @@
 // Jerome7 Service Worker — offline support + caching
-const CACHE_NAME = 'jerome7-20260316';
+// Version updated by deploy process — change to bust cache
+const CACHE_NAME = 'jerome7-v2';
 
-// Static assets: cache-first (rarely change)
+// Static assets only — HTML pages use network-first and don't need pre-caching
 const STATIC_ASSETS = [
   '/static/favicon.svg',
   '/static/manifest.json',
 ];
 
-// HTML pages: network-first (content changes daily)
+// HTML pages: network-first (content changes daily, no pre-cache needed)
 const HTML_PAGES = ['/', '/timer'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll([...STATIC_ASSETS, ...HTML_PAGES]))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
   self.skipWaiting();
 });

@@ -21,7 +21,7 @@ class PledgeRequest(BaseModel):
     gender: Optional[str] = None        # male | female | other | skip
     country: Optional[str] = None       # auto-derived from timezone if not provided
     source: Optional[str] = None        # discord | openclaw | zeroclaw | web | api | mcp
-    goal: Optional[str] = None          # move_more | build_strength | destress | just_try
+    goal: Optional[str] = None          # stress_relief | focus | consistency | community | move_more | build_strength | destress | just_try
     invite_code: Optional[str] = None    # pod chain invite code
     github_username: Optional[str] = None
 

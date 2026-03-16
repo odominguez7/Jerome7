@@ -73,11 +73,9 @@ def log_feedback(user_id: str, req: FeedbackRequest, request: Request, db: DBSes
 
 
 @router.get("/status/{user_id}")
-def user_status(user_id: str, db: DBSession = Depends(get_db)):
+def user_status(user_id: str, request: Request, db: DBSession = Depends(get_db)):
     """Check if user has logged today + current streak. Used by agent nudges."""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        return {"error": "User not found"}
+    user = _authenticate_user(user_id, request, db)
 
     today = datetime.now(timezone.utc).date()
     logged_today = (

@@ -36,8 +36,12 @@ def _prune_cache(cache: dict, keep_key: str):
 
 def _prune_rate_limits(rate_dict: dict, max_age: float = 7200):
     cutoff = time.time() - max_age
-    stale = [ip for ip, ts in rate_dict.items() if not ts or ts[-1] < cutoff]
-    for ip in stale:
+    to_delete = []
+    for ip, timestamps in rate_dict.items():
+        rate_dict[ip] = [t for t in timestamps if t > cutoff]
+        if not rate_dict[ip]:
+            to_delete.append(ip)
+    for ip in to_delete:
         del rate_dict[ip]
 
 

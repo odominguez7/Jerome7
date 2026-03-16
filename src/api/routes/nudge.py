@@ -1,8 +1,9 @@
 """GET /nudge/at-risk — find users whose streaks are at risk today."""
 
+import os
 from datetime import datetime, date, timedelta, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session as DBSession
 
 from src.db.database import get_db
@@ -14,9 +15,20 @@ router = APIRouter()
 nudge_agent = NudgeAgent()
 
 
+def _check_admin_key(request: Request) -> None:
+    """Require X-Admin-Key header matching ADMIN_API_KEY env var."""
+    admin_key = os.getenv("ADMIN_API_KEY")
+    if not admin_key:
+        raise HTTPException(status_code=503, detail="Not configured")
+    provided = request.headers.get("x-admin-key", "")
+    if provided != admin_key:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+
 @router.get("/nudge/at-risk")
-async def get_at_risk_users(db: DBSession = Depends(get_db)):
+async def get_at_risk_users(request: Request, db: DBSession = Depends(get_db)):
     """Return users with active streaks who haven't logged today."""
+    _check_admin_key(request)
     today = date.today()
 
     # Get all users with active streaks
