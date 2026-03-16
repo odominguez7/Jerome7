@@ -42,11 +42,12 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error("Database connection failed: %s", e)
 
+    from datetime import datetime, timezone
+
     # Pre-warm today's session cache so the first visitor doesn't wait ~25s for Gemini
     try:
         from src.api.routes.timer import _cache as timer_cache, coach
         from src.agents.session_types import today_session_type
-        from datetime import datetime, timezone
 
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         if timer_cache.get("date") != today or not timer_cache.get("session"):
@@ -60,6 +61,19 @@ async def lifespan(app: FastAPI):
             logger.info("Session cache pre-warmed for %s (%s)", today, session_type)
     except Exception:
         logger.warning("Failed to pre-warm session cache — first visitor will trigger generation")
+
+    # Pre-warm voice audio (loads from disk cache or generates)
+    try:
+        from src.api.routes.voice import _wellness_audio_cache, _load_from_disk
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        disk_audio = _load_from_disk("wellness", today)
+        if disk_audio:
+            _wellness_audio_cache[today] = disk_audio
+            logger.info("Voice audio loaded from disk cache for %s", today)
+        elif os.getenv("ELEVENLABS_API_KEY"):
+            logger.info("No cached voice audio, will generate on first request")
+    except Exception:
+        logger.warning("Failed to pre-load voice audio cache")
 
     # Start daily reminder background loop if SMTP is configured
     from src.api.email_utils import _smtp_configured

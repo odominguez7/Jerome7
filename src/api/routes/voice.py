@@ -21,9 +21,45 @@ logger = logging.getLogger("jerome7")
 
 router = APIRouter()
 
-# ── In-memory audio cache (keyed by date string, max 1 entry) ────────────────
+# ── Audio cache: in-memory + disk persistence ────────────────────────────────
+_CACHE_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "..", "audio_cache")
+os.makedirs(_CACHE_DIR, exist_ok=True)
+
 _audio_cache: dict[str, bytes] = {}
 _wellness_audio_cache: dict[str, bytes] = {}
+
+
+def _disk_path(prefix: str, date_str: str) -> str:
+    return os.path.join(_CACHE_DIR, f"{prefix}-{date_str}.mp3")
+
+
+def _save_to_disk(prefix: str, date_str: str, data: bytes):
+    """Persist audio to disk so it survives restarts."""
+    path = _disk_path(prefix, date_str)
+    try:
+        with open(path, "wb") as f:
+            f.write(data)
+        # Clean old files (keep only today)
+        for fname in os.listdir(_CACHE_DIR):
+            if fname.startswith(prefix) and date_str not in fname:
+                try:
+                    os.remove(os.path.join(_CACHE_DIR, fname))
+                except OSError:
+                    pass
+    except OSError as e:
+        logger.warning("Failed to save audio to disk: %s", e)
+
+
+def _load_from_disk(prefix: str, date_str: str) -> bytes | None:
+    """Try to load today's audio from disk cache."""
+    path = _disk_path(prefix, date_str)
+    if os.path.exists(path):
+        try:
+            with open(path, "rb") as f:
+                return f.read()
+        except OSError:
+            pass
+    return None
 
 # ── Simple rate limiter for voice generation ──────────────────────────────────
 _voice_rate: dict[str, list] = {}  # ip -> [timestamps]
@@ -167,8 +203,14 @@ async def voice_generate(request: Request):
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     _prune_cache(_audio_cache, today)
 
-    # Already generated today
+    # Already in memory
     if today in _audio_cache:
+        return {"status": "generated", "url": "/voice/audio", "cached": True}
+
+    # Try disk cache (survives restarts)
+    disk_data = _load_from_disk("daily", today)
+    if disk_data:
+        _audio_cache[today] = disk_data
         return {"status": "generated", "url": "/voice/audio", "cached": True}
 
     # Fetch today's session
@@ -211,6 +253,7 @@ async def voice_generate(request: Request):
                     content={"error": "Voice generation temporarily unavailable."},
                 )
             _audio_cache[today] = resp.content
+            _save_to_disk("daily", today, resp.content)
     except httpx.TimeoutException:
         logger.error("ElevenLabs API timed out for /voice/generate")
         return JSONResponse(status_code=504, content={"error": "Voice generation timed out. Try again."})
@@ -1087,6 +1130,12 @@ async def voice_wellness_generate(request: Request):
     if today in _wellness_audio_cache:
         return {"status": "generated", "url": "/voice/wellness/audio", "cached": True}
 
+    # Try disk cache
+    disk_data = _load_from_disk("wellness", today)
+    if disk_data:
+        _wellness_audio_cache[today] = disk_data
+        return {"status": "generated", "url": "/voice/wellness/audio", "cached": True}
+
     session = await get_daily_wellness()
     if hasattr(session, "model_dump"):
         session = session.model_dump()
@@ -1126,6 +1175,7 @@ async def voice_wellness_generate(request: Request):
                     content={"error": "Voice generation temporarily unavailable."},
                 )
             _wellness_audio_cache[today] = resp.content
+            _save_to_disk("wellness", today, resp.content)
     except httpx.TimeoutException:
         logger.error("ElevenLabs API timed out for /voice/wellness/generate")
         return JSONResponse(status_code=504, content={"error": "Voice generation timed out. Try again."})

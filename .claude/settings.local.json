@@ -241,7 +241,8 @@
       "Bash(find src/ -name \"*.py\" -exec cat {} +)",
       "Bash(sed \"s|.*routes/||;s|\\\\.py.*||\")",
       "Bash(ls src/agents/*.py)",
-      "Bash(python3 -c \"from src.api.main import app; print\\(''App loads OK. Routes:'', len\\(app.routes\\)\\)\")"
+      "Bash(python3 -c \"from src.api.main import app; print\\(''App loads OK. Routes:'', len\\(app.routes\\)\\)\")",
+      "Bash(python3 -c \"from src.api.main import app; print\\(''OK. Routes:'', len\\(app.routes\\)\\)\")"
     ]
   }
 }
