@@ -252,6 +252,27 @@ async def timer_page():
   }}
   .ambient-dot.off {{ background: #484f58; }}
 
+  /* ── FREQUENCY SELECTOR ── */
+  .freq-grid {{
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    max-width: 440px; margin: 0 auto 20px; text-align: left;
+  }}
+  .freq-card {{
+    background: #161b22; border: 1px solid #21262d;
+    border-radius: 10px; padding: 12px 14px; cursor: pointer;
+    transition: all 0.2s; position: relative;
+  }}
+  .freq-card:hover {{ border-color: #30363d; }}
+  .freq-card.selected {{ border-color: #E85D04; background: rgba(232,93,4,0.08); }}
+  .freq-card .freq-emoji {{ font-size: 16px; margin-bottom: 4px; }}
+  .freq-card .freq-name {{ font-size: 11px; font-weight: 700; color: #f0f6fc; letter-spacing: 0.5px; }}
+  .freq-card .freq-desc {{ font-size: 9px; color: #484f58; margin-top: 2px; line-height: 1.3; }}
+  .freq-card .freq-hz {{ font-size: 9px; color: #30363d; margin-top: 4px; letter-spacing: 1px; }}
+  .freq-label {{ font-size: 10px; letter-spacing: 2px; color: #484f58; margin-bottom: 10px; }}
+  @media (max-width: 480px) {{
+    .freq-grid {{ grid-template-columns: 1fr; }}
+  }}
+
   /* ── ACTIVE SESSION ── */
   .phase-label {{
     font-size: 10px; letter-spacing: 3px; margin-bottom: 12px;
@@ -337,16 +358,19 @@ async def timer_page():
 
   /* ── BREATH CIRCLE ── */
   .breath-circle {{
-    width: 180px; height: 180px; border-radius: 50%;
-    border: 2px solid; opacity: 0.15;
-    margin: 0 auto 12px;
-    transition: transform 1s ease-in-out, opacity 0.5s;
+    width: 160px; height: 160px; border-radius: 50%;
+    border: 2px solid; opacity: 0.12;
+    margin: 0 auto 8px;
     display: none;
   }}
-  .breath-circle.active {{ display: block; }}
-  .breath-circle.inhale {{ transform: scale(1.3); opacity: 0.3; }}
-  .breath-circle.exhale {{ transform: scale(0.8); opacity: 0.1; }}
-  .breath-circle.hold {{ transform: scale(1.3); opacity: 0.25; }}
+  .breath-circle.active {{ display: block; animation: breathPulse var(--breath-speed, 8s) ease-in-out infinite; }}
+  @keyframes breathPulse {{
+    0% {{ transform: scale(0.75); opacity: 0.08; }}
+    35% {{ transform: scale(1.25); opacity: 0.35; }}
+    50% {{ transform: scale(1.25); opacity: 0.3; }}
+    85% {{ transform: scale(0.75); opacity: 0.08; }}
+    100% {{ transform: scale(0.75); opacity: 0.08; }}
+  }}
 
   /* ── BLOCK TRANSITION ── */
   .block-transition {{ transition: opacity 0.3s ease; }}
@@ -441,8 +465,43 @@ async def timer_page():
     <!-- AI voice status -->
     <div id="aiStatus" class="voice-note" style="color:#484f58;margin-bottom:16px"></div>
 
+    <!-- Frequency selector -->
+    <div class="freq-label">CHOOSE YOUR FREQUENCY</div>
+    <div class="freq-grid" id="freqGrid">
+      <div class="freq-card selected" onclick="selectFreq(this, 'chill')" data-freq="chill">
+        <div class="freq-emoji">&#x1f9ca;</div>
+        <div class="freq-name">chill mode</div>
+        <div class="freq-desc">anxiety is loud today. this quiets it down</div>
+        <div class="freq-hz">396Hz + 402Hz (6Hz theta)</div>
+      </div>
+      <div class="freq-card" onclick="selectFreq(this, 'flow')" data-freq="flow">
+        <div class="freq-emoji">&#x1f680;</div>
+        <div class="freq-name">locked in</div>
+        <div class="freq-desc">deep focus. no distractions. just you and the work</div>
+        <div class="freq-hz">432Hz + 442Hz (10Hz alpha)</div>
+      </div>
+      <div class="freq-card" onclick="selectFreq(this, 'vibe')" data-freq="vibe">
+        <div class="freq-emoji">&#x2728;</div>
+        <div class="freq-name">mood boost</div>
+        <div class="freq-desc">feeling mid? this lifts the energy. instant serotonin</div>
+        <div class="freq-hz">528Hz + 538Hz (10Hz alpha)</div>
+      </div>
+      <div class="freq-card" onclick="selectFreq(this, 'boss')" data-freq="boss">
+        <div class="freq-emoji">&#x1f451;</div>
+        <div class="freq-name">main character</div>
+        <div class="freq-desc">hard convo coming? job interview? this is pre-game energy</div>
+        <div class="freq-hz">639Hz + 653Hz (14Hz beta)</div>
+      </div>
+      <div class="freq-card" onclick="selectFreq(this, 'war')" data-freq="war">
+        <div class="freq-emoji">&#x1f525;</div>
+        <div class="freq-name">fight heavy</div>
+        <div class="freq-desc">win or learn. no in between. absolute war mode</div>
+        <div class="freq-hz">741Hz + 761Hz (20Hz beta)</div>
+      </div>
+    </div>
+
     <button class="start-btn" id="startBtn" onclick="beginSession()">BEGIN SESSION</button>
-    <div class="voice-note" id="voiceNote">Voice-guided with ambient 432Hz audio. Use earphones.</div>
+    <div class="voice-note" id="voiceNote">Binaural beats require earphones for full effect.</div>
   </div>
 
   <!-- ACTIVE SESSION -->
@@ -496,7 +555,7 @@ async def timer_page():
 <!-- Ambient audio toggle -->
 <button class="ambient-toggle" id="ambientToggle" onclick="toggleAmbient()">
   <span class="ambient-dot" id="ambientDot"></span>
-  432Hz
+  <span id="freqLabel">396Hz</span>
 </button>
 
 <script>
@@ -619,32 +678,52 @@ function initVoiceToggle() {{
   }}
 }}
 
-// ── Ambient 432Hz Audio (Web Audio API) ──
+// ── Frequency Presets (binaural beats) ──
+const FREQ_PRESETS = {{
+  chill:  {{ f1: 396, f2: 402, label: '396Hz', desc: 'theta (6Hz) - anxiety relief' }},
+  flow:   {{ f1: 432, f2: 442, label: '432Hz', desc: 'alpha (10Hz) - deep focus' }},
+  vibe:   {{ f1: 528, f2: 538, label: '528Hz', desc: 'alpha (10Hz) - mood lift' }},
+  boss:   {{ f1: 639, f2: 653, label: '639Hz', desc: 'beta (14Hz) - confidence' }},
+  war:    {{ f1: 741, f2: 761, label: '741Hz', desc: 'beta (20Hz) - peak intensity' }},
+}};
+let selectedFreq = 'chill';
+
+function selectFreq(el, key) {{
+  selectedFreq = key;
+  document.querySelectorAll('.freq-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  // Update ambient toggle label
+  const label = FREQ_PRESETS[key]?.label || '432Hz';
+  const fl = document.getElementById('freqLabel');
+  if (fl) fl.textContent = label;
+}}
+
+// ── Ambient Audio (Web Audio API) ──
 let ambientCtx = null;
-let ambientOsc = null;
+let ambientOsc1 = null;
+let ambientOsc2 = null;
 let ambientGain = null;
 let ambientOn = true;
 
 function initAmbient() {{
   try {{
+    const preset = FREQ_PRESETS[selectedFreq] || FREQ_PRESETS.chill;
     ambientCtx = new (window.AudioContext || window.webkitAudioContext)();
     ambientGain = ambientCtx.createGain();
     ambientGain.gain.value = 0;
     ambientGain.connect(ambientCtx.destination);
 
-    // Primary tone: 432Hz (relaxation frequency)
-    ambientOsc = ambientCtx.createOscillator();
-    ambientOsc.type = 'sine';
-    ambientOsc.frequency.value = 432;
-    ambientOsc.connect(ambientGain);
-    ambientOsc.start();
+    ambientOsc1 = ambientCtx.createOscillator();
+    ambientOsc1.type = 'sine';
+    ambientOsc1.frequency.value = preset.f1;
+    ambientOsc1.connect(ambientGain);
+    ambientOsc1.start();
 
-    // Second tone: 438Hz (6Hz binaural beat = theta waves / meditation)
-    const osc2 = ambientCtx.createOscillator();
-    osc2.type = 'sine';
-    osc2.frequency.value = 438;
-    osc2.connect(ambientGain);
-    osc2.start();
+    ambientOsc2 = ambientCtx.createOscillator();
+    ambientOsc2.type = 'sine';
+    ambientOsc2.frequency.value = preset.f2;
+    ambientOsc2.connect(ambientGain);
+    ambientOsc2.start();
   }} catch(e) {{ /* Web Audio not supported */ }}
 }}
 
@@ -773,48 +852,43 @@ function speak(text) {{
   window.speechSynthesis.speak(u);
 }}
 
-// ── Breathing animation ──
+// ── Breathing animation (CSS-driven, fast + smooth) ──
+const BREATH_SPEEDS = {{
+  breathwork: 8,   // 8s full cycle (fast box breathing)
+  meditation: 10,  // 10s cycle
+  reflection: 12,  // 12s gentle
+  preparation: 6,  // 6s energizing
+}};
+
+let cueInterval = null;
+
 function startBreathing() {{
-  const circle = document.getElementById('breathCircle');
-  const cue = document.getElementById('breathCue');
-  if (!circle || !cue) return;
-  circle.classList.add('active');
-  circle.style.borderColor = typeColor;
+  try {{
+    const circle = document.getElementById('breathCircle');
+    const cue = document.getElementById('breathCue');
+    if (!circle || !cue) return;
+    const speed = BREATH_SPEEDS[sessionType] || 8;
+    circle.style.setProperty('--breath-speed', speed + 's');
+    circle.style.borderColor = typeColor;
+    circle.classList.add('active');
 
-  const patterns = {{
-    breathwork: {{ inhale: 4000, hold1: 4000, exhale: 4000, hold2: 4000 }},
-    meditation: {{ inhale: 6000, hold1: 1000, exhale: 6000, hold2: 1000 }},
-    reflection: {{ inhale: 5000, hold1: 2000, exhale: 5000, hold2: 2000 }},
-    preparation: {{ inhale: 3000, hold1: 1000, exhale: 3000, hold2: 1000 }},
-  }};
-  const p = patterns[sessionType] || patterns.meditation;
+    // Cue text cycles: in sync with CSS animation
+    const inTime = Math.round(speed * 0.35 * 1000);
+    const holdTime = Math.round(speed * 0.15 * 1000);
+    const outTime = Math.round(speed * 0.35 * 1000);
+    const restTime = Math.round(speed * 0.15 * 1000);
+    let phase = 0;
 
-  function cycle() {{
-    try {{
-    if (sessionFinished || isPaused) return;
-    circle.className = 'breath-circle active inhale';
-    cue.textContent = 'BREATHE IN';
-    breathTimeout = setTimeout(() => {{
+    function cueCycle() {{
       if (sessionFinished || isPaused) return;
-      circle.className = 'breath-circle active hold';
-      cue.textContent = 'HOLD';
-      breathTimeout = setTimeout(() => {{
-        if (sessionFinished || isPaused) return;
-        circle.className = 'breath-circle active exhale';
-        cue.textContent = 'BREATHE OUT';
-        breathTimeout = setTimeout(() => {{
-          if (sessionFinished || isPaused) return;
-          circle.className = 'breath-circle active';
-          cue.textContent = 'HOLD';
-          breathTimeout = setTimeout(() => {{
-            if (!sessionFinished && !isPaused) cycle();
-          }}, p.hold2);
-        }}, p.exhale);
-      }}, p.hold1);
-    }}, p.inhale);
-    }} catch(e) {{ /* breathing animation error - session continues */ }}
-  }}
-  cycle();
+      if (phase === 0) {{ cue.textContent = 'BREATHE IN'; breathTimeout = setTimeout(cueCycle, inTime); }}
+      else if (phase === 1) {{ cue.textContent = 'HOLD'; breathTimeout = setTimeout(cueCycle, holdTime); }}
+      else if (phase === 2) {{ cue.textContent = 'BREATHE OUT'; breathTimeout = setTimeout(cueCycle, outTime); }}
+      else {{ cue.textContent = ''; breathTimeout = setTimeout(cueCycle, restTime); }}
+      phase = (phase + 1) % 4;
+    }}
+    cueCycle();
+  }} catch(e) {{ /* breathing error - session continues */ }}
 }}
 
 function stopBreathing() {{
@@ -827,11 +901,15 @@ function stopBreathing() {{
 
 function pauseBreathing() {{
   if (breathTimeout) {{ clearTimeout(breathTimeout); breathTimeout = null; }}
+  const circle = document.getElementById('breathCircle');
+  if (circle) circle.style.animationPlayState = 'paused';
   const cue = document.getElementById('breathCue');
   if (cue) cue.textContent = '';
 }}
 
 function resumeBreathing() {{
+  const circle = document.getElementById('breathCircle');
+  if (circle) circle.style.animationPlayState = 'running';
   startBreathing();
 }}
 
