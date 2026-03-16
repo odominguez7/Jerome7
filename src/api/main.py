@@ -104,7 +104,7 @@ async def security_and_logging(request: Request, call_next):
     response.headers["Permissions-Policy"] = "camera=(), microphone=(self), geolocation=()"
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://plausible.io https://cdn.jsdelivr.net; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://plausible.io https://cdn.jsdelivr.net; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self' data: blob:; "
