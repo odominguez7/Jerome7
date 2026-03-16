@@ -12,7 +12,7 @@ import os
 from datetime import datetime, timezone
 
 from src.agents.context import UserContext, context_to_prompt_string
-from src.db.models import Seven7Session
+# Seven7Session model removed in cleanup — session logging via Session model only
 
 logger = logging.getLogger(__name__)
 
@@ -288,17 +288,6 @@ class CoachAgent:
                 if total != 420:
                     return self._fallback_session(ctx)
 
-            if db:
-                seven7 = Seven7Session(
-                    user_id=ctx.user_id,
-                    greeting=session_data["greeting"],
-                    session_title=session_data["session_title"],
-                    closing=session_data["closing"],
-                    blocks=session_data["blocks"],
-                )
-                db.add(seven7)
-                db.commit()
-
             return session_data
 
         except Exception as e:
@@ -376,17 +365,6 @@ Start with the gentlest practice possible."""
                 timeout=25,
             )
             session_data = json.loads(content)
-
-            if db:
-                seven7 = Seven7Session(
-                    user_id=ctx.user_id,
-                    greeting=session_data["greeting"],
-                    session_title=session_data["session_title"],
-                    closing=session_data["closing"],
-                    blocks=session_data["blocks"],
-                )
-                db.add(seven7)
-                db.commit()
 
             return session_data
 

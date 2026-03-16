@@ -237,7 +237,11 @@
       "Bash(python3 -m ruff check --fix src/api/routes/wellness_check.py)",
       "Bash(python3 -m ruff check src/agents/pattern.py src/api/routes/insights.py src/api/routes/landing.py src/api/main.py)",
       "Bash(python3 -m ruff check --fix src/agents/pattern.py)",
-      "Bash(node --check /tmp/test_timer.js)"
+      "Bash(node --check /tmp/test_timer.js)",
+      "Bash(find src/ -name \"*.py\" -exec cat {} +)",
+      "Bash(sed \"s|.*routes/||;s|\\\\.py.*||\")",
+      "Bash(ls src/agents/*.py)",
+      "Bash(python3 -c \"from src.api.main import app; print\\(''App loads OK. Routes:'', len\\(app.routes\\)\\)\")"
     ]
   }
 }

@@ -241,5 +241,5 @@ async def landing():
 </html>"""
     return HTMLResponse(
         content=html,
-        headers={"Cache-Control": "public, max-age=3600"},
+        headers={"Cache-Control": "public, max-age=300"},
     )

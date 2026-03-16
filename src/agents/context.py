@@ -6,7 +6,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session as DBSession
 
-from src.db.models import User, Streak, Session, Pod, PodMember, Seven7Session, Nudge, SessionFeedback
+from src.db.models import User, Streak, Session, Pod, PodMember, SessionFeedback
 
 
 MILESTONES = [7, 14, 30, 50, 100, 200, 365]
@@ -96,7 +96,7 @@ def build_user_context(user_id: str, db: DBSession) -> UserContext:
     pod_activity = []
     membership = (
         db.query(PodMember)
-        .filter(PodMember.user_id == user_id, PodMember.status == "active")
+        .filter(PodMember.user_id == user_id)
         .first()
     )
     if membership:
@@ -126,30 +126,6 @@ def build_user_context(user_id: str, db: DBSession) -> UserContext:
         if days_since_save < 30:
             saves_remaining = 0
 
-    # Today's Seven 7
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    todays = (
-        db.query(Seven7Session)
-        .filter(Seven7Session.user_id == user_id, Seven7Session.generated_at >= today_start)
-        .first()
-    )
-    todays_seven7 = None
-    if todays:
-        todays_seven7 = {
-            "title": todays.session_title,
-            "greeting": todays.greeting,
-            "blocks": todays.blocks,
-            "closing": todays.closing,
-        }
-
-    # Last nudge
-    last_nudge = (
-        db.query(Nudge)
-        .filter(Nudge.user_id == user_id)
-        .order_by(Nudge.sent_at.desc())
-        .first()
-    )
-
     # Recent feedback (last 5)
     recent_fb = (
         db.query(SessionFeedback)
@@ -175,8 +151,8 @@ def build_user_context(user_id: str, db: DBSession) -> UserContext:
         name=user.name,
         timezone=user.timezone,
         fitness_level=user.fitness_level.value if user.fitness_level else "beginner",
-        energy_today=user.energy_today.value if user.energy_today else None,
-        available_windows=user.available_windows or [],
+        energy_today=None,
+        available_windows=[],
         current_streak=streak.current_streak if streak else 0,
         longest_streak=streak.longest_streak if streak else 0,
         last_session=last_session,
@@ -184,10 +160,10 @@ def build_user_context(user_id: str, db: DBSession) -> UserContext:
         skip_history=skip_history,
         pod=pod_info,
         pod_activity_24h=pod_activity,
-        last_nudge_at=last_nudge.sent_at if last_nudge else None,
+        last_nudge_at=None,
         milestone_next=next_milestone,
         saves_remaining=saves_remaining,
-        todays_seven7=todays_seven7,
+        todays_seven7=None,
         recent_feedback=recent_feedback,
     )
 
