@@ -421,23 +421,34 @@ async def timer_page():
   <!-- COMPLETE -->
   <div id="complete" class="hidden">
     <div class="complete-check">&#10003;</div>
-    <div class="complete-title">SESSION COMPLETE</div>
+    <div class="complete-title" id="completeTitle">SESSION COMPLETE</div>
     <div class="complete-text" id="closingText">{closing}</div>
-    <div id="streakStatus" style="font-size:12px;color:#E85D04;font-weight:600;margin-bottom:24px"></div>
 
-    <!-- CTA: email capture OR share (toggled by JS) -->
-    <div id="ctaEmail" class="hidden" style="margin-bottom:24px">
-      <p style="color:#8b949e;font-size:13px;margin-bottom:12px">Get session reminders &amp; verify your Jerome#</p>
-      <div style="display:flex;gap:8px;justify-content:center;max-width:360px;margin:0 auto">
-        <input type="email" id="email-input" placeholder="your@email.com"
-               style="flex:1;padding:10px 14px;background:#161b22;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-family:'JetBrains Mono',monospace;font-size:14px;outline:none">
-        <button onclick="submitEmail()"
-                style="padding:10px 20px;background:#E85D04;border:none;border-radius:8px;color:white;font-family:'JetBrains Mono',monospace;cursor:pointer;font-size:14px">Verify</button>
-      </div>
-      <div id="email-status" style="margin-top:8px;font-size:13px"></div>
+    <!-- Streak visual -->
+    <div id="streakVisual" style="margin:24px 0">
+      <div id="streakNumber" style="font-size:48px;font-weight:800;color:#E85D04">1</div>
+      <div style="font-size:10px;letter-spacing:2px;color:#484f58">DAY STREAK</div>
     </div>
-    <div id="ctaShare" class="hidden" style="margin-bottom:24px">
-      <button class="share-btn primary" onclick="shareSession()">Share</button>
+
+    <!-- Post-session onboarding (only if not registered) -->
+    <div id="postOnboard" class="hidden" style="margin-bottom:24px;background:#161b22;border:1px solid #21262d;border-radius:12px;padding:24px;max-width:360px;margin-left:auto;margin-right:auto">
+      <div style="font-size:11px;letter-spacing:2px;color:#E85D04;margin-bottom:12px">CLAIM YOUR JEROME#</div>
+      <input type="text" id="post-ob-name" placeholder="your name" maxlength="50" autocomplete="off"
+             style="width:100%;padding:10px 14px;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#f0f6fc;font-family:inherit;font-size:14px;outline:none;margin-bottom:8px">
+      <input type="email" id="post-ob-email" placeholder="email (optional)" autocomplete="off"
+             style="width:100%;padding:10px 14px;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#f0f6fc;font-family:inherit;font-size:14px;outline:none;margin-bottom:12px">
+      <div style="position:absolute;left:-9999px" aria-hidden="true"><input type="text" id="hp-field2" tabindex="-1" autocomplete="off"></div>
+      <button onclick="postSessionRegister()" style="width:100%;padding:12px;background:#E85D04;border:none;border-radius:100px;color:#fff;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer">SAVE MY STREAK</button>
+      <div id="post-ob-status" style="font-size:11px;margin-top:8px;color:#7ee787"></div>
+    </div>
+
+    <!-- Badge + share (shown if registered) -->
+    <div id="postShare" class="hidden" style="margin-bottom:24px">
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="share-btn primary" onclick="shareSession()">Share</button>
+        <button class="share-btn" onclick="copyBadge()">Copy Badge</button>
+      </div>
+      <div id="badgePreview" style="margin-top:12px"></div>
     </div>
     <div class="toast" id="toast">copied to clipboard</div>
 
@@ -657,9 +668,8 @@ function checkOnboarding() {{
     const user = JSON.parse(stored);
     userName = user.name || '';
     jeromeNumber = user.jeromeNumber || null;
-    return;
   }}
-  document.getElementById('onboarding').classList.remove('hidden');
+  // Don't show modal before session. Show it AFTER completion.
 }}
 
 async function submitOnboarding() {{
@@ -1062,18 +1072,24 @@ function finishSession() {{
   // Record streak
   recordSession();
 
-  // Show streak status with Jerome#
+  // Show streak visual
   const day = getStreakDay();
-  const jLabel = jeromeNumber ? 'Jerome' + jeromeNumber : (userName || 'YU');
-  document.getElementById('streakStatus').textContent =
-    'Day ' + day + '. ' + jLabel + ' showed up.';
+  document.getElementById('streakNumber').textContent = day;
 
-  // Show CTA: email capture if no email yet, share button otherwise
+  // Personalize title
+  const jLabel = jeromeNumber ? 'Jerome' + jeromeNumber : (userName || 'You');
+  document.getElementById('completeTitle').textContent = jLabel + ' showed up.';
+
+  // Show CTA: onboarding if not registered, share if registered
   const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
-  if (user.userId && !user.emailSubmitted) {{
-    document.getElementById('ctaEmail').classList.remove('hidden');
+  if (!user.userId) {{
+    document.getElementById('postOnboard').classList.remove('hidden');
   }} else {{
-    document.getElementById('ctaShare').classList.remove('hidden');
+    document.getElementById('postShare').classList.remove('hidden');
+    if (jeromeNumber) {{
+      document.getElementById('badgePreview').innerHTML =
+        '<img src="/badge/' + jeromeNumber + '.svg" alt="badge" style="height:28px">';
+    }}
   }}
 
   // Stop AI audio if playing
@@ -1146,6 +1162,70 @@ function buildCardText() {{
   return 'Day ' + day + '. 7 minutes. \\u2713\\n\\n' +
     'I\\'m ' + jnum + '. @Jerome7app\\n\\n' +
     'https://jerome7.com/join';
+}}
+
+async function postSessionRegister() {{
+  const name = document.getElementById('post-ob-name').value.trim();
+  const email = document.getElementById('post-ob-email').value.trim();
+  const hp = document.getElementById('hp-field2')?.value || '';
+  const status = document.getElementById('post-ob-status');
+  if (!name) {{ document.getElementById('post-ob-name').style.borderColor = '#f85149'; return; }}
+
+  try {{
+    const resp = await fetch('/pledge', {{
+      method: 'POST',
+      headers: {{ 'Content-Type': 'application/json' }},
+      body: JSON.stringify({{ name: name, goal: 'post_session', hp: hp }}),
+    }});
+    const data = await resp.json();
+    if (resp.ok) {{
+      userName = name;
+      jeromeNumber = data.jerome_number || null;
+      localStorage.setItem('jerome7_user', JSON.stringify({{
+        name: name, jeromeNumber: jeromeNumber, userId: data.user_id,
+      }}));
+      status.textContent = 'You are Jerome' + jeromeNumber + '.';
+      status.style.color = '#7ee787';
+      // Update completion title
+      document.getElementById('completeTitle').textContent = 'Jerome' + jeromeNumber + ' showed up.';
+      // Subscribe email if provided
+      if (email) {{
+        fetch('/subscribe', {{
+          method: 'POST',
+          headers: {{ 'Content-Type': 'application/json' }},
+          body: JSON.stringify({{ email: email }}),
+        }}).catch(() => {{}});
+      }}
+      // Swap to share view after brief delay
+      setTimeout(() => {{
+        document.getElementById('postOnboard').classList.add('hidden');
+        document.getElementById('postShare').classList.remove('hidden');
+        if (jeromeNumber) {{
+          document.getElementById('badgePreview').innerHTML =
+            '<img src="/badge/' + jeromeNumber + '.svg" alt="badge" style="height:28px">';
+        }}
+      }}, 1500);
+    }} else {{
+      status.textContent = data.detail || 'Something went wrong.';
+      status.style.color = '#f85149';
+    }}
+  }} catch {{
+    status.textContent = 'Network error. Try again.';
+    status.style.color = '#f85149';
+  }}
+}}
+
+function copyBadge() {{
+  const num = jeromeNumber || 'YOUR_NUMBER';
+  const md = '![Jerome7](https://jerome7.com/badge/' + num + '.svg)';
+  copyToClipboard(md).then((ok) => {{
+    if (ok) {{
+      const toast = document.getElementById('toast');
+      toast.textContent = 'badge markdown copied!';
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 2000);
+    }}
+  }});
 }}
 
 async function shareSession() {{
