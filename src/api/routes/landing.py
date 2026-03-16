@@ -485,4 +485,7 @@ function copyCli() {{
 </script>
 </body>
 </html>"""
-    return HTMLResponse(content=html)
+    return HTMLResponse(
+        content=html,
+        headers={"Cache-Control": "public, max-age=3600"},
+    )

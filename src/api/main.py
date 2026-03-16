@@ -1,15 +1,38 @@
 """FastAPI application — Jerome 7 / YU Show Up."""
 
-from fastapi import FastAPI
+import logging
+import time
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.db.database import init_db
 from src.api.routes import pledge, log, seven7, streak, pod, health, streak_page, timer, daily, share, share_card, nudge, landing, leaderboard, analytics, analytics_page, live, twitter, twin, invite, voice, embed, session_card, coach_chat, agents_observatory, world_report, milestones, mesh_api, tokens, globe, sponsor, onboarding, agentcard, milestone_card, social_share, stats
 
+# ── Structured logging ────────────────────────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger("jerome7")
+
+
+# ── Lifespan (replaces deprecated @app.on_event) ─────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    logger.info("Jerome7 started — DB initialized")
+    yield
+    logger.info("Jerome7 shutting down")
+
+
 app = FastAPI(
     title="Jerome 7 — YU Show Up",
     description="7 minutes a day. An act of love. A community of builders showing up.",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 _ALLOWED_ORIGINS = [
@@ -29,6 +52,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ── Request logging middleware ────────────────────────────────────────────────
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    ms = round((time.time() - start) * 1000)
+    if ms > 500 or response.status_code >= 400:
+        logger.info(
+            "%s %s %s %dms",
+            request.method, request.url.path, response.status_code, ms,
+        )
+    return response
+
 
 app.include_router(landing.router)
 app.include_router(health.router)
@@ -66,8 +104,3 @@ app.include_router(agentcard.router)
 app.include_router(milestone_card.router)
 app.include_router(social_share.router)
 app.include_router(stats.router)
-
-
-@app.on_event("startup")
-def on_startup():
-    init_db()

@@ -865,4 +865,7 @@ initVoiceToggle();
 </script>
 </body>
 </html>"""
-    return HTMLResponse(content=html)
+    return HTMLResponse(
+        content=html,
+        headers={"Cache-Control": "public, max-age=3600"},  # 1hr — session changes daily
+    )
