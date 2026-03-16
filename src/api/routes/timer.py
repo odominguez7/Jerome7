@@ -401,8 +401,8 @@ async def timer_page():
 <div class="modal-overlay hidden" id="onboarding">
   <div class="modal">
     <div class="modal-brand">JEROME7</div>
-    <h2 id="onboard-greeting">Welcome, builder.</h2>
-    <div class="subtitle">Claim your Jerome# identity. 30 seconds.</div>
+    <h2 id="onboard-greeting">You showed up. That's the hardest part.</h2>
+    <div class="subtitle">Claim your Jerome# identity. Takes 10 seconds.</div>
 
     <label>YOUR NAME</label>
     <input type="text" id="ob-name" placeholder="What should we call you?" maxlength="50" autocomplete="off">
@@ -913,6 +913,65 @@ function resumeBreathing() {{
   startBreathing();
 }}
 
+// ── Adaptive AI greeting ──
+function buildAdaptiveGreeting() {{
+  const streakData = JSON.parse(localStorage.getItem('jerome7_streak') || '{{}}');
+  const day = streakData.day || 0;
+  const total = streakData.totalSessions || 0;
+  const lastDate = streakData.lastDate;
+  const hour = new Date().getHours();
+
+  // Time-of-day awareness
+  let timeGreet = 'Welcome';
+  if (hour < 12) timeGreet = 'Good morning';
+  else if (hour < 17) timeGreet = 'Good afternoon';
+  else timeGreet = 'Good evening';
+
+  // Identity
+  let identity = '';
+  if (userName && jeromeNumber) {{
+    identity = ', Jerome' + jeromeNumber;
+  }} else if (userName && userName !== 'builder') {{
+    identity = ', ' + userName;
+  }}
+
+  let greeting = timeGreet + identity + '. ';
+
+  // Streak-aware context
+  if (day === 0 && total === 0) {{
+    // First ever session
+    greeting += 'This is your first session. 7 minutes is all it takes. ';
+  }} else if (day === 0) {{
+    // Returning after a break
+    greeting += 'Welcome back. Every restart is a win. ';
+  }} else if (day === 1) {{
+    greeting += 'Day 1. The hardest day. You chose to show up. ';
+  }} else if (day < 7) {{
+    greeting += 'Day ' + day + ' of your streak. Building momentum. ';
+  }} else if (day === 7) {{
+    greeting += 'Day 7. One full week. You are proving something to yourself. ';
+  }} else if (day < 30) {{
+    greeting += 'Day ' + day + '. ' + day + ' days of showing up. Keep going. ';
+  }} else if (day === 30) {{
+    greeting += 'Day 30. One month. You are not the same person who started. ';
+  }} else if (day < 100) {{
+    greeting += 'Day ' + day + '. You are becoming the person others aspire to be. ';
+  }} else {{
+    greeting += 'Day ' + day + '. Legendary. ';
+  }}
+
+  // Missed days acknowledgment
+  if (lastDate) {{
+    const daysSince = Math.floor((new Date() - new Date(lastDate)) / 86400000);
+    if (daysSince > 1 && daysSince <= 3) {{
+      greeting += 'Missed ' + (daysSince - 1) + ' day' + (daysSince > 2 ? 's' : '') + ', but you are here now. That is what matters. ';
+    }}
+  }}
+
+  greeting += 'Today is ' + sessionType + '. Let us begin.';
+  return greeting;
+}}
+
 // ── Session runner ──
 function beginSession() {{
   document.getElementById('preStart').classList.add('hidden');
@@ -931,14 +990,9 @@ function beginSession() {{
     aiAudio.currentTime = 0;
     aiAudio.play().catch(() => {{}});
   }} else {{
-    // Personalized welcome with Jerome# (browser speech fallback)
-    let greeting = 'Welcome to Jerome 7.';
-    if (userName && jeromeNumber) {{
-      greeting = 'Good morning, Jerome' + jeromeNumber + '.';
-    }} else if (userName && userName !== 'builder') {{
-      greeting = 'Welcome, ' + userName + '.';
-    }}
-    speak(greeting + ' Today is a ' + sessionType + ' session. Let\\'s begin.');
+    // Adaptive AI greeting based on streak, time of day, and history
+    const greeting = buildAdaptiveGreeting();
+    speak(greeting);
   }}
 
   currentBlock = 0;
@@ -1077,9 +1131,14 @@ function finishSession() {{
     aiAudio.pause();
   }}
 
-  // Personalized closing narration (browser speech only — AI voice includes its own closing)
+  // Adaptive closing narration (browser speech only)
   if (voiceMode !== 'ai' || !aiReady) {{
-    const closingNarration = 'Session complete. Day ' + day + '. ' + jLabel + ' showed up. ' + closingText;
+    let closingNarration = 'Session complete. ';
+    if (day === 1) closingNarration += 'Day 1 is done. The hardest part is over. ';
+    else if (day === 7) closingNarration += 'One full week. 7 days of showing up. ';
+    else if (day === 30) closingNarration += '30 days. You built something real. ';
+    else closingNarration += 'Day ' + day + '. ';
+    closingNarration += jLabel + ' showed up. ' + closingText;
     speak(closingNarration);
   }}
 }}

@@ -230,7 +230,9 @@
       "Bash(find src/agents -name \"*.py\" -exec wc -l {} +)",
       "Bash(timeout 10 python3 -c \"from src.api.main import app; print\\(''App imports OK''\\); print\\(f''Routes: {len\\(app.routes\\)}''\\)\")",
       "Bash(python3 -c \"from src.api.main import app; print\\(''App imports OK''\\); print\\(f''Routes: {len\\(app.routes\\)}''\\)\")",
-      "Bash(find src:*)"
+      "Bash(find src:*)",
+      "Bash(python3 -m ruff check src/api/routes/landing.py src/api/routes/timer.py)",
+      "Bash(python3 -c \"from src.api.main import app; print\\(''OK -'', len\\(app.routes\\), ''routes''\\)\")"
     ]
   }
 }

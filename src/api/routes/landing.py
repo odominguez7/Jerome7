@@ -152,6 +152,9 @@ async def landing():
     section {{ padding: 60px 16px; }}
     .types {{ grid-template-columns: 1fr; }}
   }}
+  @media (max-width: 560px) {{
+    section div[style*="grid-template-columns"] {{ grid-template-columns: 1fr !important; }}
+  }}
 </style>
 </head>
 <body>
@@ -252,11 +255,52 @@ async def landing():
 </section>
 
 <!-- SCIENCE -->
-<div style="text-align:center;padding:60px 24px">
-  <div style="font-size:48px;font-weight:700;color:#E85D04">93%</div>
-  <div style="color:#8b949e;margin-top:8px;font-size:15px">of daily meditators report reduced stress within 2 weeks</div>
-  <div style="color:#484f58;margin-top:4px;font-size:12px">Source: Journal of Clinical Psychology, 2024</div>
-</div>
+<section>
+  <div class="section-label">THE SCIENCE</div>
+  <h2>This isn't vibes. It's neuroscience.</h2>
+  <p style="margin-bottom:32px">Every feature in Jerome7 is backed by peer-reviewed research. Here's what happens when you show up for 7 minutes.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px">
+      <div style="font-size:32px;font-weight:800;color:#E85D04;margin-bottom:4px">-25%</div>
+      <div style="font-size:13px;color:#f0f6fc;font-weight:700;margin-bottom:4px">Cortisol reduction</div>
+      <div style="font-size:11px;color:#484f58;line-height:1.5">Box breathing activates your parasympathetic nervous system. 5 minutes of controlled breathing drops cortisol levels by 25%.</div>
+      <div style="font-size:9px;color:#30363d;margin-top:8px">Ma et al., 2017 | Frontiers in Psychology</div>
+    </div>
+    <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px">
+      <div style="font-size:32px;font-weight:800;color:#E85D04;margin-bottom:4px">+14%</div>
+      <div style="font-size:13px;color:#f0f6fc;font-weight:700;margin-bottom:4px">Focus and attention</div>
+      <div style="font-size:11px;color:#484f58;line-height:1.5">Just 4 days of brief meditation training improved sustained attention, working memory, and executive function in novices.</div>
+      <div style="font-size:9px;color:#30363d;margin-top:8px">Zeidan et al., 2010 | Consciousness and Cognition</div>
+    </div>
+    <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px">
+      <div style="font-size:32px;font-weight:800;color:#E85D04;margin-bottom:4px">66</div>
+      <div style="font-size:13px;color:#f0f6fc;font-weight:700;margin-bottom:4px">Days to automatic</div>
+      <div style="font-size:11px;color:#484f58;line-height:1.5">Habits take 18 to 254 days to form, with 66 as the median. Jerome7's streak system is designed around this exact window.</div>
+      <div style="font-size:9px;color:#30363d;margin-top:8px">Lally et al., 2010 | European J. Social Psychology</div>
+    </div>
+    <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px">
+      <div style="font-size:32px;font-weight:800;color:#E85D04;margin-bottom:4px">26%</div>
+      <div style="font-size:13px;color:#f0f6fc;font-weight:700;margin-bottom:4px">Anxiety reduction</div>
+      <div style="font-size:11px;color:#484f58;line-height:1.5">Theta-range binaural beats (4-8Hz) produced significant reductions in trait anxiety in a meta-analysis of 22 studies.</div>
+      <div style="font-size:9px;color:#30363d;margin-top:8px">Garcia-Argibay et al., 2019 | Psychological Research</div>
+    </div>
+  </div>
+</section>
+
+<!-- BADGE / GITHUB INTEGRATION -->
+<section style="text-align:center">
+  <div class="section-label">FOR BUILDERS</div>
+  <h2>Show your streak on GitHub.</h2>
+  <p>Add your Jerome7 badge to your README. Every day you show up, it updates.</p>
+  <div style="margin:24px 0">
+    <img src="/badge/7.svg" alt="Jerome7 badge" style="height:28px">
+  </div>
+  <div class="cli-strip" style="display:inline-flex">
+    <code id="badge-code" style="font-size:11px;color:#7ee787">![Jerome7](https://jerome7.com/badge/YOUR_NUMBER.svg)</code>
+    <button class="copy-btn" onclick="copyBadge()">COPY</button>
+  </div>
+</section>
 
 <!-- EMAIL CAPTURE -->
 <section style="text-align:center;padding:48px 0;">
@@ -315,6 +359,22 @@ async function submitEmail(e) {{
   }}
   btn.disabled = false; btn.textContent = 'REMIND ME';
   return false;
+}}
+
+function copyBadge() {{
+  const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
+  const num = user.jeromeNumber || 'YOUR_NUMBER';
+  const md = '![Jerome7](https://jerome7.com/badge/' + num + '.svg)';
+  navigator.clipboard.writeText(md).then(() => {{
+    const btn = document.querySelector('#badge-code').closest('.cli-strip').querySelector('.copy-btn');
+    btn.textContent = 'COPIED!';
+    btn.style.color = '#7ee787'; btn.style.borderColor = '#7ee787';
+    setTimeout(() => {{ btn.textContent = 'COPY'; btn.style.color = ''; btn.style.borderColor = ''; }}, 2000);
+  }});
+  // Update displayed code with actual number
+  if (user.jeromeNumber) {{
+    document.getElementById('badge-code').textContent = md;
+  }}
 }}
 
 function copyCli() {{
