@@ -92,8 +92,8 @@ async def timer_page():
   body {{
     background: #0d1117; color: #c9d1d9;
     font-family: 'JetBrains Mono', monospace;
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    padding: 20px;
+    min-height: 100vh; display: flex; align-items: flex-start; justify-content: center;
+    padding: 80px 20px 20px;
   }}
   .container {{ max-width: 560px; width: 100%; text-align: center; }}
 
@@ -166,19 +166,6 @@ async def timer_page():
   .hidden {{ display: none !important; }}
 
   /* ── PRE-START ── */
-  .session-badge {{
-    display: inline-flex; align-items: center; gap: 8px;
-    background: #161b22; border: 1px solid #30363d;
-    border-radius: 100px; padding: 8px 20px;
-    font-size: 10px; letter-spacing: 2px; color: #8b949e;
-    margin-bottom: 24px;
-  }}
-  .session-badge .pulse {{
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #3fb950; animation: pulse 2s infinite;
-  }}
-  @keyframes pulse {{ 0%,100% {{ opacity: 1; }} 50% {{ opacity: 0.4; }} }}
-
   .session-type {{
     font-size: 10px; letter-spacing: 3px; color: var(--type-color);
     margin-bottom: 12px;
@@ -192,21 +179,6 @@ async def timer_page():
     max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.6;
   }}
 
-  /* ── BLOCKS PREVIEW ── */
-  .blocks-preview {{
-    background: #161b22; border: 1px solid #21262d;
-    border-radius: 12px; padding: 20px;
-    margin-bottom: 40px; text-align: left;
-  }}
-  .blocks-preview .block-row {{
-    display: flex; align-items: center; gap: 12px;
-    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
-  }}
-  .blocks-preview .block-row:last-child {{ border-bottom: none; }}
-  .block-num {{ font-size: 10px; color: #484f58; min-width: 20px; }}
-  .block-name-prev {{ font-size: 13px; color: #f0f6fc; flex: 1; }}
-  .block-dur {{ font-size: 11px; color: #484f58; }}
-
   /* ── START BUTTON ── */
   .start-btn {{
     display: inline-block; padding: 18px 56px;
@@ -219,21 +191,6 @@ async def timer_page():
 
   .voice-note {{
     font-size: 10px; color: #30363d; margin-top: 16px; letter-spacing: 1px;
-  }}
-
-  /* ── COMMUNITY STATS ── */
-  .community-bar {{
-    display: flex; justify-content: center; gap: 24px;
-    margin-bottom: 24px;
-  }}
-  .community-stat {{
-    text-align: center;
-  }}
-  .community-num {{
-    font-size: 20px; font-weight: 800; color: #E85D04;
-  }}
-  .community-label {{
-    font-size: 9px; letter-spacing: 2px; color: #484f58;
   }}
 
   /* ── AMBIENT AUDIO TOGGLE ── */
@@ -252,26 +209,15 @@ async def timer_page():
   }}
   .ambient-dot.off {{ background: #484f58; }}
 
-  /* ── FREQUENCY SELECTOR ── */
-  .freq-grid {{
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-    max-width: 440px; margin: 0 auto 20px; text-align: left;
-  }}
-  .freq-card {{
+  /* ── FREQUENCY PILLS ── */
+  .freq-pill {{
     background: #161b22; border: 1px solid #21262d;
-    border-radius: 10px; padding: 12px 14px; cursor: pointer;
-    transition: all 0.2s; position: relative;
+    border-radius: 100px; padding: 6px 14px; cursor: pointer;
+    font-family: inherit; font-size: 11px; color: #8b949e;
+    transition: all 0.2s; white-space: nowrap;
   }}
-  .freq-card:hover {{ border-color: #30363d; }}
-  .freq-card.selected {{ border-color: #E85D04; background: rgba(232,93,4,0.08); }}
-  .freq-card .freq-emoji {{ font-size: 16px; margin-bottom: 4px; }}
-  .freq-card .freq-name {{ font-size: 11px; font-weight: 700; color: #f0f6fc; letter-spacing: 0.5px; }}
-  .freq-card .freq-desc {{ font-size: 9px; color: #484f58; margin-top: 2px; line-height: 1.3; }}
-  .freq-card .freq-hz {{ font-size: 9px; color: #30363d; margin-top: 4px; letter-spacing: 1px; }}
-  .freq-label {{ font-size: 10px; letter-spacing: 2px; color: #484f58; margin-bottom: 10px; }}
-  @media (max-width: 480px) {{
-    .freq-grid {{ grid-template-columns: 1fr; }}
-  }}
+  .freq-pill:hover {{ border-color: #30363d; color: #f0f6fc; }}
+  .freq-pill.selected {{ border-color: #E85D04; color: #E85D04; background: rgba(232,93,4,0.08); }}
 
   /* ── ACTIVE SESSION ── */
   .phase-label {{
@@ -429,79 +375,31 @@ async def timer_page():
 
   <!-- PRE-START -->
   <div id="preStart">
-    <div class="session-badge">
-      <span class="pulse"></span>
-      LIVE SESSION
-    </div>
-
-    <!-- Community stats -->
-    <div class="community-bar" id="communityBar">
-      <div class="community-stat">
-        <div class="community-num" id="statJeromes">--</div>
-        <div class="community-label">JEROMES</div>
-      </div>
-      <div class="community-stat">
-        <div class="community-num" id="statToday">--</div>
-        <div class="community-label">TODAY</div>
-      </div>
-      <div class="community-stat">
-        <div class="community-num" id="statCountries">--</div>
-        <div class="community-label">COUNTRIES</div>
-      </div>
-    </div>
+    <!-- Personalized greeting (filled by JS) -->
+    <div id="personalGreeting" style="font-size:13px;color:#484f58;letter-spacing:1px;margin-bottom:32px;min-height:20px"></div>
 
     <div class="session-type" id="sessionType" style="--type-color:#4ecdc4">{session_type.upper()}</div>
     <div class="session-title">{title}</div>
     <div class="session-desc">{type_desc}</div>
 
-    <div class="blocks-preview" id="blocksPreview"></div>
+    <button class="start-btn" id="startBtn" onclick="beginSession().catch(console.error)" style="margin-bottom:24px">START</button>
 
-    <!-- Voice mode toggle -->
-    <div id="voiceToggle" class="voice-toggle" style="display:inline-flex;background:#161b22;border:1px solid #21262d;border-radius:100px;margin-bottom:20px;overflow:hidden">
-      <button id="btnAiVoice" style="padding:8px 20px;font-size:10px;letter-spacing:2px;background:#E85D04;border:none;color:#fff;cursor:pointer;font-family:inherit;font-weight:600;border-radius:100px 0 0 100px" onclick="selectVoice('ai')">AI VOICE</button>
-      <button id="btnBrowserVoice" style="padding:8px 20px;font-size:10px;letter-spacing:2px;background:none;border:none;color:#484f58;cursor:pointer;font-family:inherit;font-weight:600;border-radius:0 100px 100px 0" onclick="selectVoice('browser')">BROWSER</button>
+    <!-- Compact frequency selector: single row of pills -->
+    <div id="freqRow" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:16px">
+      <button class="freq-pill selected" onclick="selectFreq(this,'chill')" data-freq="chill" title="Anxiety relief (6Hz theta)">&#x1f9ca; chill</button>
+      <button class="freq-pill" onclick="selectFreq(this,'flow')" data-freq="flow" title="Deep focus (10Hz alpha)">&#x1f680; focus</button>
+      <button class="freq-pill" onclick="selectFreq(this,'vibe')" data-freq="vibe" title="Mood lift (10Hz alpha)">&#x2728; vibe</button>
+      <button class="freq-pill" onclick="selectFreq(this,'boss')" data-freq="boss" title="Confidence (14Hz beta)">&#x1f451; boss</button>
+      <button class="freq-pill" onclick="selectFreq(this,'war')" data-freq="war" title="Peak intensity (20Hz beta)">&#x1f525; war</button>
     </div>
+    <div style="font-size:9px;color:#30363d;letter-spacing:1px">BINAURAL BEATS + EARPHONES RECOMMENDED</div>
 
-    <!-- AI voice status -->
-    <div id="aiStatus" class="voice-note" style="color:#484f58;margin-bottom:16px"></div>
-
-    <!-- Frequency selector -->
-    <div class="freq-label">CHOOSE YOUR FREQUENCY</div>
-    <div class="freq-grid" id="freqGrid">
-      <div class="freq-card selected" onclick="selectFreq(this, 'chill')" data-freq="chill">
-        <div class="freq-emoji">&#x1f9ca;</div>
-        <div class="freq-name">chill mode</div>
-        <div class="freq-desc">anxiety is loud today. this quiets it down</div>
-        <div class="freq-hz">396Hz + 402Hz (6Hz theta)</div>
-      </div>
-      <div class="freq-card" onclick="selectFreq(this, 'flow')" data-freq="flow">
-        <div class="freq-emoji">&#x1f680;</div>
-        <div class="freq-name">locked in</div>
-        <div class="freq-desc">deep focus. no distractions. just you and the work</div>
-        <div class="freq-hz">432Hz + 442Hz (10Hz alpha)</div>
-      </div>
-      <div class="freq-card" onclick="selectFreq(this, 'vibe')" data-freq="vibe">
-        <div class="freq-emoji">&#x2728;</div>
-        <div class="freq-name">mood boost</div>
-        <div class="freq-desc">feeling mid? this lifts the energy. instant serotonin</div>
-        <div class="freq-hz">528Hz + 538Hz (10Hz alpha)</div>
-      </div>
-      <div class="freq-card" onclick="selectFreq(this, 'boss')" data-freq="boss">
-        <div class="freq-emoji">&#x1f451;</div>
-        <div class="freq-name">main character</div>
-        <div class="freq-desc">hard convo coming? job interview? this is pre-game energy</div>
-        <div class="freq-hz">639Hz + 653Hz (14Hz beta)</div>
-      </div>
-      <div class="freq-card" onclick="selectFreq(this, 'war')" data-freq="war">
-        <div class="freq-emoji">&#x1f525;</div>
-        <div class="freq-name">fight heavy</div>
-        <div class="freq-desc">win or learn. no in between. absolute war mode</div>
-        <div class="freq-hz">741Hz + 761Hz (20Hz beta)</div>
-      </div>
+    <!-- Hidden voice toggle (AI auto-selected if available) -->
+    <div id="voiceToggle" style="display:none">
+      <button id="btnAiVoice" onclick="selectVoice('ai')">AI</button>
+      <button id="btnBrowserVoice" onclick="selectVoice('browser')">BROWSER</button>
     </div>
-
-    <button class="start-btn" id="startBtn" onclick="beginSession().catch(console.error)">BEGIN SESSION</button>
-    <div class="voice-note" id="voiceNote">Binaural beats require earphones for full effect.</div>
+    <div id="aiStatus" style="display:none"></div>
   </div>
 
   <!-- ACTIVE SESSION -->
@@ -690,7 +588,7 @@ let selectedFreq = 'chill';
 
 function selectFreq(el, key) {{
   selectedFreq = key;
-  document.querySelectorAll('.freq-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.freq-pill').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   // Update ambient toggle label
   const label = FREQ_PRESETS[key]?.label || '432Hz';
@@ -751,19 +649,6 @@ function toggleAmbient() {{
 }}
 
 // ── Community Stats ──
-async function loadCommunityStats() {{
-  try {{
-    const resp = await fetch('/stats');
-    const data = await resp.json();
-    communityData = data;
-    document.getElementById('statJeromes').textContent = data.total_jeromes || 0;
-    document.getElementById('statToday').textContent = data.sessions_today || 0;
-    document.getElementById('statCountries').textContent = data.countries || 0;
-  }} catch(e) {{
-    // Silently fail
-  }}
-}}
-
 // ── Onboarding ──
 function checkOnboarding() {{
   const stored = localStorage.getItem('jerome7_user');
@@ -823,19 +708,37 @@ function skipOnboarding() {{
 }}
 
 // ── Blocks preview ──
-function renderPreview() {{
-  const el = document.getElementById('blocksPreview');
-  el.innerHTML = blocks.map((b, i) => {{
-    const dur = b.duration_seconds || 60;
-    const m = Math.floor(dur / 60);
-    const s = dur % 60;
-    const time = m > 0 ? m + ':' + s.toString().padStart(2, '0') : s + 's';
-    return '<div class="block-row">' +
-      '<span class="block-num">' + (i+1) + '</span>' +
-      '<span class="block-name-prev">' + b.name + '</span>' +
-      '<span class="block-dur">' + time + '</span>' +
-    '</div>';
-  }}).join('');
+// ── Show personalized greeting on page load ──
+async function showPersonalGreeting() {{
+  const el = document.getElementById('personalGreeting');
+  if (!el) return;
+  const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
+  const streakData = JSON.parse(localStorage.getItem('jerome7_streak') || '{{}}');
+  const hour = new Date().getHours();
+  const timeGreet = hour < 12 ? 'good morning' : hour < 17 ? 'good afternoon' : 'good evening';
+
+  if (user.jeromeNumber) {{
+    // Try server-side pattern data
+    try {{
+      const resp = await fetch('/api/insights/' + user.jeromeNumber);
+      if (resp.ok) {{
+        const data = await resp.json();
+        const streak = data.current_streak || 0;
+        const rate = data.completion_rate || 0;
+        if (streak > 0) {{
+          el.textContent = timeGreet + ', jerome' + user.jeromeNumber + '. day ' + streak + '. ' + Math.round(rate) + '% consistent.';
+        }} else {{
+          el.textContent = timeGreet + ', jerome' + user.jeromeNumber + '. welcome back.';
+        }}
+        return;
+      }}
+    }} catch {{}}
+    el.textContent = timeGreet + ', jerome' + user.jeromeNumber + '.';
+  }} else if (user.name) {{
+    el.textContent = timeGreet + ', ' + user.name + '.';
+  }} else {{
+    el.textContent = timeGreet + '. 7 minutes. lets go.';
+  }}
 }}
 
 // ── Voice narration (browser speech) ──
@@ -1308,9 +1211,8 @@ async function submitEmail() {{
 
 // ── Init ──
 if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
-renderPreview();
 checkOnboarding();
-loadCommunityStats();
+showPersonalGreeting();
 initVoiceToggle();
 </script>
 </body>
