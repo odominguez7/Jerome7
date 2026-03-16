@@ -335,10 +335,34 @@ async def timer_page():
   }}
   .paused-label.show {{ display: block; }}
 
+  /* ── BREATH CIRCLE ── */
+  .breath-circle {{
+    width: 180px; height: 180px; border-radius: 50%;
+    border: 2px solid; opacity: 0.15;
+    margin: 0 auto 12px;
+    transition: transform 1s ease-in-out, opacity 0.5s;
+    display: none;
+  }}
+  .breath-circle.active {{ display: block; }}
+  .breath-circle.inhale {{ transform: scale(1.3); opacity: 0.3; }}
+  .breath-circle.exhale {{ transform: scale(0.8); opacity: 0.1; }}
+  .breath-circle.hold {{ transform: scale(1.3); opacity: 0.25; }}
+
+  /* ── BLOCK TRANSITION ── */
+  .block-transition {{ transition: opacity 0.3s ease; }}
+  .block-transition.fade {{ opacity: 0; }}
+
+  /* ── BLOCK TIMER (small) ── */
+  .block-timer {{
+    font-size: 14px; color: #484f58; letter-spacing: 1px;
+    margin-bottom: 8px; font-variant-numeric: tabular-nums;
+  }}
+
   @media (max-width: 480px) {{
     .timer {{ font-size: 64px; }}
     .session-title {{ font-size: 24px; }}
     .active-name {{ font-size: 24px; }}
+    .breath-circle {{ width: 140px; height: 140px; }}
   }}
 </style>
 </head>
@@ -423,10 +447,13 @@ async def timer_page():
 
   <!-- ACTIVE SESSION -->
   <div id="activeSession" class="hidden">
+    <div class="breath-circle" id="breathCircle"></div>
+    <div class="breath-cue" id="breathCue" style="font-size:11px;letter-spacing:3px;color:#484f58;margin-bottom:16px;height:20px"></div>
     <div class="phase-label" id="phaseLabel" style="color:#4ecdc4">{session_type.upper()}</div>
-    <div class="active-name" id="blockName">...</div>
-    <div class="active-instruction" id="blockInstruction">...</div>
+    <div class="active-name block-transition" id="blockName">...</div>
+    <div class="active-instruction block-transition" id="blockInstruction">...</div>
     <div class="timer" id="timer">7:00</div>
+    <div class="block-timer" id="blockTimer">BLOCK 1/7 - 1:00</div>
     <div class="paused-label" id="pausedLabel">PAUSED</div>
     <div class="timer-label">REMAINING</div>
     <button class="pause-btn" id="pauseBtn" onclick="togglePause()">PAUSE</button>
@@ -500,6 +527,8 @@ let communityData = {{ total_jeromes: 0, sessions_today: 0, countries: 0 }};
 let isPaused = false;
 let sessionStarted = false;
 let sessionFinished = false;
+let totalRemaining = 0;
+let breathTimeout = null;
 
 // ── Clipboard helper (fallback for iOS/older browsers) ──
 async function copyToClipboard(text) {{
@@ -735,12 +764,75 @@ function speak(text) {{
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  u.rate = 0.85; u.pitch = 1.0; u.volume = 1.0;
+  u.rate = 0.8; u.pitch = 1.0; u.volume = 1.0;
   const voices = window.speechSynthesis.getVoices();
-  const preferred = voices.find(v =>
-    v.name.includes('Samantha') || v.name.includes('Daniel') || v.name.includes('Google'));
-  if (preferred) u.voice = preferred;
+  const preferredNames = ['Samantha', 'Karen', 'Moira', 'Daniel'];
+  let chosen = voices.find(v => preferredNames.some(n => v.name.includes(n)));
+  if (!chosen) chosen = voices.find(v => v.lang && v.lang.startsWith('en'));
+  if (chosen) u.voice = chosen;
   window.speechSynthesis.speak(u);
+}}
+
+// ── Breathing animation ──
+function startBreathing() {{
+  const circle = document.getElementById('breathCircle');
+  const cue = document.getElementById('breathCue');
+  if (!circle || !cue) return;
+  circle.classList.add('active');
+  circle.style.borderColor = typeColor;
+
+  const patterns = {{
+    breathwork: {{ inhale: 4000, hold1: 4000, exhale: 4000, hold2: 4000 }},
+    meditation: {{ inhale: 6000, hold1: 1000, exhale: 6000, hold2: 1000 }},
+    reflection: {{ inhale: 5000, hold1: 2000, exhale: 5000, hold2: 2000 }},
+    preparation: {{ inhale: 3000, hold1: 1000, exhale: 3000, hold2: 1000 }},
+  }};
+  const p = patterns[sessionType] || patterns.meditation;
+
+  function cycle() {{
+    try {{
+    if (sessionFinished || isPaused) return;
+    circle.className = 'breath-circle active inhale';
+    cue.textContent = 'BREATHE IN';
+    breathTimeout = setTimeout(() => {{
+      if (sessionFinished || isPaused) return;
+      circle.className = 'breath-circle active hold';
+      cue.textContent = 'HOLD';
+      breathTimeout = setTimeout(() => {{
+        if (sessionFinished || isPaused) return;
+        circle.className = 'breath-circle active exhale';
+        cue.textContent = 'BREATHE OUT';
+        breathTimeout = setTimeout(() => {{
+          if (sessionFinished || isPaused) return;
+          circle.className = 'breath-circle active';
+          cue.textContent = 'HOLD';
+          breathTimeout = setTimeout(() => {{
+            if (!sessionFinished && !isPaused) cycle();
+          }}, p.hold2);
+        }}, p.exhale);
+      }}, p.hold1);
+    }}, p.inhale);
+    }} catch(e) {{ /* breathing animation error - session continues */ }}
+  }}
+  cycle();
+}}
+
+function stopBreathing() {{
+  if (breathTimeout) {{ clearTimeout(breathTimeout); breathTimeout = null; }}
+  const circle = document.getElementById('breathCircle');
+  const cue = document.getElementById('breathCue');
+  if (circle) {{ circle.classList.remove('active'); circle.className = 'breath-circle'; }}
+  if (cue) cue.textContent = '';
+}}
+
+function pauseBreathing() {{
+  if (breathTimeout) {{ clearTimeout(breathTimeout); breathTimeout = null; }}
+  const cue = document.getElementById('breathCue');
+  if (cue) cue.textContent = '';
+}}
+
+function resumeBreathing() {{
+  startBreathing();
 }}
 
 // ── Session runner ──
@@ -773,10 +865,12 @@ function beginSession() {{
 
   currentBlock = 0;
   totalElapsed = 0;
+  totalRemaining = TOTAL;
   sessionStarted = true;
   sessionFinished = false;
   isPaused = false;
   document.getElementById('pauseBtn').classList.add('visible');
+  startBreathing();
   showBlock(0);
   tick();
 }}
@@ -792,6 +886,7 @@ function togglePause() {{
       aiAudio.play().catch(() => {{}});
     }}
     startAmbient();
+    resumeBreathing();
     tick();
   }} else {{
     // Pause
@@ -805,19 +900,35 @@ function togglePause() {{
     }}
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     stopAmbient();
+    pauseBreathing();
   }}
 }}
 
 function showBlock(i) {{
   const b = blocks[i];
   const phase = b.phase || sessionType;
+  const nameEl = document.getElementById('blockName');
+  const instrEl = document.getElementById('blockInstruction');
 
-  document.getElementById('phaseLabel').textContent = (phase || sessionType).toUpperCase();
-  document.getElementById('phaseLabel').style.color = typeColor;
-  document.getElementById('blockName').textContent = b.name.toUpperCase();
-  document.getElementById('blockInstruction').textContent = b.instruction || '';
+  // Fade out current text
+  nameEl.classList.add('fade');
+  instrEl.classList.add('fade');
+
+  setTimeout(() => {{
+    document.getElementById('phaseLabel').textContent = (phase || sessionType).toUpperCase();
+    document.getElementById('phaseLabel').style.color = typeColor;
+    nameEl.textContent = b.name.toUpperCase();
+    instrEl.textContent = b.instruction || '';
+    remaining = b.duration_seconds || 60;
+
+    // Fade in new text
+    nameEl.classList.remove('fade');
+    instrEl.classList.remove('fade');
+  }}, 300);
+
   remaining = b.duration_seconds || 60;
-  document.getElementById('timer').textContent = formatTime(remaining);
+  document.getElementById('timer').textContent = formatTime(totalRemaining);
+  document.getElementById('blockTimer').textContent = 'BLOCK ' + (i + 1) + '/' + blocks.length + ' - ' + formatTime(remaining);
 
   // Update dots
   blocks.forEach((_, j) => {{
@@ -825,9 +936,9 @@ function showBlock(i) {{
     dot.className = 'dot' + (j < i ? ' done' : j === i ? ' active' : '');
   }});
 
-  // Narrate block (only with browser speech — AI voice handles its own pacing)
+  // Narrate block (only with browser speech -- AI voice handles its own pacing)
   if (voiceMode !== 'ai' || !aiReady) {{
-    speak(b.name + '. ' + (b.instruction || ''));
+    setTimeout(() => {{ speak(b.name + '. ' + (b.instruction || '')); }}, 400);
   }}
 }}
 
@@ -835,7 +946,9 @@ function tick() {{
   interval = setInterval(() => {{
     remaining--;
     totalElapsed++;
-    document.getElementById('timer').textContent = formatTime(remaining);
+    totalRemaining--;
+    document.getElementById('timer').textContent = formatTime(totalRemaining);
+    document.getElementById('blockTimer').textContent = 'BLOCK ' + (currentBlock + 1) + '/' + blocks.length + ' - ' + formatTime(remaining);
     document.getElementById('progress').style.width = (totalElapsed / TOTAL * 100) + '%';
     document.getElementById('progress').style.backgroundColor = typeColor;
 
@@ -855,6 +968,8 @@ function finishSession() {{
   sessionFinished = true;
   document.getElementById('pauseBtn').classList.remove('visible');
   document.getElementById('pausedLabel').classList.remove('show');
+  // Stop breathing animation
+  stopBreathing();
   // Fade out ambient
   stopAmbient();
 
