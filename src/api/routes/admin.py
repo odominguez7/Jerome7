@@ -24,7 +24,7 @@ def _check_key(key: str | None) -> bool:
 def admin_dashboard(key: str = Query(None), db: Session = Depends(get_db)):
     if not _check_key(key):
         return HTMLResponse(
-            "<h1 style='color:#E85D04;font-family:monospace;background:#0d1117;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center'>401 — Unauthorized</h1>",
+            "<h1 style='color:#E85D04;font-family:monospace;background:#0d1117;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center'>401 - Unauthorized</h1>",
             status_code=401,
         )
 
@@ -114,33 +114,35 @@ def admin_dashboard(key: str = Query(None), db: Session = Depends(get_db)):
     recent_rows_html = ""
     for u in recent_users:
         sess_count = db.query(func.count(SessionModel.id)).filter(SessionModel.user_id == u.id).scalar() or 0
-        ago = _relative_time(u.created_at, now) if u.created_at else "—"
-        jnum = f"Jerome{u.jerome_number}" if u.jerome_number else "—"
-        goal = u.goal.value if u.goal else "—"
-        country = u.country or "—"
-        name = _esc(u.name or "—")
+        ago = _relative_time(u.created_at, now) if u.created_at else "-"
+        jnum = f"Jerome{u.jerome_number}" if u.jerome_number else "-"
+        goal = u.goal.value if u.goal else "-"
+        country = u.country or "-"
+        name = _esc(u.name or "-")
         recent_rows_html += f"<tr><td>{jnum}</td><td>{name}</td><td>{goal}</td><td>{country}</td><td>{ago}</td><td>{sess_count}</td></tr>\n"
 
-    # ── Top users by sessions ──
+    # ── Top users by sessions (single JOIN query) ──
     top_users_q = (
         db.query(
             User.jerome_number,
             User.name,
             func.count(SessionModel.id).label("sess"),
+            Streak.current_streak,
+            Streak.last_session_date,
         )
         .join(SessionModel, SessionModel.user_id == User.id)
-        .group_by(User.id)
+        .outerjoin(Streak, Streak.user_id == User.id)
+        .group_by(User.id, Streak.current_streak, Streak.last_session_date)
         .order_by(func.count(SessionModel.id).desc())
         .limit(10)
         .all()
     )
     top_rows_html = ""
     for row in top_users_q:
-        jnum = f"Jerome{row.jerome_number}" if row.jerome_number else "—"
-        name = _esc(row.name or "—")
-        streak_obj = db.query(Streak).filter(Streak.user_id == db.query(User.id).filter(User.name == row.name).limit(1).scalar_subquery()).first()
-        cur_streak = streak_obj.current_streak if streak_obj else 0
-        last_active = streak_obj.last_session_date if streak_obj else "—"
+        jnum = f"Jerome{row.jerome_number}" if row.jerome_number else "-"
+        name = _esc(row.name or "-")
+        cur_streak = row.current_streak or 0
+        last_active = row.last_session_date or "-"
         top_rows_html += f"<tr><td>{jnum}</td><td>{name}</td><td>{row.sess}</td><td>{cur_streak}</td><td>{last_active}</td></tr>\n"
 
     html = f"""<!DOCTYPE html>
@@ -154,7 +156,7 @@ def admin_dashboard(key: str = Query(None), db: Session = Depends(get_db)):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap">
-<title>Jerome7 — Admin</title>
+<title>Jerome7 - Admin</title>
 <style>
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{ background: #0d1117; color: #c9d1d9; font-family: 'JetBrains Mono', monospace; padding: 24px; }}
@@ -188,7 +190,7 @@ def admin_dashboard(key: str = Query(None), db: Session = Depends(get_db)):
   <div class="card"><div class="label">Active This Week</div><div class="value">{active_week}</div></div>
 </div>
 
-<h2>Signups — Cumulative (30 days)</h2>
+<h2>Signups - Cumulative (30 days)</h2>
 <div class="section"><canvas id="growthChart" height="220"></canvas></div>
 
 <h2>Retention</h2>
@@ -316,7 +318,7 @@ def _retention_row(day: int, rate: float) -> str:
 
 def _relative_time(dt: datetime | None, now: datetime) -> str:
     if not dt:
-        return "—"
+        return "-"
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     diff = now - dt

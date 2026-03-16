@@ -1,17 +1,19 @@
-"""POST /subscribe — email capture for daily reminders + email verification."""
+"""POST /subscribe - email capture for daily reminders + email verification."""
 
+import logging
 import re
 import time
-import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
+from src.api.email_utils import generate_verify_token, SITE_URL
 from src.db.database import get_db
 from src.db.models import EmailSubscriber, User
+
+logger = logging.getLogger("jerome7")
 
 router = APIRouter()
 
@@ -22,6 +24,9 @@ _SUB_RATE_LIMIT = 5
 
 def _prune_rate_limits(rate_dict: dict, max_age: float = 7200):
     cutoff = time.time() - max_age
+    # If dict is too large, aggressively clear old entries (1 hour)
+    if len(rate_dict) > 10000:
+        cutoff = max(cutoff, time.time() - 3600)
     to_delete = []
     for ip, timestamps in rate_dict.items():
         rate_dict[ip] = [t for t in timestamps if t > cutoff]
@@ -128,73 +133,15 @@ async def submit_email(user_id: str, request: Request, db: Session = Depends(get
     if existing:
         raise HTTPException(status_code=409, detail="Email already in use.")
 
-    # Generate verify token and store
-    verify_token = str(uuid.uuid4())
+    # Generate HMAC verify token (stateless - nothing stored in DB)
     user.email = email
     user.email_verified = False
-    user.email_verify_token = verify_token
+    user.email_verify_token = None
     db.commit()
 
-    return {"status": "ok", "verify_url": f"/verify/{verify_token}"}
+    token = generate_verify_token(user.id)
+    verify_url = f"{SITE_URL}/verify?token={token}"
+
+    return {"status": "ok", "verify_url": verify_url}
 
 
-@router.get("/verify/{token}", response_class=HTMLResponse)
-async def verify_email(token: str, db: Session = Depends(get_db)):
-    """Verify email via token link."""
-    user = db.query(User).filter(User.email_verify_token == token).first()
-
-    if user:
-        user.email_verified = True
-        user.email_verify_token = None
-        db.commit()
-        jerome_label = f"Jerome#{user.jerome_number}" if user.jerome_number else user.name
-        message = f"Email verified! You're {jerome_label}. Welcome to the community."
-        color = "#3fb950"
-    else:
-        message = "Invalid or expired verification link."
-        color = "#f85149"
-
-    html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jerome7 | Email Verification</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-  body {{
-    background: #0d1117; color: #c9d1d9;
-    font-family: 'JetBrains Mono', monospace;
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    padding: 20px;
-  }}
-  .card {{
-    max-width: 480px; width: 100%; text-align: center;
-    background: #161b22; border: 1px solid #30363d;
-    border-radius: 16px; padding: 48px 32px;
-  }}
-  .brand {{ font-size: 10px; letter-spacing: 3px; color: #E85D04; margin-bottom: 24px; }}
-  .message {{ font-size: 18px; font-weight: 700; color: {color}; margin-bottom: 16px; line-height: 1.4; }}
-  .sub {{ font-size: 13px; color: #8b949e; margin-bottom: 32px; }}
-  a.btn {{
-    display: inline-block; padding: 14px 40px;
-    background: #E85D04; color: #fff; border-radius: 100px;
-    text-decoration: none; font-family: inherit;
-    font-size: 14px; font-weight: 700; letter-spacing: 1px;
-  }}
-  a.btn:hover {{ background: #ff6b1a; }}
-</style>
-</head>
-<body>
-<div class="card">
-  <div class="brand">JEROME7</div>
-  <div class="message">{message}</div>
-  <div class="sub">{"You're part of something real." if user else "Try requesting a new verification link."}</div>
-  <a class="btn" href="/timer">START SESSION</a>
-</div>
-</body>
-</html>"""
-    return HTMLResponse(content=html)

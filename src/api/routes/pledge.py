@@ -27,6 +27,9 @@ _PLEDGE_RATE_LIMIT = 10
 
 def _prune_rate_limits(rate_dict: dict, max_age: float = 7200):
     cutoff = time.time() - max_age
+    # If dict is too large, aggressively clear old entries (1 hour)
+    if len(rate_dict) > 10000:
+        cutoff = max(cutoff, time.time() - 3600)
     to_delete = []
     for ip, timestamps in rate_dict.items():
         rate_dict[ip] = [t for t in timestamps if t > cutoff]
@@ -149,7 +152,8 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
 
     # --- 0b. Bot protection: honeypot ---
     if req.website:
-        # Bot detected — return realistic-looking success but store nothing
+        logger.warning("Bot detected (honeypot) from IP %s", request.client.host)
+        # Bot detected - return realistic-looking success but store nothing
         return UserResponse(
             user_id=str(uuid.uuid4()), name=req.name or "",
             jerome_number=_next_jerome_number(db) + 1000,
@@ -158,7 +162,8 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
 
     # --- 0c. Bot protection: time-based ---
     if req.elapsed is not None and req.elapsed < 3000:
-        # Too fast — likely bot, return realistic-looking success but store nothing
+        logger.warning("Bot detected (too fast: %dms) from IP %s", req.elapsed, request.client.host)
+        # Too fast - likely bot, return realistic-looking success but store nothing
         return UserResponse(
             user_id=str(uuid.uuid4()), name=req.name or "",
             jerome_number=_next_jerome_number(db) + 1000,

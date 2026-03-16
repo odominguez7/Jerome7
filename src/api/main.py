@@ -75,7 +75,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Jerome 7 — YU Show Up",
+    title="Jerome 7 - YU Show Up",
     description="7 minutes a day. An act of love. A community of builders showing up.",
     version="0.1.0",
     lifespan=lifespan,
@@ -173,7 +173,7 @@ async def custom_404(request: Request, exc):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap">
-<title>Jerome7 — 404</title>
+<title>Jerome7 - 404</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #0d1117; color: #c9d1d9; font-family: 'JetBrains Mono', monospace;
@@ -211,7 +211,7 @@ async def custom_500(request: Request, exc):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap">
-<title>Jerome7 — 500</title>
+<title>Jerome7 - 500</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #0d1117; color: #c9d1d9; font-family: 'JetBrains Mono', monospace;
