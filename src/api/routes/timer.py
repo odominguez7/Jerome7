@@ -544,7 +544,10 @@ async function prepareAiVoice() {{
   if (!aiAvailable || aiReady || aiGenerating) return;
   aiGenerating = true;
   const status = document.getElementById('aiStatus');
-  status.textContent = 'Generating AI voice...';
+  const startBtn = document.getElementById('startBtn');
+  status.style.display = 'block';
+  status.textContent = 'loading AI voice...';
+  if (startBtn) {{ startBtn.textContent = 'LOADING VOICE...'; startBtn.style.opacity = '0.6'; }}
 
   try {{
     const resp = await fetch('/voice/wellness/generate', {{ method: 'POST' }});
@@ -554,26 +557,31 @@ async function prepareAiVoice() {{
       aiAudio.preload = 'auto';
       aiAudio.addEventListener('canplaythrough', () => {{
         aiReady = true;
-        status.textContent = 'AI voice ready.';
+        status.textContent = 'AI voice ready';
+        if (startBtn) {{ startBtn.textContent = 'START'; startBtn.style.opacity = '1'; }}
       }}, {{ once: true }});
       aiAudio.addEventListener('error', () => {{
-        status.textContent = 'Audio load failed. Using browser voice.';
+        status.textContent = 'using browser voice';
         voiceMode = 'browser';
+        if (startBtn) {{ startBtn.textContent = 'START'; startBtn.style.opacity = '1'; }}
       }});
-      // Timeout fallback
+      // Timeout: if audio doesn't load in 15s, proceed with browser voice
       setTimeout(() => {{
         if (!aiReady) {{
-          status.textContent = 'AI voice ready.';
-          aiReady = true;
+          voiceMode = 'browser';
+          status.textContent = 'using browser voice';
+          if (startBtn) {{ startBtn.textContent = 'START'; startBtn.style.opacity = '1'; }}
         }}
-      }}, 5000);
+      }}, 15000);
     }} else {{
-      status.textContent = (data.error || 'AI voice unavailable') + '. Using browser voice.';
+      status.textContent = (data.error || 'AI voice unavailable');
       voiceMode = 'browser';
+      if (startBtn) {{ startBtn.textContent = 'START'; startBtn.style.opacity = '1'; }}
     }}
   }} catch(e) {{
-    status.textContent = 'Network error. Using browser voice.';
+    status.textContent = 'using browser voice';
     voiceMode = 'browser';
+    if (startBtn) {{ startBtn.textContent = 'START'; startBtn.style.opacity = '1'; }}
   }}
   aiGenerating = false;
 }}

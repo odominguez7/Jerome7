@@ -30,7 +30,9 @@ _wellness_audio_cache: dict[str, bytes] = {}
 
 
 def _disk_path(prefix: str, date_str: str) -> str:
-    return os.path.join(_CACHE_DIR, f"{prefix}-{date_str}.mp3")
+    # Include voice ID in filename so changing voice auto-invalidates cache
+    vid = _get_voice_id()[-6:]  # last 6 chars of voice ID
+    return os.path.join(_CACHE_DIR, f"{prefix}-{date_str}-{vid}.mp3")
 
 
 def _save_to_disk(prefix: str, date_str: str, data: bytes):
@@ -39,9 +41,10 @@ def _save_to_disk(prefix: str, date_str: str, data: bytes):
     try:
         with open(path, "wb") as f:
             f.write(data)
-        # Clean old files (keep only today)
+        # Clean old files (different date or different voice ID)
+        keep_name = os.path.basename(path)
         for fname in os.listdir(_CACHE_DIR):
-            if fname.startswith(prefix) and date_str not in fname:
+            if fname.startswith(prefix) and fname != keep_name:
                 try:
                     os.remove(os.path.join(_CACHE_DIR, fname))
                 except OSError:
