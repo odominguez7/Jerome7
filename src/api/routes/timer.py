@@ -228,17 +228,18 @@ async def timer_page():
     transition: color 0.4s;
   }}
   .active-name {{
-    font-size: 36px; font-weight: 800; color: #f0f6fc;
-    margin-bottom: 12px; line-height: 1.2;
+    font-size: 20px; font-weight: 700; color: #8b949e;
+    margin-bottom: 8px; line-height: 1.2;
+    letter-spacing: 2px;
   }}
   .active-instruction {{
-    font-size: 14px; color: #8b949e; margin-bottom: 40px;
-    max-width: 420px; margin-left: auto; margin-right: auto; line-height: 1.6;
+    display: none;
   }}
   .timer {{
-    font-size: 96px; font-weight: 800; color: #f0f6fc;
+    font-size: 64px; font-weight: 800; color: #f0f6fc;
     letter-spacing: -2px; margin-bottom: 8px;
     font-variant-numeric: tabular-nums;
+    opacity: 0.7;
   }}
   .timer-label {{
     font-size: 10px; color: #484f58; letter-spacing: 2px; margin-bottom: 32px;
@@ -307,18 +308,18 @@ async def timer_page():
 
   /* ── BREATH CIRCLE ── */
   .breath-circle {{
-    width: 160px; height: 160px; border-radius: 50%;
+    width: 280px; height: 280px; border-radius: 50%;
     border: 2px solid; opacity: 0.12;
-    margin: 0 auto 8px;
+    margin: 0 auto 24px;
     display: none;
   }}
   .breath-circle.active {{ display: block; animation: breathPulse var(--breath-speed, 8s) ease-in-out infinite; }}
   @keyframes breathPulse {{
-    0% {{ transform: scale(0.75); opacity: 0.08; }}
-    35% {{ transform: scale(1.25); opacity: 0.35; }}
-    50% {{ transform: scale(1.25); opacity: 0.3; }}
-    85% {{ transform: scale(0.75); opacity: 0.08; }}
-    100% {{ transform: scale(0.75); opacity: 0.08; }}
+    0% {{ transform: scale(0.7); opacity: 0.06; }}
+    35% {{ transform: scale(1.2); opacity: 0.35; }}
+    50% {{ transform: scale(1.2); opacity: 0.3; }}
+    85% {{ transform: scale(0.7); opacity: 0.06; }}
+    100% {{ transform: scale(0.7); opacity: 0.06; }}
   }}
 
   /* ── BLOCK TRANSITION ── */
@@ -327,15 +328,14 @@ async def timer_page():
 
   /* ── BLOCK TIMER (small) ── */
   .block-timer {{
-    font-size: 14px; color: #484f58; letter-spacing: 1px;
-    margin-bottom: 8px; font-variant-numeric: tabular-nums;
+    display: none;
   }}
 
   @media (max-width: 480px) {{
     .timer {{ font-size: 64px; }}
     .session-title {{ font-size: 24px; }}
-    .active-name {{ font-size: 24px; }}
-    .breath-circle {{ width: 140px; height: 140px; }}
+    .active-name {{ font-size: 16px; }}
+    .breath-circle {{ width: 200px; height: 200px; }}
   }}
 </style>
 </head>
@@ -387,15 +387,17 @@ async def timer_page():
 
     <button class="start-btn" id="startBtn" onclick="beginSession().catch(console.error)" style="margin-bottom:24px">START</button>
 
-    <!-- Compact frequency selector: single row of pills -->
-    <div id="freqRow" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:16px">
-      <button class="freq-pill selected" onclick="selectFreq(this,'chill')" data-freq="chill" title="Anxiety relief (6Hz theta)">&#x1f9ca; chill</button>
-      <button class="freq-pill" onclick="selectFreq(this,'flow')" data-freq="flow" title="Deep focus (10Hz alpha)">&#x1f680; focus</button>
-      <button class="freq-pill" onclick="selectFreq(this,'vibe')" data-freq="vibe" title="Mood lift (10Hz alpha)">&#x2728; vibe</button>
-      <button class="freq-pill" onclick="selectFreq(this,'boss')" data-freq="boss" title="Confidence (14Hz beta)">&#x1f451; boss</button>
-      <button class="freq-pill" onclick="selectFreq(this,'war')" data-freq="war" title="Peak intensity (20Hz beta)">&#x1f525; war</button>
+    <!-- Frequency selector: same session, different brain state -->
+    <div style="font-size:9px;color:#484f58;letter-spacing:1px;margin-bottom:12px">CHOOSE YOUR FREQUENCY</div>
+    <div id="freqRow" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:8px">
+      <button class="freq-pill selected" onclick="selectFreq(this,'chill')" data-freq="chill">chill</button>
+      <button class="freq-pill" onclick="selectFreq(this,'flow')" data-freq="flow">focus</button>
+      <button class="freq-pill" onclick="selectFreq(this,'vibe')" data-freq="vibe">vibe</button>
+      <button class="freq-pill" onclick="selectFreq(this,'boss')" data-freq="boss">energy</button>
+      <button class="freq-pill" onclick="selectFreq(this,'war')" data-freq="war">intense</button>
     </div>
-    <div style="font-size:9px;color:#30363d;letter-spacing:1px">BINAURAL BEATS + EARPHONES RECOMMENDED</div>
+    <div id="freqDesc" style="font-size:10px;color:#484f58;margin-bottom:16px;min-height:16px">theta (6Hz) - reduces anxiety, calms the mind</div>
+    <div style="font-size:8px;color:#30363d;letter-spacing:1px">SAME SESSION. DIFFERENT BRAIN STATE. USE EARPHONES.</div>
 
     <!-- Hidden voice toggle (AI auto-selected if available) -->
     <div id="voiceToggle" style="display:none">
@@ -407,13 +409,11 @@ async def timer_page():
 
   <!-- ACTIVE SESSION -->
   <div id="activeSession" class="hidden">
-    <div class="breath-circle" id="breathCircle"></div>
-    <div class="breath-cue" id="breathCue" style="font-size:11px;letter-spacing:3px;color:#484f58;margin-bottom:16px;height:20px"></div>
     <div class="phase-label" id="phaseLabel" style="color:#4ecdc4">{session_type.upper()}</div>
     <div class="active-name block-transition" id="blockName">...</div>
-    <div class="active-instruction block-transition" id="blockInstruction">...</div>
+    <div class="breath-circle" id="breathCircle"></div>
+    <div class="breath-cue" id="breathCue" style="font-size:11px;letter-spacing:3px;color:#484f58;margin-bottom:16px;height:20px"></div>
     <div class="timer" id="timer">7:00</div>
-    <div class="block-timer" id="blockTimer">BLOCK 1/7 - 1:00</div>
     <div class="paused-label" id="pausedLabel">PAUSED</div>
     <div class="timer-label">REMAINING</div>
     <button class="pause-btn" id="pauseBtn" onclick="togglePause()">PAUSE</button>
@@ -601,11 +601,11 @@ function initVoiceToggle() {{
 
 // ── Frequency Presets (binaural beats) ──
 const FREQ_PRESETS = {{
-  chill:  {{ f1: 396, f2: 402, label: '396Hz', desc: 'theta (6Hz) - anxiety relief' }},
-  flow:   {{ f1: 432, f2: 442, label: '432Hz', desc: 'alpha (10Hz) - deep focus' }},
-  vibe:   {{ f1: 528, f2: 538, label: '528Hz', desc: 'alpha (10Hz) - mood lift' }},
-  boss:   {{ f1: 639, f2: 653, label: '639Hz', desc: 'beta (14Hz) - confidence' }},
-  war:    {{ f1: 741, f2: 761, label: '741Hz', desc: 'beta (20Hz) - peak intensity' }},
+  chill:  {{ f1: 396, f2: 402, label: '396Hz', desc: 'theta (6Hz) - reduces anxiety, calms the mind' }},
+  flow:   {{ f1: 432, f2: 442, label: '432Hz', desc: 'alpha (10Hz) - deep focus, flow state' }},
+  vibe:   {{ f1: 528, f2: 538, label: '528Hz', desc: 'alpha (10Hz) - mood lift, positive energy' }},
+  boss:   {{ f1: 639, f2: 653, label: '639Hz', desc: 'beta (14Hz) - confidence, clarity' }},
+  war:    {{ f1: 741, f2: 761, label: '741Hz', desc: 'beta (20Hz) - peak intensity, alertness' }},
 }};
 let selectedFreq = 'chill';
 
@@ -614,9 +614,12 @@ function selectFreq(el, key) {{
   document.querySelectorAll('.freq-pill').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   // Update ambient toggle label
-  const label = FREQ_PRESETS[key]?.label || '432Hz';
+  const preset = FREQ_PRESETS[key];
   const fl = document.getElementById('freqLabel');
-  if (fl) fl.textContent = label;
+  if (fl) fl.textContent = preset?.label || '432Hz';
+  // Update description
+  const fd = document.getElementById('freqDesc');
+  if (fd) fd.textContent = preset?.desc || '';
 }}
 
 // ── Ambient Audio (Web Audio API) ──
@@ -1027,27 +1030,20 @@ function showBlock(i) {{
   const b = blocks[i];
   const phase = b.phase || sessionType;
   const nameEl = document.getElementById('blockName');
-  const instrEl = document.getElementById('blockInstruction');
 
-  // Fade out current text
+  // Fade out
   nameEl.classList.add('fade');
-  instrEl.classList.add('fade');
 
   setTimeout(() => {{
     document.getElementById('phaseLabel').textContent = (phase || sessionType).toUpperCase();
     document.getElementById('phaseLabel').style.color = typeColor;
     nameEl.textContent = b.name.toUpperCase();
-    instrEl.textContent = b.instruction || '';
     remaining = b.duration_seconds || 60;
-
-    // Fade in new text
     nameEl.classList.remove('fade');
-    instrEl.classList.remove('fade');
   }}, 300);
 
   remaining = b.duration_seconds || 60;
   document.getElementById('timer').textContent = formatTime(totalRemaining);
-  document.getElementById('blockTimer').textContent = 'BLOCK ' + (i + 1) + '/' + blocks.length + ' - ' + formatTime(remaining);
 
   // Update dots
   blocks.forEach((_, j) => {{
@@ -1057,8 +1053,6 @@ function showBlock(i) {{
 
   // Narrate block (only with browser speech -- AI voice handles its own pacing)
   if (voiceMode !== 'ai' || !aiReady) {{
-    // Give 2 seconds of silence before narrating the next block
-    // This lets the user breathe and settle into the new phase
     speakCalm(b.name + '. ... ' + (b.instruction || ''), 2000);
   }}
 }}
@@ -1070,7 +1064,6 @@ function tick() {{
     totalRemaining--;
     if (totalRemaining < 0) totalRemaining = 0;
     document.getElementById('timer').textContent = formatTime(totalRemaining);
-    document.getElementById('blockTimer').textContent = 'BLOCK ' + (currentBlock + 1) + '/' + blocks.length + ' - ' + formatTime(Math.max(0, remaining));
     document.getElementById('progress').style.width = Math.min(100, totalElapsed / TOTAL * 100) + '%';
     document.getElementById('progress').style.backgroundColor = typeColor;
 
