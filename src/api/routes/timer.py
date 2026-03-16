@@ -553,7 +553,7 @@ async function prepareAiVoice() {{
     const resp = await fetch('/voice/wellness/generate', {{ method: 'POST' }});
     const data = await resp.json();
     if (resp.ok) {{
-      aiAudio = new Audio('/voice/wellness/audio');
+      aiAudio = new Audio('/voice/wellness/audio?t=' + Date.now());
       aiAudio.preload = 'auto';
       aiAudio.addEventListener('canplaythrough', () => {{
         aiReady = true;

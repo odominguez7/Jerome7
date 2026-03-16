@@ -298,8 +298,8 @@ async def voice_audio():
         content=audio,
         media_type="audio/mpeg",
         headers={
-            "Content-Disposition": f'inline; filename="jerome7-{today}.mp3"',
-            "Cache-Control": "public, max-age=86400",
+            "Content-Disposition": f'inline; filename="jerome7-{today}-{_VOICE_SETTINGS_VERSION}.mp3"',
+            "Cache-Control": "no-cache",
         },
     )
 
@@ -1235,7 +1235,7 @@ async def voice_wellness_audio():
         content=audio,
         media_type="audio/mpeg",
         headers={
-            "Content-Disposition": f'inline; filename="jerome7-wellness-{today}.mp3"',
-            "Cache-Control": "public, max-age=86400",
+            "Content-Disposition": f'inline; filename="jerome7-wellness-{today}-{_VOICE_SETTINGS_VERSION}.mp3"',
+            "Cache-Control": "no-cache",
         },
     )
