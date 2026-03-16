@@ -1,7 +1,8 @@
 """Shared <head> meta tags for all HTML pages — OG, favicon, PWA, analytics."""
 
 # Plausible analytics — privacy-friendly, no cookies, GDPR compliant
-_PLAUSIBLE = '<script defer data-domain="jerome7.com" src="https://plausible.io/js/script.js"></script>'
+_PLAUSIBLE = """<script async src="https://plausible.io/js/pa-Ar14FrKY9n2naAlU6cYFy.js"></script>
+<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>"""
 
 
 def head_meta(
