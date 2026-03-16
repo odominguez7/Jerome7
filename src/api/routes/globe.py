@@ -323,7 +323,7 @@ def globe_page():
   <div class="flat-map-grid" id="flat-map-grid"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.min.js" onerror="document.getElementById('globe-canvas').style.display='none';document.querySelector('.title-sub').textContent='Globe visualization unavailable — Three.js failed to load.';"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="document.getElementById('globe-canvas').style.display='none';document.querySelector('.title-sub').textContent='Globe visualization unavailable — Three.js failed to load.';"></script>
 <script>
 (function() {
   // --- Data ---
