@@ -45,6 +45,7 @@ async def timer_page():
     blocks_json = json.dumps(blocks_raw)
     title = html_escape(data.get("session_title", session_type.title()))
     closing = html_escape(data.get("closing", "You showed up. That's the win."))
+    closing_js = json.dumps(closing)  # properly escaped for JS embedding
 
     type_labels = {
         "breathwork": "Guided Breathwork",
@@ -133,7 +134,13 @@ async def timer_page():
     outline: none;
   }}
   .modal input:focus, .modal select:focus {{ border-color: #E85D04; }}
-  .modal select {{ appearance: none; cursor: pointer; }}
+  .modal select {{
+    appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b949e' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }}
   .modal-btn {{
     width: 100%; margin-top: 24px; padding: 14px;
     background: #E85D04; color: #fff; border: none;
@@ -333,10 +340,6 @@ async def timer_page():
 <!-- NAV -->
 <nav class="nav">
   <a href="/" class="nav-brand">JEROME7</a>
-  <div class="nav-links">
-    <a href="/globe">Globe</a>
-    <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
-  </div>
 </nav>
 
 <!-- ONBOARDING MODAL -->
@@ -348,16 +351,6 @@ async def timer_page():
 
     <label>YOUR NAME</label>
     <input type="text" id="ob-name" placeholder="What should we call you?" maxlength="50" autocomplete="off">
-
-    <label>WHAT DO YOU BUILD?</label>
-    <select id="ob-role">
-      <option value="">Choose...</option>
-      <option value="developer">Developer</option>
-      <option value="founder">Founder</option>
-      <option value="student">Student</option>
-      <option value="designer">Designer</option>
-      <option value="other">Other</option>
-    </select>
 
     <label>PRIMARY GOAL</label>
     <select id="ob-goal">
@@ -439,25 +432,11 @@ async def timer_page():
     <div class="complete-check">&#10003;</div>
     <div class="complete-title">SESSION COMPLETE</div>
     <div class="complete-text" id="closingText">{closing}</div>
-    <div class="complete-text" id="streakStatus" style="color:#E85D04;font-weight:700;margin-bottom:8px"></div>
-    <div class="complete-text" id="communityStatus" style="font-size:12px;color:#484f58;margin-bottom:24px"></div>
-    <div class="share-row">
-      <button class="share-btn primary" onclick="copyCard()">Copy to Clipboard</button>
-      <button class="share-btn" onclick="shareTwitter()">Share on Twitter</button>
-      <button class="share-btn" onclick="shareLinkedIn()">Share on LinkedIn</button>
-    </div>
-    <div class="toast" id="toast">copied to clipboard</div>
-    <div style="margin:20px 0;padding:16px;background:#161b22;border-radius:8px;border:1px solid #30363d;">
-      <div style="font-size:0.75rem;color:#484f58;margin-bottom:8px;">INVITE A FRIEND</div>
-      <div style="display:flex;gap:8px;">
-        <input type="text" id="referralLink" readonly
-          style="flex:1;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-family:inherit;font-size:0.8rem;">
-        <button onclick="copyReferral()"
-          style="padding:8px 14px;background:#E85D04;color:#fff;border:none;border-radius:6px;font-family:inherit;font-weight:700;font-size:0.8rem;cursor:pointer;">COPY</button>
-      </div>
-    </div>
-    <div class="email-prompt" style="margin-top:24px">
-      <p style="color:#8b949e;font-size:14px">Get session reminders and verify your Jerome# identity</p>
+    <div id="streakStatus" style="font-size:12px;color:#E85D04;font-weight:600;margin-bottom:24px"></div>
+
+    <!-- CTA: email capture OR share (toggled by JS) -->
+    <div id="ctaEmail" class="hidden" style="margin-bottom:24px">
+      <p style="color:#8b949e;font-size:13px;margin-bottom:12px">Get session reminders &amp; verify your Jerome#</p>
       <div style="display:flex;gap:8px;justify-content:center;max-width:360px;margin:0 auto">
         <input type="email" id="email-input" placeholder="your@email.com"
                style="flex:1;padding:10px 14px;background:#161b22;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-family:'JetBrains Mono',monospace;font-size:14px;outline:none">
@@ -466,7 +445,12 @@ async def timer_page():
       </div>
       <div id="email-status" style="margin-top:8px;font-size:13px"></div>
     </div>
-    <div class="complete-links">
+    <div id="ctaShare" class="hidden" style="margin-bottom:24px">
+      <button class="share-btn primary" onclick="shareSession()">Share</button>
+    </div>
+    <div class="toast" id="toast">copied to clipboard</div>
+
+    <div class="complete-links" style="color:#30363d">
       <a href="/">Home</a>
       <a href="/globe">Globe</a>
       <a href="/timer">Replay</a>
@@ -486,7 +470,7 @@ async def timer_page():
 const pageLoadTime = Date.now();
 const blocks = {blocks_json};
 const sessionType = '{session_type}';
-const closingText = '{closing}';
+const closingText = {closing_js};
 const aiAvailable = {ai_available};
 const TOTAL = blocks.reduce((s, b) => s + (b.duration_seconds || 60), 0);
 
@@ -509,6 +493,24 @@ let communityData = {{ total_jeromes: 0, sessions_today: 0, countries: 0 }};
 let isPaused = false;
 let sessionStarted = false;
 let sessionFinished = false;
+
+// ── Clipboard helper (fallback for iOS/older browsers) ──
+async function copyToClipboard(text) {{
+  try {{
+    await navigator.clipboard.writeText(text);
+    return true;
+  }} catch {{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    return true;
+  }}
+}}
 
 // ── ElevenLabs AI Voice ──
 let voiceMode = aiAvailable ? 'ai' : 'browser';
@@ -663,7 +665,6 @@ async function submitOnboarding() {{
   const name = document.getElementById('ob-name').value.trim();
   if (!name) {{ document.getElementById('ob-name').style.borderColor = '#f85149'; return; }}
 
-  const role = document.getElementById('ob-role').value;
   const goal = document.getElementById('ob-goal').value;
 
   const btn = document.getElementById('ob-submit');
@@ -682,7 +683,6 @@ async function submitOnboarding() {{
       userId: data.user_id,
       jeromeNumber: data.jerome_number,
       authToken: data.auth_token,
-      role: role,
       goal: goal,
     }};
     localStorage.setItem('jerome7_user', JSON.stringify(userData));
@@ -695,7 +695,7 @@ async function submitOnboarding() {{
     btn.disabled = false;
     btn.onclick = () => document.getElementById('onboarding').classList.add('hidden');
   }} catch(e) {{
-    localStorage.setItem('jerome7_user', JSON.stringify({{ name: name, role: role, goal: goal }}));
+    localStorage.setItem('jerome7_user', JSON.stringify({{ name: name, goal: goal }}));
     userName = name;
     document.getElementById('onboarding').classList.add('hidden');
   }}
@@ -864,11 +864,12 @@ function finishSession() {{
   document.getElementById('streakStatus').textContent =
     'Day ' + day + '. ' + jLabel + ' showed up.';
 
-  // Show community stat
-  const jCount = communityData.total_jeromes || 0;
-  if (jCount > 1) {{
-    document.getElementById('communityStatus').textContent =
-      jCount + ' Jeromes also showed up today.';
+  // Show CTA: email capture if no email yet, share button otherwise
+  const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
+  if (user.userId && !user.emailSubmitted) {{
+    document.getElementById('ctaEmail').classList.remove('hidden');
+  }} else {{
+    document.getElementById('ctaShare').classList.remove('hidden');
   }}
 
   // Stop AI audio if playing
@@ -937,44 +938,26 @@ function buildCardText() {{
     'https://jerome7.com/join';
 }}
 
-function copyCard() {{
-  navigator.clipboard.writeText(buildCardText()).then(() => {{
-    const toast = document.getElementById('toast');
-    toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 2000);
-  }});
-}}
-
-function shareTwitter() {{
-  const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(buildCardText());
-  window.open(url, '_blank');
-}}
-
-function shareLinkedIn() {{
-  const url = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent('https://jerome7.com/timer');
-  window.open(url, '_blank');
-}}
-
-function copyReferral() {{
+async function shareSession() {{
   const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
   const jnum = user.jeromeNumber || '';
   const link = 'https://jerome7.com/timer' + (jnum ? '?ref=jerome' + jnum : '');
-  document.getElementById('referralLink').value = link;
-  navigator.clipboard.writeText(link).then(() => {{
-    const toast = document.getElementById('toast');
-    toast.textContent = 'referral link copied!';
-    toast.style.display = 'block';
-    setTimeout(() => {{ toast.style.display = 'none'; toast.textContent = 'copied to clipboard'; }}, 2000);
-  }});
-}}
+  const text = buildCardText();
 
-// Set referral link on load
-(function() {{
-  const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
-  const jnum = user.jeromeNumber || '';
-  const el = document.getElementById('referralLink');
-  if (el) el.value = 'https://jerome7.com/timer' + (jnum ? '?ref=jerome' + jnum : '');
-}})();
+  // Try native share first (mobile), fall back to clipboard
+  if (navigator.share) {{
+    try {{
+      await navigator.share({{ text: text, url: link }});
+      return;
+    }} catch(e) {{ /* user cancelled or unsupported */ }}
+  }}
+  const ok = await copyToClipboard(text);
+  if (ok) {{
+    const toast = document.getElementById('toast');
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+  }}
+}}
 
 // ── Email verification ──
 async function submitEmail() {{
@@ -1001,6 +984,14 @@ async function submitEmail() {{
       statusEl.style.color = '#E85D04';
       statusEl.textContent = 'Verification link ready! Check back soon.';
       document.getElementById('email-input').disabled = true;
+      // Mark email submitted and swap CTA
+      const u = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
+      u.emailSubmitted = true;
+      localStorage.setItem('jerome7_user', JSON.stringify(u));
+      setTimeout(() => {{
+        document.getElementById('ctaEmail').classList.add('hidden');
+        document.getElementById('ctaShare').classList.remove('hidden');
+      }}, 2000);
     }} else {{
       statusEl.style.color = '#f85149';
       statusEl.textContent = data.detail || 'Something went wrong.';

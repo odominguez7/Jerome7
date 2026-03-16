@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 
-from src.api.meta import head_meta
+from src.api.meta import head_meta, nav_html
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
 
@@ -183,17 +183,6 @@ def globe_page():
     overflow: hidden; height: 100vh; width: 100vw;
   }
 
-  /* Nav */
-  .nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 16px 24px;
-  }
-  .brand { font-size: 11px; letter-spacing: 3px; color: #E85D04; text-decoration: none; font-weight: 700; }
-  .nav-links { display: flex; gap: 20px; }
-  .nav-links a { font-size: 11px; color: #484f58; text-decoration: none; letter-spacing: 1px; }
-  .nav-links a:hover { color: #E85D04; }
-
   /* Title overlay */
   .title-overlay {
     position: fixed; bottom: 40px; left: 40px; z-index: 100;
@@ -278,14 +267,7 @@ def globe_page():
 </head>
 <body>
 
-<nav class="nav">
-  <a href="/" class="brand">JEROME7</a>
-  <div class="nav-links">
-    <a href="/timer">SESSION</a>
-    <a href="https://discord.gg/5AZP8DbEJm">DISCORD</a>
-    <a href="https://github.com/odominguez7/Jerome7">GITHUB</a>
-  </div>
-</nav>
+""" + nav_html() + """
 
 <div class="stats-panel" id="stats-panel">
   <div class="stat-row">
@@ -323,7 +305,7 @@ def globe_page():
   <div class="flat-map-grid" id="flat-map-grid"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="document.getElementById('globe-canvas').style.display='none';document.querySelector('.title-sub').textContent='Globe visualization unavailable — Three.js failed to load.';"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="document.getElementById('globe-canvas').style.display='none';var fm=document.getElementById('flat-map');if(fm)fm.style.display='block';document.querySelector('.title-sub').textContent='Globe visualization unavailable.';"></script>
 <script>
 (function() {
   // --- Data ---

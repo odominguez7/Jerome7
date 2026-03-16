@@ -262,8 +262,10 @@ def leaderboard_page(db: DBSession = Depends(get_db)):
 <meta name="description" content="Builders showing up worldwide. Live leaderboard.">
 <meta property="og:title" content="Jerome7 — Builders Showing Up Worldwide">
 <meta property="og:description" content="{today_count} builders showed up today. 7 minutes. Same session. Every country.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{
     background: #0d1117; color: #c9d1d9;
@@ -352,15 +354,15 @@ def leaderboard_page(db: DBSession = Depends(get_db)):
   <div class="feed-section">
     <div class="section-label">RECENT SESSIONS</div>
     {feed_html}
-    <div class="auto-refresh">auto-refreshes every 60 seconds</div>
+    <div class="auto-refresh">auto-refreshes every 5 minutes</div>
   </div>
 
   <a href="/" class="back-link">← back to jerome7.com</a>
 </div>
 
 <script>
-  // Auto-refresh every 60 seconds
-  setTimeout(() => window.location.reload(), 60000);
+  // Auto-refresh every 5 minutes
+  setTimeout(() => window.location.reload(), 300000);
 </script>
 </body>
 </html>"""

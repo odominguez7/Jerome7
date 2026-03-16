@@ -32,3 +32,16 @@ def head_meta(
 <meta name="twitter:site" content="@Jerome7app">
 {_PLAUSIBLE}
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/static/sw.js')</script>"""
+
+
+def nav_html() -> str:
+    """Shared fixed nav bar for public pages."""
+    return '''<nav style="position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:rgba(13,17,23,0.95);backdrop-filter:blur(10px);border-bottom:1px solid #21262d">
+  <a href="/" style="color:#e6edf3;text-decoration:none;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;letter-spacing:2px">JEROME7</a>
+  <div style="display:flex;gap:20px;align-items:center">
+    <a href="/globe" style="color:#8b949e;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:1px">GLOBE</a>
+    <a href="https://discord.gg/jerome7" target="_blank" rel="noopener noreferrer" style="color:#8b949e;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:1px">DISCORD</a>
+    <a href="https://github.com/odominguez7/Jerome7" target="_blank" rel="noopener noreferrer" style="color:#8b949e;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:1px">GITHUB</a>
+    <a href="/timer" style="background:#E85D04;color:white;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:1px;padding:8px 16px;border-radius:6px;font-weight:700">START</a>
+  </div>
+</nav>'''

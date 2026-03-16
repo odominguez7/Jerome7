@@ -196,7 +196,10 @@
       "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.min.js\")",
       "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js\")",
       "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js\")",
-      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js\")"
+      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js\")",
+      "Bash(python3 -c \"from src.api.meta import head_meta, nav_html; print\\(''OK:'', len\\(nav_html\\(\\)\\), ''chars''\\)\")",
+      "Bash(python3 -m ruff check src/api/meta.py src/api/routes/landing.py src/api/routes/globe.py src/api/routes/legal.py src/api/routes/timer.py src/api/routes/tokens.py src/api/routes/milestones.py src/api/routes/mesh_api.py src/api/routes/invite.py)",
+      "Bash(python3 -m ruff check src/api/routes/landing.py src/api/routes/legal.py)"
     ]
   }
 }

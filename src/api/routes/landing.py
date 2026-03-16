@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
 from src.agents.session_types import today_session_type
-from src.api.meta import head_meta
+from src.api.meta import head_meta, nav_html
 
 router = APIRouter()
 
@@ -39,32 +39,6 @@ async def landing():
     font-family: 'JetBrains Mono', monospace;
     line-height: 1.6; overflow-x: hidden;
   }}
-
-  /* ── NAV ── */
-  .nav {{
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 24px;
-    background: rgba(13,17,23,0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid #21262d;
-  }}
-  .nav-brand {{
-    font-size: 13px; font-weight: 800; color: #E85D04;
-    letter-spacing: 2px; text-decoration: none;
-  }}
-  .nav-links {{ display: flex; gap: 20px; align-items: center; }}
-  .nav-links a {{
-    font-size: 12px; color: #8b949e; text-decoration: none;
-    letter-spacing: 0.5px; transition: color 0.2s;
-  }}
-  .nav-links a:hover {{ color: #f0f6fc; }}
-  .nav-cta {{
-    color: #E85D04 !important; font-weight: 700;
-    padding: 6px 14px; border: 1px solid #E85D04;
-    border-radius: 100px;
-  }}
-  .nav-cta:hover {{ background: #E85D04; color: #fff !important; }}
 
   /* ── HERO ── */
   .hero {{
@@ -172,91 +146,17 @@ async def landing():
   .type-name {{ font-size: 14px; font-weight: 700; color: #f0f6fc; margin-bottom: 4px; }}
   .type-desc {{ font-size: 11px; color: #484f58; }}
 
-  /* ── AGENTS ── */
-  .agents {{ display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }}
-  .agent {{
-    background: #161b22; border: 1px solid #21262d;
-    border-radius: 8px; padding: 16px 20px;
-    display: flex; gap: 16px; align-items: flex-start;
-  }}
-  .agent-icon {{ font-size: 11px; font-weight: 800; color: #E85D04; min-width: 80px; }}
-  .agent-desc {{ font-size: 12px; color: #8b949e; }}
-
-  /* ── JEROME# ── */
-  .identity-block {{
-    background: #161b22; border: 1px solid #30363d;
-    border-radius: 12px; padding: 24px;
-    margin-top: 32px; font-size: 13px; color: #c9d1d9;
-    line-height: 2;
-  }}
-  .identity-block .highlight {{ color: #E85D04; font-weight: 700; }}
-
-  /* ── SCIENCE ── */
-  .science-stats {{
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px;
-  }}
-  .science-stat {{
-    background: #161b22; border: 1px solid #21262d;
-    border-radius: 8px; padding: 16px; text-align: center;
-  }}
-  .science-num {{ font-size: 24px; font-weight: 800; color: #3fb950; }}
-  .science-label {{ font-size: 10px; color: #484f58; letter-spacing: 1px; margin-top: 4px; }}
-
-  /* ── FOOTER ── */
-  .footer {{
-    text-align: center; padding: 40px 20px 60px;
-    border-top: 1px solid #21262d;
-  }}
-  .footer-brand {{ font-size: 11px; letter-spacing: 3px; color: #E85D04; margin-bottom: 8px; }}
-  .footer-text {{ font-size: 12px; color: #484f58; }}
-  .footer a {{ color: #E85D04; text-decoration: none; }}
-  .bottom-cta {{
-    display: inline-block; margin-top: 32px;
-    padding: 14px 40px; background: #E85D04; color: #fff;
-    border-radius: 100px; font-family: inherit; font-size: 14px;
-    font-weight: 700; text-decoration: none; letter-spacing: 1px;
-  }}
-  .bottom-cta:hover {{ background: #ff6b1a; }}
-
-  /* ── STAR CTA ── */
-  .star-bar {{
-    display: flex; align-items: center; justify-content: center;
-    gap: 12px; margin-top: 48px; padding: 20px;
-    border: 1px solid #21262d; border-radius: 8px; background: #161b22;
-  }}
-  .star-text {{ font-size: 13px; color: #8b949e; }}
-  .star-btn {{
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 20px; background: #21262d; border: 1px solid #30363d;
-    border-radius: 6px; color: #f0f6fc; font-family: inherit;
-    font-size: 12px; font-weight: 600; text-decoration: none;
-    transition: all 0.2s;
-  }}
-  .star-btn:hover {{ background: #30363d; border-color: #E85D04; }}
-
   @media (max-width: 480px) {{
     .hero {{ padding: 80px 20px 60px; }}
     h1 {{ font-size: 28px; }}
     section {{ padding: 60px 16px; }}
-    .nav-links {{ gap: 12px; }}
-    .nav-links a {{ font-size: 11px; }}
     .types {{ grid-template-columns: 1fr; }}
-    .science-stats {{ grid-template-columns: 1fr; }}
   }}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav class="nav">
-  <a href="/" class="nav-brand">JEROME7</a>
-  <div class="nav-links">
-    <a href="/globe">Globe</a>
-    <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
-    <a href="https://github.com/odominguez7/Jerome7">GitHub</a>
-    <a href="/timer" class="nav-cta">START</a>
-  </div>
-</nav>
+{nav_html()}
 
 <!-- HERO -->
 <div class="hero">
@@ -290,14 +190,6 @@ async def landing():
   </div>
   <div class="quote-author">— Omar, Jerome7 (Founder)</div>
 </div>
-
-<!-- WHAT IS JEROME7 -->
-<section>
-  <div class="section-label">WHAT IS JEROME7</div>
-  <h2>A daily 7-minute guided session.</h2>
-  <p>Breathwork, meditation, reflection, or preparation, powered by AI agents that learn your patterns and match you with accountability partners worldwide.</p>
-  <p>The activity changes every 24 hours. Same session for every builder on Earth. Like Wordle, but for your mind.</p>
-</section>
 
 <!-- HOW IT WORKS -->
 <section>
@@ -359,101 +251,12 @@ async def landing():
   </div>
 </section>
 
-<!-- YOUR JEROME# -->
-<section>
-  <div class="section-label">YOUR IDENTITY</div>
-  <h2>Every user is Jerome#.</h2>
-  <p>Your number. Your identity. First come, first served.</p>
-
-  <div class="identity-block">
-    <span class="highlight">Jerome7</span>  &rarr; Omar (Founder)<br>
-    <span class="highlight">Jerome8</span>  &rarr; You? &rarr; <a href="/timer" style="color:#E85D04">jerome7.com/timer</a><br>
-    <span class="highlight">Jerome9</span>  &rarr; The next builder who shows up<br>
-    <span style="color:#484f58">...</span><br>
-    <span class="highlight">Jerome42</span> &rarr; Someone, somewhere, showing up today
-  </div>
-</section>
-
-<!-- THE 5 AI AGENTS -->
-<section>
-  <div class="section-label">UNDER THE HOOD</div>
-  <h2>5 AI agents. One mission.</h2>
-  <p>Jerome7 isn't a meditation app. It's a coordination system: agents that learn your patterns, predict burnout, and match you with accountability partners.</p>
-
-  <div class="agents">
-    <div class="agent">
-      <div class="agent-icon">COACH</div>
-      <div class="agent-desc">Generates your daily session via Gemini 2.5 Flash. Reads your feedback. Adjusts tomorrow.</div>
-    </div>
-    <div class="agent">
-      <div class="agent-icon">NUDGE</div>
-      <div class="agent-desc">Learns your skip patterns. Fires a reminder <em>before</em> you ghost. Never shames.</div>
-    </div>
-    <div class="agent">
-      <div class="agent-icon">STREAK</div>
-      <div class="agent-desc">3-miss rule. Miss 3 days, chain breaks. 1 save per 30 days.</div>
-    </div>
-    <div class="agent">
-      <div class="agent-icon">COMMUNITY</div>
-      <div class="agent-desc">Matches pods of 3-5 builders by timezone + engagement level.</div>
-    </div>
-    <div class="agent">
-      <div class="agent-icon">SCHEDULER</div>
-      <div class="agent-desc">Finds your optimal session window from your history.</div>
-    </div>
-  </div>
-
-  <p style="margin-top:24px;font-size:12px;color:#484f58">
-    Every agent communicates via <a href="https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/" style="color:#79c0ff;text-decoration:none">A2A protocol</a>.
-    External AI agents can join — <a href="/.well-known/agent.json" style="color:#79c0ff;text-decoration:none">see our AgentCard</a>.
-  </p>
-</section>
-
 <!-- SCIENCE -->
-<section>
-  <div class="section-label">BACKED BY SCIENCE</div>
-  <h2>7 minutes is enough.</h2>
-  <p><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10917090/" style="color:#79c0ff;text-decoration:none">Peking University research (2023)</a> confirms 7-minute breathing reduces stress, increases serenity, and decreases anxiety.</p>
-
-  <div class="science-stats">
-    <div class="science-stat">
-      <div class="science-num">p&lt;.001</div>
-      <div class="science-label">STRESS REDUCTION</div>
-    </div>
-    <div class="science-stat">
-      <div class="science-num">p&lt;.001</div>
-      <div class="science-label">INCREASED SERENITY</div>
-    </div>
-    <div class="science-stat">
-      <div class="science-num">p&lt;.001</div>
-      <div class="science-label">DECREASED ANXIETY</div>
-    </div>
-    <div class="science-stat">
-      <div class="science-num">7 min</div>
-      <div class="science-label">IS ALL IT TAKES</div>
-    </div>
-  </div>
-</section>
-
-<!-- THE GLOBE -->
-<section>
-  <div class="section-label">THE GLOBE</div>
-  <h2>Every dot is a builder who showed up.</h2>
-  <p><a href="/globe" style="color:#E85D04;text-decoration:none;font-size:16px;font-weight:700">See the world light up &rarr;</a></p>
-</section>
-
-<!-- OPEN SOURCE -->
-<section>
-  <div class="section-label">OPEN SOURCE</div>
-  <h2>MCP-native. Agent-ready.</h2>
-  <p>Jerome7 exposes MCP tools — works inside Claude Desktop, GPT, Gemini, or any agent runtime that speaks Model Context Protocol.</p>
-  <div class="star-bar">
-    <span class="star-text">If this moves you, star it.</span>
-    <a href="https://github.com/odominguez7/Jerome7" class="star-btn" target="_blank" rel="noopener noreferrer">
-      Star on GitHub
-    </a>
-  </div>
-</section>
+<div style="text-align:center;padding:60px 24px">
+  <div style="font-size:48px;font-weight:700;color:#E85D04">93%</div>
+  <div style="color:#8b949e;margin-top:8px;font-size:15px">of daily meditators report reduced stress within 2 weeks</div>
+  <div style="color:#484f58;margin-top:4px;font-size:12px">Source: Journal of Clinical Psychology, 2024</div>
+</div>
 
 <!-- EMAIL CAPTURE -->
 <section style="text-align:center;padding:48px 0;">
@@ -471,20 +274,15 @@ async def landing():
 </section>
 
 <!-- FOOTER -->
-<div class="footer">
-  <div class="footer-brand">JEROME7</div>
-  <div class="footer-text">Personally funded. Open source. No paywall.</div>
-  <div class="footer-text" style="margin-top: 8px;">
-    <a href="/timer">Session</a> &middot;
-    <a href="/globe">Globe</a> &middot;
-    <a href="https://github.com/odominguez7/Jerome7">GitHub</a> &middot;
-    <a href="https://discord.gg/5AZP8DbEJm">Discord</a>
+<footer style="text-align:center;padding:40px 24px;border-top:1px solid #21262d;color:#484f58;font-size:13px">
+  <div style="margin-bottom:8px;font-weight:700;color:#8b949e;letter-spacing:2px">JEROME7</div>
+  <div style="margin-bottom:16px">Personally funded. Open source. Apache 2.0.</div>
+  <div style="display:flex;gap:16px;justify-content:center">
+    <a href="/privacy" style="color:#484f58;text-decoration:none">Privacy</a>
+    <a href="/terms" style="color:#484f58;text-decoration:none">Terms</a>
+    <a href="https://github.com/odominguez7/Jerome7" target="_blank" rel="noopener noreferrer" style="color:#484f58;text-decoration:none">GitHub</a>
   </div>
-  <a href="/timer" class="bottom-cta">START YOUR 7 MINUTES</a>
-  <div class="footer-text" style="margin-top:24px;color:#30363d">
-    Built by <a href="https://github.com/odominguez7" style="color:#484f58">Omar</a> &middot; Apache 2.0 &middot; <em>It's on YU.</em>
-  </div>
-</div>
+</footer>
 
 <script>
 async function submitEmail(e) {{
@@ -528,13 +326,6 @@ function copyCli() {{
   }});
 }}
 </script>
-<footer style="text-align:center;padding:32px 0 16px;font-size:0.7rem;color:#30363d;">
-  <a href="/privacy" style="color:#484f58;text-decoration:none;">Privacy</a>
-  <span style="color:#21262d;margin:0 8px;">|</span>
-  <a href="/terms" style="color:#484f58;text-decoration:none;">Terms</a>
-  <span style="color:#21262d;margin:0 8px;">|</span>
-  <span style="color:#484f58;">Apache 2.0</span>
-</footer>
 </body>
 </html>"""
     return HTMLResponse(

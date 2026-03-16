@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.db.database import init_db
@@ -207,6 +207,13 @@ async def custom_500(request: Request, exc):
 </div>
 </body></html>""",
     )
+
+
+# ── /join redirect (shared links) ─────────────────────────────────────────────
+@app.get("/join", include_in_schema=False)
+@app.get("/join/{code}", include_in_schema=False)
+async def join_redirect(code: str = ""):
+    return RedirectResponse(url="/timer", status_code=302)
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────

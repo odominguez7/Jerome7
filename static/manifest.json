@@ -2,7 +2,7 @@
   "name": "Jerome7 — Daily Wellness",
   "short_name": "Jerome7",
   "description": "7 minutes of guided breathwork, meditation, and reflection. Every day.",
-  "start_url": "/timer",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0d1117",
   "theme_color": "#E85D04",

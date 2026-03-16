@@ -213,7 +213,7 @@ def agents_observatory(db: DBSession = Depends(get_db)):
 <style>
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{
-    background: #0f1419; color: #c9d1d9;
+    background: #0d1117; color: #c9d1d9;
     font-family: 'JetBrains Mono', monospace;
     min-height: 100vh;
   }}
@@ -297,7 +297,7 @@ def agents_observatory(db: DBSession = Depends(get_db)):
     gap: 10px;
   }}
   .ag-stat {{
-    background: #0f1419; border-radius: 6px; padding: 10px;
+    background: #0d1117; border-radius: 6px; padding: 10px;
   }}
   .ag-stat-val {{
     font-size: 20px; font-weight: 800; color: #f0f6fc; line-height: 1;
@@ -524,7 +524,7 @@ def agents_observatory(db: DBSession = Depends(get_db)):
   </div>
 
 </div>
-<script>setTimeout(() => location.reload(), 15000);</script>
+<script>setTimeout(() => location.reload(), 300000);</script>
 </body>
 </html>"""
     return HTMLResponse(content=html)

@@ -16,12 +16,14 @@ async def sponsor_page():
 <title>Support Jerome7 — Because YU Matter</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Support Jerome7. Omar is investing $1,000 of his own money. Because YU matter.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: #0f1419;
+    background: #0d1117;
     color: #c9d1d9;
     font-family: 'JetBrains Mono', monospace;
     line-height: 1.6;
@@ -37,7 +39,7 @@ async def sponsor_page():
     align-items: center;
     justify-content: space-between;
     padding: 12px 24px;
-    background: rgba(15,20,25,0.92);
+    background: rgba(13,17,23,0.92);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid #21262d;
   }

@@ -3,6 +3,8 @@
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
+from src.api.meta import nav_html
+
 router = APIRouter()
 
 _HEAD = """<meta charset="UTF-8">
@@ -11,10 +13,10 @@ _HEAD = """<meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 <link rel="manifest" href="/static/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=optional">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0d1117; color: #c9d1d9; font-family: 'JetBrains Mono', monospace; padding: 40px 20px; line-height: 1.7; }
+  body { background: #0d1117; color: #c9d1d9; font-family: 'JetBrains Mono', monospace; padding: 80px 20px 40px; line-height: 1.7; }
   .container { max-width: 700px; margin: 0 auto; }
   h1 { color: #E85D04; margin-bottom: 24px; font-size: 1.8rem; }
   h2 { color: #E85D04; margin: 32px 0 12px; font-size: 1.1rem; }
@@ -32,8 +34,8 @@ async def privacy_policy():
 <title>Jerome7 | Privacy Policy</title>
 {_HEAD}
 </head><body>
+{nav_html()}
 <div class="container">
-<a href="/" class="back">&larr; Back to Jerome7</a>
 <h1>Privacy Policy</h1>
 <p>Last updated: March 15, 2026</p>
 
@@ -83,8 +85,8 @@ async def terms_of_service():
 <title>Jerome7 | Terms of Service</title>
 {_HEAD}
 </head><body>
+{nav_html()}
 <div class="container">
-<a href="/" class="back">&larr; Back to Jerome7</a>
 <h1>Terms of Service</h1>
 <p>Last updated: March 15, 2026</p>
 

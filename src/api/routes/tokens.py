@@ -350,6 +350,7 @@ def tokens_page(user_id: str = None, db: DBSession = Depends(get_db)):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <title>Jerome7 Tokens — Commitment, Not Currency</title>
 <meta name="description" content="Jerome7 Tokens represent commitment, not money. Earn by showing up.">
 <style>

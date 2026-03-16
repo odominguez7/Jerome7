@@ -117,6 +117,7 @@ def join_page(code: str, db: DBSession = Depends(get_db)):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <title>Jerome7 — {inviter_name} invited you</title>
 <meta name="description" content="{inviter_name} wants you to join Jerome7. 7 minutes a day. Personally funded. Open source.">
 <meta property="og:title" content="{inviter_name} invited you to Jerome7">

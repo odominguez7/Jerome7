@@ -197,6 +197,7 @@ def milestones_page(db: DBSession = Depends(get_db)):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <title>Jerome7 — Milestones</title>
 <meta property="og:title" content="Jerome7 Milestones">
 <meta property="og:description" content="Every milestone the Jerome7 community has hit.">
