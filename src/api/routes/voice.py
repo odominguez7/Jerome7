@@ -241,10 +241,10 @@ async def voice_generate(request: Request):
         "text": script,
         "model_id": "eleven_turbo_v2_5",
         "voice_settings": {
-            "stability": 0.5,
-            "similarity_boost": 0.75,
-            "style": 0.0,
-            "use_speaker_boost": True,
+            "stability": 0.85,
+            "similarity_boost": 0.9,
+            "style": 0.15,
+            "use_speaker_boost": False,
         },
     }
 
@@ -1189,10 +1189,10 @@ async def voice_wellness_generate(request: Request):
         "text": script,
         "model_id": "eleven_turbo_v2_5",
         "voice_settings": {
-            "stability": 0.6,
-            "similarity_boost": 0.8,
-            "style": 0.0,
-            "use_speaker_boost": True,
+            "stability": 0.85,
+            "similarity_boost": 0.9,
+            "style": 0.15,
+            "use_speaker_boost": False,
         },
     }
 
