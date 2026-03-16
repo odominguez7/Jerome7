@@ -5,4 +5,4 @@ if [ -n "$DISCORD_TOKEN" ]; then
 fi
 
 # Start API (foreground — keeps container alive)
-uvicorn src.api.main:app --host 0.0.0.0 --port $PORT
+uvicorn src.api.main:app --host 0.0.0.0 --port $PORT --workers 2

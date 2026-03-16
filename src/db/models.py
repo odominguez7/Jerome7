@@ -6,7 +6,7 @@ from datetime import datetime, date
 
 from sqlalchemy import (
     Column, String, Integer, Boolean, DateTime, Date, Enum, ForeignKey,
-    JSON, Text, UniqueConstraint, Float,
+    JSON, Text, UniqueConstraint, Float, Index,
 )
 from sqlalchemy.orm import DeclarativeBase, relationship
 
@@ -164,6 +164,10 @@ class User(Base):
 
 class Session(Base):
     __tablename__ = "sessions"
+    __table_args__ = (
+        Index("ix_sessions_user_id", "user_id"),
+        Index("ix_sessions_logged_at", "logged_at"),
+    )
 
     id = Column(String, primary_key=True, default=generate_uuid)
     user_id = Column(String, ForeignKey("users.id"), nullable=False)

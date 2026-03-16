@@ -8,16 +8,42 @@ import os
 from datetime import datetime, timezone
 
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, Response, JSONResponse
 
 from src.api.routes.daily import get_daily, get_daily_wellness
 
 router = APIRouter()
 
-# ── In-memory audio cache (keyed by date string) ────────────────────────────
+# ── In-memory audio cache (keyed by date string, max 1 entry) ────────────────
 _audio_cache: dict[str, bytes] = {}
 _wellness_audio_cache: dict[str, bytes] = {}
+
+# ── Simple rate limiter for voice generation ──────────────────────────────────
+_voice_rate: dict[str, list] = {}  # ip -> [timestamps]
+_VOICE_RATE_LIMIT = 5  # max calls per IP per hour
+
+
+def _prune_cache(cache: dict, keep_key: str):
+    """Remove all entries except today's to prevent memory leak."""
+    stale = [k for k in cache if k != keep_key]
+    for k in stale:
+        del cache[k]
+
+
+def _check_voice_rate(ip: str) -> bool:
+    """Return True if request is allowed, False if rate-limited."""
+    now = datetime.now(timezone.utc).timestamp()
+    hour_ago = now - 3600
+    hits = _voice_rate.get(ip, [])
+    hits = [t for t in hits if t > hour_ago]
+    if len(hits) >= _VOICE_RATE_LIMIT:
+        _voice_rate[ip] = hits
+        return False
+    hits.append(now)
+    _voice_rate[ip] = hits
+    return True
+
 
 def _get_api_key():
     return os.getenv("ELEVENLABS_API_KEY", "")
@@ -103,8 +129,12 @@ def _build_narration(blocks: list[dict], closing: str) -> str:
 # ── POST /voice/generate ────────────────────────────────────────────────────
 
 @router.post("/voice/generate")
-async def voice_generate():
+async def voice_generate(request: Request):
     """Generate ElevenLabs TTS audio for today's session. Cached per day."""
+    ip = request.client.host if request.client else "unknown"
+    if not _check_voice_rate(ip):
+        return JSONResponse(status_code=429, content={"error": "Rate limited. Try again later."})
+
     api_key = _get_api_key()
     voice_id = _get_voice_id()
     if not api_key:
@@ -114,6 +144,7 @@ async def voice_generate():
         )
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    _prune_cache(_audio_cache, today)
 
     # Already generated today
     if today in _audio_cache:
@@ -1009,8 +1040,12 @@ def _build_wellness_narration(blocks: list[dict], session_type: str, closing: st
 
 
 @router.post("/voice/wellness/generate")
-async def voice_wellness_generate():
+async def voice_wellness_generate(request: Request):
     """Generate ElevenLabs TTS audio for today's wellness session. Cached per day."""
+    ip = request.client.host if request.client else "unknown"
+    if not _check_voice_rate(ip):
+        return JSONResponse(status_code=429, content={"error": "Rate limited. Try again later."})
+
     api_key = _get_api_key()
     voice_id = _get_voice_id()
     if not api_key:
@@ -1020,6 +1055,7 @@ async def voice_wellness_generate():
         )
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    _prune_cache(_wellness_audio_cache, today)
     if today in _wellness_audio_cache:
         return {"status": "generated", "url": "/voice/wellness/audio", "cached": True}
 

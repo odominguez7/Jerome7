@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 
 from src.api.models import PledgeRequest, UserResponse
 from src.db.database import get_db
@@ -11,6 +12,10 @@ from src.db.models import (
     AgeBracket, Gender, UserSource, UserGoal, InviteCode, UserRole,
 )
 from datetime import datetime
+
+# Simple rate limiter: max 10 pledges per IP per hour
+_pledge_rate: dict[str, list] = {}
+_PLEDGE_RATE_LIMIT = 10
 
 
 def _next_jerome_number(db: Session) -> int:
@@ -111,6 +116,18 @@ def _find_existing_user(db, req):
 
 @router.post("/pledge", response_model=UserResponse)
 def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(get_db)):
+    # --- 0. Rate limit ---
+    ip = request.client.host if request.client else "unknown"
+    now_ts = datetime.utcnow().timestamp()
+    hour_ago = now_ts - 3600
+    hits = _pledge_rate.get(ip, [])
+    hits = [t for t in hits if t > hour_ago]
+    if len(hits) >= _PLEDGE_RATE_LIMIT:
+        _pledge_rate[ip] = hits
+        raise HTTPException(status_code=429, detail="Too many signups. Try again later.")
+    hits.append(now_ts)
+    _pledge_rate[ip] = hits
+
     # --- 1. Validate name (no placeholders) ---
     name = (req.name or "").strip()
     if not name or len(name) < 2:
@@ -180,29 +197,36 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
         if invite:
             invited_by = invite.inviter_id
 
-    # --- 9. Assign Jerome# ---
-    jerome_number = _next_jerome_number(db)
+    # --- 9. Assign Jerome# (with retry on race condition) ---
+    for _attempt in range(3):
+        jerome_number = _next_jerome_number(db)
 
-    # --- 10. Create user ---
-    user = User(
-        name=name,
-        email=req.email,
-        discord_id=req.discord_id,
-        timezone=req.timezone,
-        fitness_level=fitness,
-        available_windows=req.available_windows,
-        age_bracket=age_bracket,
-        gender=gender,
-        country=country,
-        source=source,
-        goal=goal,
-        invited_by=invited_by,
-        jerome_number=jerome_number,
-        github_username=req.github_username,
-        role=UserRole.member,
-    )
-    db.add(user)
-    db.flush()
+        # --- 10. Create user ---
+        user = User(
+            name=name,
+            email=req.email,
+            discord_id=req.discord_id,
+            timezone=req.timezone,
+            fitness_level=fitness,
+            available_windows=req.available_windows,
+            age_bracket=age_bracket,
+            gender=gender,
+            country=country,
+            source=source,
+            goal=goal,
+            invited_by=invited_by,
+            jerome_number=jerome_number,
+            github_username=req.github_username,
+            role=UserRole.member,
+        )
+        db.add(user)
+        try:
+            db.flush()
+            break
+        except IntegrityError:
+            db.rollback()
+    else:
+        raise HTTPException(status_code=503, detail="Could not assign Jerome#. Try again.")
 
     # Mark invite as used
     if req.invite_code and invited_by:
