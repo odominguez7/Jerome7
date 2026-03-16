@@ -14,6 +14,7 @@ async def sponsor_page():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Support Jerome7 — Because YU Matter</title>
+<meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Support Jerome7. Omar is investing $1,000 of his own money. Because YU matter.">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
@@ -370,8 +371,8 @@ async def sponsor_page():
 
 <!-- CTA -->
 <div class="cta-row">
-  <a href="https://github.com/sponsors/odominguez7" class="btn btn-primary" target="_blank">SPONSOR ON GITHUB</a>
-  <a href="https://discord.gg/5AZP8DbEJm" class="btn btn-ghost" target="_blank">JOIN DISCORD</a>
+  <a href="https://github.com/sponsors/odominguez7" class="btn btn-primary" target="_blank" rel="noopener noreferrer">SPONSOR ON GITHUB</a>
+  <a href="https://discord.gg/5AZP8DbEJm" class="btn btn-ghost" target="_blank" rel="noopener noreferrer">JOIN DISCORD</a>
 </div>
 
 <!-- WALL OF GRATITUDE -->
@@ -381,7 +382,7 @@ async def sponsor_page():
   <h2>Those who showed up first.</h2>
   <p>Be the first sponsor. Your name appears here.</p>
   <div class="cta-row" style="margin-top:24px;">
-    <a href="https://github.com/sponsors/odominguez7" class="btn btn-primary" target="_blank">SPONSOR ON GITHUB</a>
+    <a href="https://github.com/sponsors/odominguez7" class="btn btn-primary" target="_blank" rel="noopener noreferrer">SPONSOR ON GITHUB</a>
   </div>
 </div>
 

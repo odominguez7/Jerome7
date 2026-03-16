@@ -6,7 +6,7 @@ Matches risk scores to the right intervention, then logs and executes them.
 import asyncio
 import json
 import os
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
@@ -220,7 +220,7 @@ class InterventionEngine:
                 "intervention_type": intervention_type,
                 "message": result["message"],
                 "details": result["details"],
-                "executed_at": datetime.utcnow().isoformat(),
+                "executed_at": datetime.now(timezone.utc).isoformat(),
             },
         )
         db.add(event)

@@ -1,5 +1,7 @@
 """POST /pledge — onboarding with strict validation and deduplication."""
 
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -11,11 +13,19 @@ from src.db.models import (
     User, Streak, FitnessLevel,
     AgeBracket, Gender, UserSource, UserGoal, InviteCode, UserRole,
 )
-from datetime import datetime
+import time
+from datetime import datetime, timezone
 
 # Simple rate limiter: max 10 pledges per IP per hour
 _pledge_rate: dict[str, list] = {}
 _PLEDGE_RATE_LIMIT = 10
+
+
+def _prune_rate_limits(rate_dict: dict, max_age: float = 7200):
+    cutoff = time.time() - max_age
+    stale = [ip for ip, ts in rate_dict.items() if not ts or ts[-1] < cutoff]
+    for ip in stale:
+        del rate_dict[ip]
 
 
 def _next_jerome_number(db: Session) -> int:
@@ -117,8 +127,9 @@ def _find_existing_user(db, req):
 @router.post("/pledge", response_model=UserResponse)
 def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(get_db)):
     # --- 0. Rate limit ---
+    _prune_rate_limits(_pledge_rate)
     ip = request.client.host if request.client else "unknown"
-    now_ts = datetime.utcnow().timestamp()
+    now_ts = datetime.now(timezone.utc).timestamp()
     hour_ago = now_ts - 3600
     hits = _pledge_rate.get(ip, [])
     hits = [t for t in hits if t > hour_ago]
@@ -164,10 +175,14 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
         # Backfill Jerome# if missing
         if not existing.jerome_number:
             existing.jerome_number = _next_jerome_number(db)
+        # Backfill auth_token if missing
+        if not existing.auth_token:
+            existing.auth_token = str(uuid.uuid4())
         db.commit()
         return UserResponse(
             user_id=existing.id, name=existing.name,
             jerome_number=existing.jerome_number, country=existing.country,
+            auth_token=existing.auth_token,
         )
 
     # --- 5. Resolve country: explicit > IP > timezone ---
@@ -202,6 +217,7 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
         jerome_number = _next_jerome_number(db)
 
         # --- 10. Create user ---
+        auth_token = str(uuid.uuid4())
         user = User(
             name=name,
             email=req.email,
@@ -218,6 +234,7 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
             jerome_number=jerome_number,
             github_username=req.github_username,
             role=UserRole.member,
+            auth_token=auth_token,
         )
         db.add(user)
         try:
@@ -231,7 +248,7 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
     # Mark invite as used
     if req.invite_code and invited_by:
         invite.used_by_id = user.id
-        invite.used_at = datetime.utcnow()
+        invite.used_at = datetime.now(timezone.utc)
 
     streak = Streak(user_id=user.id)
     db.add(streak)
@@ -240,4 +257,5 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
     return UserResponse(
         user_id=user.id, name=user.name,
         jerome_number=user.jerome_number, country=user.country,
+        auth_token=user.auth_token,
     )

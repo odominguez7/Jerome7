@@ -1,11 +1,14 @@
 """Voice-guided Jerome7 sessions — 5-phase wellness structure.
 
-Phases: ARRIVAL (30s) → BREATHWORK (90s) → MOVEMENT (180s) → INTENTION (60s) → COMMUNITY (60s)
+Phases: ARRIVAL (30s) → BREATHWORK (90s) → PRACTICE (180s) → INTENTION (60s) → COMMUNITY (60s)
 Uses Web Speech API fallback + ElevenLabs AI TTS.
 """
 
+import json
 import os
+import time
 from datetime import datetime, timezone
+from html import escape as html_escape
 
 import httpx
 from fastapi import APIRouter, Request
@@ -31,8 +34,16 @@ def _prune_cache(cache: dict, keep_key: str):
         del cache[k]
 
 
+def _prune_rate_limits(rate_dict: dict, max_age: float = 7200):
+    cutoff = time.time() - max_age
+    stale = [ip for ip, ts in rate_dict.items() if not ts or ts[-1] < cutoff]
+    for ip in stale:
+        del rate_dict[ip]
+
+
 def _check_voice_rate(ip: str) -> bool:
     """Return True if request is allowed, False if rate-limited."""
+    _prune_rate_limits(_voice_rate)
     now = datetime.now(timezone.utc).timestamp()
     hour_ago = now - 3600
     hits = _voice_rate.get(ip, [])
@@ -58,7 +69,7 @@ def _build_narration(blocks: list[dict], closing: str) -> str:
     Phases:
       ARRIVAL    (0:00-0:30)  — warm welcome, ambient
       BREATHWORK (0:30-2:00)  — box breathing, 4-count cycles
-      MOVEMENT   (2:00-5:00)  — 7 exercise blocks from daily session
+      PRACTICE   (2:00-5:00)  — 7 wellness blocks from daily session
       INTENTION  (5:00-6:00)  — affirmation / what are you shipping
       COMMUNITY  (6:00-7:00)  — streak celebration, see you tomorrow
     """
@@ -91,15 +102,15 @@ def _build_narration(blocks: list[dict], closing: str) -> str:
     lines.append("Good. Let that settle.")
     lines.append("...")
 
-    # ── MOVEMENT (180s) ──────────────────────────────────────────────────
+    # ── PRACTICE (180s) ──────────────────────────────────────────────────
     lines.append(
-        "Time to move. "
+        "Time for today's practice. "
         "Seven blocks. Follow along at your own pace."
     )
     for i, b in enumerate(blocks, 1):
         name = b.get("name", f"Block {i}")
         instruction = b.get("instruction", "")
-        lines.append(f"Block {i}. {name}. {instruction}. Let's go.")
+        lines.append(f"Block {i}. {name}. {instruction}.")
         if i < len(blocks):
             lines.append("...")
     lines.append("...")
@@ -241,18 +252,16 @@ async def voice_session():
     blocks = session.get("blocks", []) if isinstance(session, dict) else []
     title = session.get("session_title", "the seven 7") if isinstance(session, dict) else "the seven 7"
 
-    closing_text = session.get("closing", "You showed up. That is the win.").replace("'", "\\'") if isinstance(session, dict) else "You showed up. That is the win."
+    # Sanitize AI-generated content to prevent XSS
+    closing_raw = session.get("closing", "You showed up. That is the win.") if isinstance(session, dict) else "You showed up. That is the win."
     ai_available = "true" if _get_api_key() else "false"
 
-    # Serialize blocks to JS
-    blocks_js = "[\n"
-    for b in blocks:
-        name = b.get("name", "").replace("'", "\\'")
-        instruction = b.get("instruction", "").replace("'", "\\'")
-        phase = b.get("phase", "build").replace("'", "\\'")
-        duration = b.get("duration_seconds", 60)
-        blocks_js += f"    {{name:'{name}',instruction:'{instruction}',phase:'{phase}',duration:{duration}}},\n"
-    blocks_js += "  ]"
+    # Serialize blocks safely using json.dumps
+    blocks_raw = blocks if isinstance(blocks, list) else []
+    for b in blocks_raw:
+        b["name"] = html_escape(b.get("name", ""))
+        b["instruction"] = html_escape(b.get("instruction", ""))
+    blocks_js = json.dumps(blocks_raw)
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -260,6 +269,7 @@ async def voice_session():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome7 — Voice Session</title>
+<meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Guided 7-minute wellness session with AI voice narration.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -323,7 +333,7 @@ async def voice_session():
   }}
   .phase-pill[data-phase="arrival"]    {{ --phase-color: #79c0ff; }}
   .phase-pill[data-phase="breathwork"] {{ --phase-color: #4ecdc4; }}
-  .phase-pill[data-phase="movement"]   {{ --phase-color: #e8713a; }}
+  .phase-pill[data-phase="practice"]   {{ --phase-color: #e8713a; }}
   .phase-pill[data-phase="intention"]  {{ --phase-color: #b392f0; }}
   .phase-pill[data-phase="community"]  {{ --phase-color: #7ee787; }}
 
@@ -486,14 +496,14 @@ async def voice_session():
   </div>
 
   <div id="preStart">
-    <div class="title">{title.upper()}</div>
+    <div class="title">{html_escape(title).upper()}</div>
     <div class="subtitle">GUIDED SESSION · 5 PHASES · 7 MINUTES</div>
 
     <!-- Phase overview -->
     <div class="phase-bar" id="phaseBarPre">
       <div class="phase-pill" data-phase="arrival">ARRIVAL</div>
       <div class="phase-pill" data-phase="breathwork">BREATHWORK</div>
-      <div class="phase-pill" data-phase="movement">MOVEMENT</div>
+      <div class="phase-pill" data-phase="practice">PRACTICE</div>
       <div class="phase-pill" data-phase="intention">INTENTION</div>
       <div class="phase-pill" data-phase="community">COMMUNITY</div>
     </div>
@@ -537,7 +547,7 @@ async def voice_session():
     <div class="phase-bar" id="phaseBarActive">
       <div class="phase-pill" data-phase="arrival">ARRIVAL</div>
       <div class="phase-pill" data-phase="breathwork">BREATHWORK</div>
-      <div class="phase-pill" data-phase="movement">MOVEMENT</div>
+      <div class="phase-pill" data-phase="practice">PRACTICE</div>
       <div class="phase-pill" data-phase="intention">INTENTION</div>
       <div class="phase-pill" data-phase="community">COMMUNITY</div>
     </div>
@@ -557,7 +567,7 @@ async def voice_session():
     <div class="phase-segments" id="phaseSegments">
       <div class="phase-seg" data-phase="arrival"    style="flex:30"></div>
       <div class="phase-seg" data-phase="breathwork" style="flex:90"></div>
-      <div class="phase-seg" data-phase="movement"   style="flex:180"></div>
+      <div class="phase-seg" data-phase="practice"   style="flex:180"></div>
       <div class="phase-seg" data-phase="intention"  style="flex:60"></div>
       <div class="phase-seg" data-phase="community"  style="flex:60"></div>
     </div>
@@ -578,15 +588,15 @@ async def voice_session():
 
 <script>
   // ── Data from server ────────────────────────────────────────────────
-  const exerciseBlocks = {blocks_js};
-  const closing = '{closing_text}';
+  const wellnessBlocks ={blocks_js};
+  const closing = {json.dumps(closing_raw)};
   const aiAvailable = {ai_available};
 
   // ── Phase colors ────────────────────────────────────────────────────
   const PHASE_COLORS = {{
     arrival:    '#79c0ff',
     breathwork: '#4ecdc4',
-    movement:   '#e8713a',
+    practice:   '#e8713a',
     intention:  '#b392f0',
     community:  '#7ee787',
   }};
@@ -610,11 +620,11 @@ async def voice_session():
         ],
       }},
       {{
-        id: 'movement', label: 'MOVEMENT', totalDuration: 180,
-        steps: exerciseBlocks.map((b, i) => ({{
+        id: 'practice', label: 'PRACTICE', totalDuration: 180,
+        steps: wellnessBlocks.map((b, i) => ({{
           name: b.name,
           instruction: b.instruction,
-          duration: Math.floor(180 / exerciseBlocks.length),
+          duration: Math.floor(180 / wellnessBlocks.length),
         }})),
       }},
       {{
@@ -674,7 +684,7 @@ async def voice_session():
       'One more cycle. In... hold... out... hold.',
       'Good. Let that settle.',
     ],
-    movement_intro: 'Time to move. Follow along at your own pace.',
+    practice_intro: 'Time for today\\'s practice. Follow along at your own pace.',
     intention: [
       'Take a moment.',
       'What are you building today?',
@@ -948,12 +958,12 @@ async def voice_session():
       speakSequence(PHASE_NARRATION.arrival, 4000);
     }} else if (phaseId === 'breathwork' && stepIdx === 0) {{
       speakSequence(PHASE_NARRATION.breathwork, 8000);
-    }} else if (phaseId === 'movement') {{
-      if (stepIdx === 0) speak(PHASE_NARRATION.movement_intro);
-      const block = exerciseBlocks[stepIdx];
+    }} else if (phaseId === 'practice') {{
+      if (stepIdx === 0) speak(PHASE_NARRATION.practice_intro);
+      const block = wellnessBlocks[stepIdx];
       if (block) {{
         setTimeout(() => {{
-          speak('Block ' + (stepIdx + 1) + '. ' + block.name + '. ' + block.instruction + '. Let\\'s go.');
+          speak('Block ' + (stepIdx + 1) + '. ' + block.name + '. ' + block.instruction + '.');
         }}, stepIdx === 0 ? 3000 : 500);
       }}
     }} else if (phaseId === 'intention' && stepIdx === 0) {{

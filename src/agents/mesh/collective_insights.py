@@ -9,7 +9,7 @@ import asyncio
 import json
 import os
 from collections import defaultdict
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
@@ -85,7 +85,7 @@ class CollectiveInsights:
                 payload={
                     "insight": insight,
                     "stats_snapshot": stats,
-                    "generated_at": datetime.utcnow().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                 },
             )
             db.add(event)
@@ -108,8 +108,8 @@ class CollectiveInsights:
         for u in users:
             tz_groups[u.timezone].append(u.id)
 
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
-        fourteen_days_ago = datetime.utcnow() - timedelta(days=14)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+        fourteen_days_ago = datetime.now(timezone.utc) - timedelta(days=14)
 
         results = {}
         for tz, user_ids in tz_groups.items():
@@ -214,7 +214,7 @@ class CollectiveInsights:
         if total_users == 0:
             return 0.0
 
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
 
         # Active rate
         active_users = (
@@ -285,7 +285,7 @@ class CollectiveInsights:
         """
         interventions = []
         today = date.today()
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
 
         # 1. At-risk users: had a streak > 3, no session in last 2 days
         two_days_ago = today - timedelta(days=2)
@@ -385,7 +385,7 @@ class CollectiveInsights:
     async def _gather_community_stats(self, db: DBSession) -> dict:
         """Gather aggregate stats for Gemini input."""
         total_users = db.query(func.count(User.id)).scalar() or 0
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
 
         active_7d = (
             db.query(func.count(func.distinct(Session.user_id)))

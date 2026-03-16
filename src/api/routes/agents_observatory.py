@@ -1,6 +1,6 @@
 """GET /agents — Agent Observatory. Live dashboard of Jerome7's 5 AI agents."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
@@ -29,7 +29,7 @@ def _time_ago(delta: timedelta) -> str:
 
 @router.get("/agents", response_class=HTMLResponse)
 def agents_observatory(db: DBSession = Depends(get_db)):
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     today_start = datetime(now.year, now.month, now.day)
     week_ago = now - timedelta(days=7)
     day_ago = now - timedelta(hours=24)
@@ -206,6 +206,7 @@ def agents_observatory(db: DBSession = Depends(get_db)):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agent Observatory &mdash; Jerome7</title>
+<meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Watch Jerome7's 5 AI agents work in real-time.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">

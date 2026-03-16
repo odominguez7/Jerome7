@@ -1,7 +1,7 @@
 """GET /leaderboard — who's showing up. Global feed. Live streaks."""
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -106,7 +106,7 @@ def _time_ago(dt: datetime) -> str:
     """Human-readable time ago string."""
     if not dt:
         return ""
-    diff = datetime.utcnow() - dt
+    diff = datetime.now(timezone.utc) - dt
     if diff.total_seconds() < 60:
         return "just now"
     elif diff.total_seconds() < 3600:
@@ -135,7 +135,7 @@ def leaderboard_data(db: DBSession = Depends(get_db)):
         )
 
         # Recent sessions (last 48h)
-        cutoff = datetime.utcnow() - timedelta(hours=48)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=48)
         recent = (
             db.query(SessionModel, User)
             .join(User, SessionModel.user_id == User.id)
@@ -146,7 +146,7 @@ def leaderboard_data(db: DBSession = Depends(get_db)):
         )
 
         # Today's count
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         today_count = (
             db.query(SessionModel)
             .filter(SessionModel.logged_at >= today_start)
@@ -258,6 +258,7 @@ def leaderboard_page(db: DBSession = Depends(get_db)):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome7 — Who's Showing Up</title>
+<meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Builders showing up worldwide. Live leaderboard.">
 <meta property="og:title" content="Jerome7 — Builders Showing Up Worldwide">
 <meta property="og:description" content="{today_count} builders showed up today. 7 minutes. Same session. Every country.">

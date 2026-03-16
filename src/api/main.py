@@ -30,6 +30,26 @@ _IS_PROD = bool(os.getenv("RAILWAY_ENVIRONMENT"))
 async def lifespan(app: FastAPI):
     init_db()
     logger.info("Jerome7 started — DB initialized")
+
+    # Pre-warm today's session cache so the first visitor doesn't wait ~25s for Gemini
+    try:
+        from src.api.routes.timer import _cache as timer_cache, coach
+        from src.agents.session_types import today_session_type
+        from datetime import datetime, timezone
+
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        if timer_cache.get("date") != today or not timer_cache.get("session"):
+            session_type = today_session_type()
+            try:
+                data = await coach.generate_wellness(session_type)
+            except Exception:
+                data = await coach.generate_daily()
+            timer_cache["date"] = today
+            timer_cache["session"] = data
+            logger.info("Session cache pre-warmed for %s (%s)", today, session_type)
+    except Exception:
+        logger.warning("Failed to pre-warm session cache — first visitor will trigger generation")
+
     yield
     logger.info("Jerome7 shutting down")
 
@@ -106,9 +126,11 @@ async def custom_404(request: Request, exc):
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0d1117">
 <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap">
 <title>Jerome7 — 404</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #0d1117; color: #c9d1d9; font-family: 'JetBrains Mono', monospace;
          min-height: 100vh; display: flex; align-items: center; justify-content: center; }
@@ -123,6 +145,44 @@ async def custom_404(request: Request, exc):
   <h1>404</h1>
   <p>This page doesn't exist. But you do.</p>
   <a href="/timer">START YOUR 7 MINUTES &rarr;</a>
+</div>
+</body></html>""",
+    )
+
+
+# ── Custom 500 ────────────────────────────────────────────────────────────────
+@app.exception_handler(500)
+async def custom_500(request: Request, exc):
+    accept = request.headers.get("accept", "")
+    if request.url.path.startswith("/api/") or "application/json" in accept:
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
+    return HTMLResponse(
+        status_code=500,
+        content="""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap">
+<title>Jerome7 — 500</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #c9d1d9; font-family: 'JetBrains Mono', monospace;
+         min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .c { text-align: center; }
+  h1 { font-size: 4rem; color: #E85D04; }
+  p { color: #484f58; margin: 16px 0; font-size: 0.9rem; }
+  a { color: #E85D04; text-decoration: none; font-weight: 700; font-size: 1.1rem; }
+  a:hover { text-decoration: underline; }
+</style>
+</head><body>
+<div class="c">
+  <h1>500</h1>
+  <p>Something went wrong. We're on it.</p>
+  <a href="/">BACK TO HOME &rarr;</a>
 </div>
 </body></html>""",
     )

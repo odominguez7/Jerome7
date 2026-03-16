@@ -6,7 +6,7 @@ Returns a clean, minimal JSON payload designed for embedding.
 Also serves SVG streak badges and a JavaScript embed widget.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from html import escape
 
 from fastapi import APIRouter, Depends
@@ -37,7 +37,7 @@ async def embed_session(db: DBSession = Depends(get_db)):
 
     return {
         "version": "1.0",
-        "date": datetime.utcnow().strftime("%Y-%m-%d"),
+        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "session_title": session.get("session_title", "the seven 7"),
         "total_seconds": sum(b.get("duration_seconds", 60) for b in blocks),
         "total_blocks": len(blocks),
@@ -127,8 +127,8 @@ def embed_widget():
   <div class="brand">JEROME7</div>
   <div class="title" id="title">Loading...</div>
   <div class="sub">7 blocks · 60s each · same for everyone</div>
-  <a href="https://jerome7.com/timer" target="_blank" class="btn">START</a>
-  <div class="footer"><a href="https://jerome7.com" target="_blank">jerome7.com</a> · open source</div>
+  <a href="https://jerome7.com/timer" target="_blank" rel="noopener noreferrer" class="btn">START</a>
+  <div class="footer"><a href="https://jerome7.com" target="_blank" rel="noopener noreferrer">jerome7.com</a> · open source</div>
 </div>
 <script>
   fetch('https://jerome7.com/api/embed/session')
@@ -324,8 +324,8 @@ _WIDGET_JS = """
     '<div class="j7-label">day streak</div>',
     '<div class="j7-bar"><div class="j7-bar-fill" id="j7-bar" style="width:0%"></div></div>',
     '<div class="j7-sessions" id="j7-sessions"></div>',
-    '<a class="j7-cta" href="' + BASE + '/timer" target="_blank">START TODAY\\'S SESSION</a>',
-    '<div class="j7-footer">Powered by <a href="' + BASE + '" target="_blank">Jerome7</a></div>',
+    '<a class="j7-cta" href="' + BASE + '/timer" target="_blank" rel="noopener noreferrer">START TODAY\\'S SESSION</a>',
+    '<div class="j7-footer">Powered by <a href="' + BASE + '" target="_blank" rel="noopener noreferrer">Jerome7</a></div>',
   ].join('');
 
   shadow.appendChild(card);
@@ -384,6 +384,7 @@ def embed_docs_page():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome7 — Embeddable Widgets</title>
+<meta name="robots" content="noindex, nofollow">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {

@@ -66,7 +66,7 @@ def build_thread(daily, leaderboard, analytics):
     phase_emoji = {"prime": "🌅", "build": "🔨", "move": "⚡", "reset": "🫁"}
 
     # Tweet 1 — Hook
-    day_of_week = datetime.utcnow().strftime("%A")
+    day_of_week = datetime.now(timezone.utc).strftime("%A")
     tweet1 = (
         f"Jerome7 {day_of_week} drop 🔥\n\n"
         f"Today's session: **{session_title}**\n"
@@ -127,7 +127,7 @@ def post_thread(client, tweets):
 
 
 if __name__ == "__main__":
-    print(f"[{datetime.utcnow().isoformat()}] Jerome7 Twitter daily poster starting...")
+    print(f"[{datetime.now(timezone.utc).isoformat()}] Jerome7 Twitter daily poster starting...")
 
     # Validate env
     required = ["TWITTER_API_KEY", "TWITTER_API_SECRET", "TWITTER_ACCESS_TOKEN", "TWITTER_ACCESS_SECRET"]

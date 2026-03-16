@@ -184,7 +184,13 @@
       "Bash(python3 -c \"import sys,json; print\\(json.dumps\\(json.load\\(sys.stdin\\)\\)\\)\")",
       "Bash(dig jerome7.com +short)",
       "Bash(dig jerome7.com NS +short)",
-      "Bash(whois jerome7.com)"
+      "Bash(whois jerome7.com)",
+      "Bash(ls -la \"/Users/odominguez7/Desktop/YU/Jerome 7 - github/static/icon-\"*.png)",
+      "Bash(python3 -m ruff check src/api/routes/pledge.py src/api/routes/voice.py src/api/routes/subscribe.py src/db/database.py src/db/models.py src/api/routes/timer.py src/api/routes/stats.py src/api/routes/log.py src/api/routes/daily.py src/api/routes/globe.py)",
+      "Bash(python3 -m ruff check src/ --fix)",
+      "Bash(python3 -m ruff check src/)",
+      "Bash(python3 -m ruff check src/ --output-format json)",
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); files=set\\(d[''''filename''''] for d in data if d[''''code'''']==''''F821''''\\); print\\(''''\\\\n''''.join\\(sorted\\(files\\)\\)\\)\")"
     ]
   }
 }

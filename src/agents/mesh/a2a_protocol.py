@@ -14,7 +14,7 @@ Event convention:
     }
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy.orm import Session as DBSession
@@ -76,7 +76,7 @@ class A2AProtocol:
         or where to_agent is None (broadcasts).
         """
         if since is None:
-            since = datetime.utcnow() - timedelta(hours=24)
+            since = datetime.now(timezone.utc) - timedelta(hours=24)
 
         query = (
             self.db.query(Event)

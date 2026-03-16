@@ -1,6 +1,6 @@
 """GET /globe — 3D interactive globe showing Jerome7 builders worldwide."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -65,8 +65,8 @@ _COUNTRY_NAMES = {
 
 @router.get("/globe/data")
 def globe_data(db: DBSession = Depends(get_db)):
-    now = datetime.utcnow()
-    today_start = datetime(now.year, now.month, now.day)
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # Country user counts
     country_rows = (

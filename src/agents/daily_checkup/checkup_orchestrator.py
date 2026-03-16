@@ -6,7 +6,7 @@ Powered by Google Gemini 2.5 Flash.
 import asyncio
 import json
 import os
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
@@ -98,7 +98,7 @@ class CheckupOrchestrator:
                 "healthy": results["healthy"],
                 "at_risk": results["at_risk"],
                 "critical": results["critical"],
-                "run_at": datetime.utcnow().isoformat(),
+                "run_at": datetime.now(timezone.utc).isoformat(),
             },
         )
         db.add(event)

@@ -2,7 +2,7 @@
 
 import enum
 import uuid
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 from sqlalchemy import (
     Column, String, Integer, Boolean, DateTime, Date, Enum, ForeignKey,
@@ -145,13 +145,16 @@ class User(Base):
     avatar_url = Column(String, nullable=True)
     onboarding_complete = Column(Boolean, default=False)
 
+    # Auth
+    auth_token = Column(String, nullable=True, unique=True, index=True)
+
     # Location (for globe)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     city = Column(String, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    last_active_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    last_active_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     sessions = relationship("Session", back_populates="user")
     streak = relationship("Streak", back_populates="user", uselist=False)
@@ -171,7 +174,7 @@ class Session(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
-    logged_at = Column(DateTime, default=datetime.utcnow)
+    logged_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     seven7_title = Column(String, nullable=True)
     blocks_completed = Column(JSON, nullable=True)
     duration_minutes = Column(Integer, default=7)
@@ -205,8 +208,8 @@ class Pod(Base):
     fitness_level_range = Column(String, nullable=True)
     discord_channel_id = Column(String, nullable=True)
     scheduled_time = Column(JSON, nullable=True)  # {"hour": int, "minute": int, "timezone": str}
-    created_at = Column(DateTime, default=datetime.utcnow)
-    last_active_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    last_active_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     members = relationship("PodMember", back_populates="pod")
 
@@ -217,7 +220,7 @@ class PodMember(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     pod_id = Column(String, ForeignKey("pods.id"), nullable=False)
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
-    joined_at = Column(DateTime, default=datetime.utcnow)
+    joined_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     status = Column(Enum(PodMemberStatus), default=PodMemberStatus.active)
 
     pod = relationship("Pod", back_populates="members")
@@ -233,7 +236,7 @@ class Seven7Session(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
-    generated_at = Column(DateTime, default=datetime.utcnow)
+    generated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     greeting = Column(Text, nullable=True)
     session_title = Column(String, nullable=True)
     closing = Column(Text, nullable=True)
@@ -249,7 +252,7 @@ class Nudge(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
-    sent_at = Column(DateTime, default=datetime.utcnow)
+    sent_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     channel = Column(String, nullable=True)
     message_text = Column(Text, nullable=True)
     opened = Column(Boolean, default=False)
@@ -269,7 +272,7 @@ class SessionFeedback(Base):
     body_note = Column(Text, nullable=True)              # "knees hurt", "felt great"
     completed_blocks = Column(Integer, nullable=True)    # how many of 7 blocks done
     skipped_phases = Column(Text, nullable=True)         # comma-separated phases skipped
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="feedback")
 
@@ -281,7 +284,7 @@ class InviteCode(Base):
     code = Column(String, unique=True, nullable=False, index=True)
     inviter_id = Column(String, ForeignKey("users.id"), nullable=False)
     used_by_id = Column(String, ForeignKey("users.id"), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     used_at = Column(DateTime, nullable=True)
 
     inviter = relationship("User", foreign_keys=[inviter_id])
@@ -295,7 +298,7 @@ class Event(Base):
     event_type = Column(String, nullable=False, index=True)
     user_id = Column(String, ForeignKey("users.id"), nullable=True)
     payload = Column(JSON, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class OnboardingSurvey(Base):
@@ -309,7 +312,7 @@ class OnboardingSurvey(Base):
     preferred_time = Column(String, nullable=True)   # morning, afternoon, evening
     burnout_level = Column(Integer, nullable=True)   # 1-10
     how_heard = Column(String, nullable=True)        # github, twitter, friend, newsletter, hn, reddit, other
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="onboarding_survey")
 
@@ -322,7 +325,7 @@ class AgentLog(Base):
     agent_type = Column(Enum(AgentType), nullable=False)
     action = Column(String, nullable=False)
     payload = Column(JSON, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class SocialShare(Base):
@@ -334,7 +337,7 @@ class SocialShare(Base):
     share_type = Column(String, nullable=False)  # streak_milestone, session_complete, badge_earned
     content = Column(Text, nullable=True)
     external_url = Column(Text, nullable=True)
-    shared_at = Column(DateTime, default=datetime.utcnow)
+    shared_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class EmailSubscriber(Base):
@@ -342,5 +345,5 @@ class EmailSubscriber(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     email = Column(String, unique=True, nullable=False)
-    subscribed_at = Column(DateTime, default=datetime.utcnow)
+    subscribed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     unsubscribed = Column(Boolean, default=False)

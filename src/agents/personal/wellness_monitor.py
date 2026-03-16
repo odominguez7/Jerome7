@@ -4,7 +4,7 @@ Combines streak data, session completion, feedback sentiment,
 and nudge responsiveness into a single wellness score (0-100).
 """
 
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
@@ -65,7 +65,7 @@ class WellnessMonitor:
         if not streak or (streak.total_sessions or 0) < 4:
             return "new_user"
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         midpoint = now - timedelta(days=days // 2)
         start = now - timedelta(days=days)
 
@@ -136,7 +136,7 @@ class WellnessMonitor:
     async def get_risk_factors(self) -> list:
         """Identify current risk factors for this user."""
         risks = []
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # 1. missed_2_days — close to chain break
         streak = (
@@ -243,7 +243,7 @@ class WellnessMonitor:
 
     async def _completion_rate_score(self) -> float:
         """0-100 based on sessions completed in the last 7 days (target: 7/7)."""
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
         count = (
             self.db.query(func.count(Session.id))
             .filter(
@@ -294,7 +294,7 @@ class WellnessMonitor:
 
         No nudges sent = full score (they don't need nudges).
         """
-        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         nudges = (
             self.db.query(Nudge)
             .filter(

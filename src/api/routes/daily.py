@@ -1,6 +1,6 @@
 """GET /daily — today's universal Seven7 session for everyone."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter
 
@@ -17,7 +17,7 @@ _wellness_cache: dict = {"date": None, "session": None}
 
 @router.get("/daily")
 async def get_daily():
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     if _daily_cache["date"] == today and _daily_cache["session"]:
         return _daily_cache["session"]
@@ -31,7 +31,7 @@ async def get_daily():
 @router.get("/daily/wellness")
 async def get_daily_wellness():
     """Today's rotating wellness session (breathwork/meditation/reflection/preparation)."""
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     if _wellness_cache["date"] == today and _wellness_cache["session"]:
         return _wellness_cache["session"]
@@ -46,4 +46,4 @@ async def get_daily_wellness():
 @router.get("/daily/type")
 async def get_daily_type():
     """Return today's session type without generating the full session."""
-    return {"session_type": today_session_type(), "date": datetime.utcnow().strftime("%Y-%m-%d")}
+    return {"session_type": today_session_type(), "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")}

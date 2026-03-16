@@ -1,8 +1,8 @@
 """POST /log — session logging + feedback + status endpoints."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session as DBSession
 
 from src.api.models import LogSessionRequest, SessionResponse, FeedbackRequest, FeedbackResponse
@@ -14,8 +14,27 @@ router = APIRouter()
 streak_agent = StreakAgent()
 
 
+def _authenticate_user(user_id: str, request: Request, db: DBSession) -> User:
+    """Validate Bearer token and return the user, or raise 401/404."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header.")
+
+    token = auth_header[7:]  # strip "Bearer "
+    if not user.auth_token or token != user.auth_token:
+        raise HTTPException(status_code=401, detail="Invalid auth token.")
+
+    return user
+
+
 @router.post("/log/{user_id}", response_model=SessionResponse)
-def log_session(user_id: str, req: LogSessionRequest, db: DBSession = Depends(get_db)):
+def log_session(user_id: str, req: LogSessionRequest, request: Request, db: DBSession = Depends(get_db)):
+    _authenticate_user(user_id, request, db)
+
     session = Session(
         user_id=user_id,
         seven7_title=req.seven7_title,
@@ -26,7 +45,7 @@ def log_session(user_id: str, req: LogSessionRequest, db: DBSession = Depends(ge
     db.add(session)
     db.commit()
 
-    update = streak_agent.update_streak(user_id, datetime.utcnow(), db)
+    update = streak_agent.update_streak(user_id, datetime.now(timezone.utc), db)
 
     return SessionResponse(
         session_id=session.id,
@@ -37,7 +56,9 @@ def log_session(user_id: str, req: LogSessionRequest, db: DBSession = Depends(ge
 
 
 @router.post("/log/{user_id}/feedback", response_model=FeedbackResponse)
-def log_feedback(user_id: str, req: FeedbackRequest, db: DBSession = Depends(get_db)):
+def log_feedback(user_id: str, req: FeedbackRequest, request: Request, db: DBSession = Depends(get_db)):
+    _authenticate_user(user_id, request, db)
+
     fb = SessionFeedback(
         user_id=user_id,
         difficulty_rating=req.difficulty,
@@ -58,7 +79,7 @@ def user_status(user_id: str, db: DBSession = Depends(get_db)):
     if not user:
         return {"error": "User not found"}
 
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     logged_today = (
         db.query(Session)
         .filter(Session.user_id == user_id)

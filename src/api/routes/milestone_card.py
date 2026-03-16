@@ -45,6 +45,7 @@ def milestone_card(user_id: str, milestone: int, db: DBSession = Depends(get_db)
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome{jerome_num} — {milestone}-day streak | Jerome7</title>
+<meta name="robots" content="noindex, nofollow">
 <meta property="og:title" content="{og_title}">
 <meta property="og:description" content="{og_desc}">
 <meta property="og:image" content="https://jerome7.com/streak/{name}/card.png">
@@ -98,7 +99,7 @@ def milestone_card(user_id: str, milestone: int, db: DBSession = Depends(get_db)
   <div class="message">{message}</div>
   <div class="actions">
     <a class="btn btn-primary" href="https://jerome7.com">Join Jerome7</a>
-    <a class="btn btn-outline" href="https://twitter.com/intent/tweet?text={tweet_text.replace(' ', '+').replace('#', '%23').replace(chr(10), '%0A')}" target="_blank">Share on Twitter</a>
+    <a class="btn btn-outline" href="https://twitter.com/intent/tweet?text={tweet_text.replace(' ', '+').replace('#', '%23').replace(chr(10), '%0A')}" target="_blank" rel="noopener noreferrer">Share on Twitter</a>
   </div>
 </div>
 </body>

@@ -1,7 +1,7 @@
 """Agent Mesh API — REST endpoints for mesh, personal agents, checkups, social."""
 
 import hashlib
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -207,7 +207,7 @@ async def mesh_status(db: DBSession = Depends(get_db)):
         pass
 
     # Fallback: build status from DB
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     today_start = datetime(now.year, now.month, now.day)
 
     total_users = db.query(User).count()
@@ -262,7 +262,7 @@ async def register_agent(user_id: str, db: DBSession = Depends(get_db)):
         "user_name": user.name,
         "status": "registered",
         "wellness_score": wellness,
-        "registered_at": datetime.utcnow().isoformat(),
+        "registered_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -464,7 +464,7 @@ async def run_all_checkups(db: DBSession = Depends(get_db)):
             db.query(SessionModel)
             .filter(
                 SessionModel.user_id == user.id,
-                SessionModel.logged_at >= datetime(datetime.utcnow().year, datetime.utcnow().month, datetime.utcnow().day),
+                SessionModel.logged_at >= datetime(datetime.now(timezone.utc).year, datetime.now(timezone.utc).month, datetime.now(timezone.utc).day),
             )
             .first()
         )
@@ -484,7 +484,7 @@ async def run_all_checkups(db: DBSession = Depends(get_db)):
         })
 
     return {
-        "checkup_time": datetime.utcnow().isoformat(),
+        "checkup_time": datetime.now(timezone.utc).isoformat(),
         "users_checked": len(results),
         "at_risk": at_risk,
         "healthy": healthy,
@@ -510,7 +510,7 @@ async def user_checkup(user_id: str, db: DBSession = Depends(get_db)):
     burnout = _burnout_risk(db, user_id)
     question = _adaptive_question(db, user_id)
 
-    today_start = datetime(datetime.utcnow().year, datetime.utcnow().month, datetime.utcnow().day)
+    today_start = datetime(datetime.now(timezone.utc).year, datetime.now(timezone.utc).month, datetime.now(timezone.utc).day)
     logged_today = db.query(SessionModel).filter(
         SessionModel.user_id == user_id,
         SessionModel.logged_at >= today_start,
@@ -526,7 +526,7 @@ async def user_checkup(user_id: str, db: DBSession = Depends(get_db)):
         "today_status": "completed" if logged_today else "pending",
         "current_streak": streak.current_streak if streak else 0,
         "daily_question": question,
-        "checkup_time": datetime.utcnow().isoformat(),
+        "checkup_time": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -554,7 +554,7 @@ async def todays_event(db: DBSession = Depends(get_db)):
     except Exception:
         pass
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     today_start = datetime(now.year, now.month, now.day)
 
     sessions_today = db.query(SessionModel).filter(SessionModel.logged_at >= today_start).count()
@@ -755,7 +755,7 @@ async def find_match(user_id: str, db: DBSession = Depends(get_db)):
 @router.get("/mesh", response_class=HTMLResponse)
 async def mesh_page(db: DBSession = Depends(get_db)):
     """HTML page showing the agent mesh visualization."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     today_start = datetime(now.year, now.month, now.day)
 
     # Gather data

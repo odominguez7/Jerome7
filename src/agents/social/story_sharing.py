@@ -7,7 +7,7 @@ Powered by Google Gemini 2.5 Flash.
 import asyncio
 import json
 import os
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
@@ -114,7 +114,7 @@ class StorySharing:
                     payload={
                         "title": story_data.get("title"),
                         "stats": stats,
-                        "generated_at": datetime.utcnow().isoformat(),
+                        "generated_at": datetime.now(timezone.utc).isoformat(),
                     },
                 )
                 db.add(event)

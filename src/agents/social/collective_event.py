@@ -3,7 +3,7 @@
 Everyone on earth, same session, same day.
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
@@ -54,7 +54,7 @@ class CollectiveEvent:
                     countries.add(tz)
 
         # "Live now" — sessions logged in the last 10 minutes
-        ten_min_ago = datetime.utcnow().replace(microsecond=0)
+        ten_min_ago = datetime.now(timezone.utc).replace(microsecond=0)
         from datetime import timedelta
         ten_min_ago = ten_min_ago - timedelta(minutes=10)
 
@@ -120,7 +120,7 @@ class CollectiveEvent:
             payload={
                 "date": today.isoformat(),
                 "user_name": user.name if user else "Anonymous",
-                "joined_at": datetime.utcnow().isoformat(),
+                "joined_at": datetime.now(timezone.utc).isoformat(),
             },
         )
         db.add(event)

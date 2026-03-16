@@ -122,6 +122,7 @@ def analytics_dashboard(db: DBSession = Depends(get_db)):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome7 — Analytics</title>
+<meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Live analytics. Who's showing up. Where. Why.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">

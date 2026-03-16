@@ -19,7 +19,7 @@ Agent card schema (stored in Event.payload):
 }
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy.orm import Session as DBSession
@@ -57,8 +57,8 @@ class AgentRegistry:
             "user_id": user_id,
             "status": "active",
             "wellness_score": 50.0,
-            "registered_at": datetime.utcnow().isoformat(),
-            "last_heartbeat": datetime.utcnow().isoformat(),
+            "registered_at": datetime.now(timezone.utc).isoformat(),
+            "last_heartbeat": datetime.now(timezone.utc).isoformat(),
             **agent_card,
         }
 
@@ -164,7 +164,7 @@ class AgentRegistry:
 
         card = dict(event.payload or {})
         card["status"] = status
-        card["last_heartbeat"] = datetime.utcnow().isoformat()
+        card["last_heartbeat"] = datetime.now(timezone.utc).isoformat()
         if wellness_score is not None:
             card["wellness_score"] = round(wellness_score, 1)
         event.payload = card
@@ -182,7 +182,7 @@ class AgentRegistry:
         )
         if event:
             card = dict(event.payload or {})
-            card["last_heartbeat"] = datetime.utcnow().isoformat()
+            card["last_heartbeat"] = datetime.now(timezone.utc).isoformat()
             event.payload = card
             self.db.commit()
 
@@ -194,7 +194,7 @@ class AgentRegistry:
             .all()
         )
 
-        cutoff = datetime.utcnow() - timedelta(hours=24)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
         count = 0
         for ev in events:
             card = ev.payload or {}
@@ -227,7 +227,7 @@ class AgentRegistry:
         streak_score = min(30.0, current_streak)
 
         # Completion rate last 7 days: 25 points
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
         recent_sessions = (
             self.db.query(Session)
             .filter(Session.user_id == user_id, Session.logged_at >= seven_days_ago)

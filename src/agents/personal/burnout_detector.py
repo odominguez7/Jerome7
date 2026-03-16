@@ -7,7 +7,7 @@ drop) to flag burnout before the user actually quits.
 import asyncio
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy.orm import Session as DBSession
@@ -194,7 +194,7 @@ class BurnoutDetector:
     async def _detect_signals(self) -> list:
         """Scan all burnout signals and return the active ones."""
         signals = []
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         fourteen_days_ago = now - timedelta(days=14)
         seven_days_ago = now - timedelta(days=7)
 

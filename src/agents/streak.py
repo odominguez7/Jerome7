@@ -7,7 +7,7 @@ Streak rules (these are the product soul):
 """
 
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy.orm import Session as DBSession
@@ -92,7 +92,7 @@ class StreakAgent:
             return StreakRisk(at_risk=False)
 
         from datetime import datetime
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         hours_left = max(0, 24 - now.hour)
 
         at_risk = hours_left < 6  # at risk if less than 6 hours left in day
@@ -130,7 +130,7 @@ class StreakAgent:
         from src.db.models import Session
         from datetime import datetime, timedelta
 
-        cutoff = datetime.utcnow() - timedelta(days=days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
         sessions = (
             db.query(Session)
             .filter(Session.user_id == user_id, Session.logged_at >= cutoff)

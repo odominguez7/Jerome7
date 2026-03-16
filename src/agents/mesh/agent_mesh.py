@@ -4,7 +4,7 @@ Ties together the registry, protocol, message bus, and collective
 insights into a single entry point for the rest of the codebase.
 """
 
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
@@ -50,8 +50,8 @@ class AgentMesh:
             "status": "active",
             "wellness_score": wellness,
             "current_streak": streak.current_streak if streak else 0,
-            "registered_at": datetime.utcnow().isoformat(),
-            "last_heartbeat": datetime.utcnow().isoformat(),
+            "registered_at": datetime.now(timezone.utc).isoformat(),
+            "last_heartbeat": datetime.now(timezone.utc).isoformat(),
         }
 
         agent_id = await self.registry.register(user_id, card)
@@ -288,7 +288,7 @@ class AgentMesh:
         total_agents = len(all_agents)
 
         # Count A2A messages in the last 24h
-        yesterday = datetime.utcnow() - timedelta(hours=24)
+        yesterday = datetime.now(timezone.utc) - timedelta(hours=24)
         a2a_count = (
             self.db.query(func.count(Event.id))
             .filter(
@@ -332,7 +332,7 @@ class AgentMesh:
             "bus_subscribers": self.bus.subscriber_count,
             "bus_messages_total": self.bus.total_messages,
             "avg_wellness_score": round(avg_wellness, 1),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     # ---- Private helpers ----

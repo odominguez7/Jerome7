@@ -1,6 +1,6 @@
 """GET /nudge/at-risk — find users whose streaks are at risk today."""
 
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session as DBSession
@@ -44,7 +44,7 @@ async def get_at_risk_users(db: DBSession = Depends(get_db)):
             .first()
         )
         if last_nudge and last_nudge.sent_at:
-            if datetime.utcnow() - last_nudge.sent_at < timedelta(hours=4):
+            if datetime.now(timezone.utc) - last_nudge.sent_at < timedelta(hours=4):
                 continue
 
         # Generate nudge message

@@ -7,7 +7,7 @@ Powered by Google Gemini 2.0 Flash.
 import json
 import os
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from src.agents.context import UserContext
@@ -37,14 +37,14 @@ class NudgeAgent:
                 return False
 
         if ctx.last_nudge_at:
-            if datetime.utcnow() - ctx.last_nudge_at < timedelta(hours=4):
+            if datetime.now(timezone.utc) - ctx.last_nudge_at < timedelta(hours=4):
                 return False
 
         return True
 
     def get_optimal_window(self, ctx: UserContext) -> Optional[datetime]:
         if not ctx.skip_history:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             return now.replace(hour=8, minute=0, second=0, microsecond=0)
 
         skip_hours = {}
@@ -65,7 +65,7 @@ class NudgeAgent:
 
         peak_hour = max(skip_hours, key=skip_hours.get)
         nudge_hour = max(0, peak_hour - 1)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return now.replace(hour=nudge_hour, minute=30, second=0, microsecond=0)
 
     async def generate_nudge(self, ctx: UserContext) -> NudgeMessage:

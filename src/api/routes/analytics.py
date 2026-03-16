@@ -1,6 +1,6 @@
 """GET /analytics — aggregate intelligence layer for Jerome7."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import func
@@ -20,7 +20,7 @@ def analytics_overview(db: DBSession = Depends(get_db)):
     active_streaks = db.query(Streak).filter(Streak.current_streak > 0).count()
 
     # Sessions in last 24h / 7d / 30d
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     sessions_24h = db.query(SessionModel).filter(
         SessionModel.logged_at >= now - timedelta(hours=24)
     ).count()
@@ -106,7 +106,7 @@ def analytics_overview(db: DBSession = Depends(get_db)):
 @router.get("/analytics/retention")
 def analytics_retention(db: DBSession = Depends(get_db)):
     """Retention metrics — who keeps showing up."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     # Users who signed up in last 30 days
     new_users_30d = db.query(User).filter(

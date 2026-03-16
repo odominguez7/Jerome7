@@ -9,7 +9,7 @@ Powered by Google Gemini 2.5 Flash.
 import asyncio
 import json
 import os
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
@@ -175,7 +175,7 @@ class PairingEngine:
                     "match_name": match_user.name if uid == user_id else user.name,
                     "compatibility_score": round(best_score, 2),
                     "why": why_matched,
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                 },
             )
             db.add(event)

@@ -1,6 +1,6 @@
 """GET /report — Weekly World Report for Jerome7 viral distribution."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -17,7 +17,7 @@ router = APIRouter()
 
 def _week_bounds() -> tuple[datetime, datetime]:
     """Return (start_of_week_monday, now) for the current ISO week."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     monday = now - timedelta(days=now.weekday())
     start = monday.replace(hour=0, minute=0, second=0, microsecond=0)
     return start, now
@@ -264,6 +264,7 @@ def report_page(db: DBSession = Depends(get_db)):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome7 World Report — Week of {d['week_of']}</title>
+<meta name="robots" content="noindex, nofollow">
 <meta property="og:title" content="Jerome7 World Report — Week of {d['week_of']}">
 <meta property="og:description" content="{og_desc}">
 <meta property="og:type" content="website">

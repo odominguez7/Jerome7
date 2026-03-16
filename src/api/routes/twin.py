@@ -7,7 +7,7 @@ at 30, 90, and 365 days. Powered by Gemini AI.
 import asyncio
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse
@@ -76,7 +76,7 @@ def _build_twin_data(user_id: str, db: DBSession) -> dict:
         SessionModel.user_id == user_id
     ).count()
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     sessions_7d = db.query(SessionModel).filter(
         SessionModel.user_id == user_id,
         SessionModel.logged_at >= now - timedelta(days=7),
@@ -277,6 +277,7 @@ def _render_twin_page(data: dict, projection: dict) -> HTMLResponse:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome7 — {name}'s Digital Twin</title>
+<meta name="robots" content="noindex, nofollow">
 <meta name="description" content="{name}'s forward simulation — projected body state at 30, 90, 365 days.">
 <meta property="og:title" content="Jerome7 Digital Twin — {name}">
 <meta property="og:description" content="{total_sessions} sessions logged. {current_streak}-day streak. See the projection.">
@@ -501,7 +502,7 @@ def _render_twin_page(data: dict, projection: dict) -> HTMLResponse:
     <a href="/timer" class="cta-btn">START TODAY'S SESSION</a>
     <div class="cta-sub">Change the projection. Show up.</div>
     <div class="share-row">
-      <a href="https://x.com/intent/tweet?text=My%20Jerome7%20Digital%20Twin%20%E2%80%94%20{current_streak}%20day%20streak.%20See%20my%20projection%3A%20jerome7.com/twin/{data.get('user_id', '')}" target="_blank" class="share-link">SHARE ON X</a>
+      <a href="https://x.com/intent/tweet?text=My%20Jerome7%20Digital%20Twin%20%E2%80%94%20{current_streak}%20day%20streak.%20See%20my%20projection%3A%20jerome7.com/twin/{data.get('user_id', '')}" target="_blank" rel="noopener noreferrer" class="share-link">SHARE ON X</a>
       <a href="/share/{data.get('user_id', '')}" class="share-link">STREAK CARD</a>
     </div>
   </div>

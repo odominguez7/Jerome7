@@ -1,7 +1,7 @@
 """GET /stats — public community stats for dynamic badges and embeds."""
 
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
@@ -28,7 +28,7 @@ def public_stats(db: DBSession = Depends(get_db)):
             headers={"Cache-Control": "public, max-age=60"},
         )
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     today_start = datetime(now.year, now.month, now.day)
 
     total_jeromes = db.query(User).count()

@@ -60,6 +60,7 @@ class UserResponse(BaseModel):
     pledge_confirmed: bool = True
     pod_match_eta: str = "within 24 hours"
     country: Optional[str] = None
+    auth_token: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

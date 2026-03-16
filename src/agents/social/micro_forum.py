@@ -7,7 +7,7 @@ Powered by Google Gemini 2.5 Flash.
 import asyncio
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session as DBSession
 
@@ -89,7 +89,7 @@ class MicroForum:
                 "name": name,
                 "member_ids": user_ids,
                 "member_names": member_names,
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
             },
         )
         db.add(event)
@@ -138,7 +138,7 @@ class MicroForum:
                 "message_id": message_id,
                 "author_name": user.name if user else "Unknown",
                 "text": message,
-                "posted_at": datetime.utcnow().isoformat(),
+                "posted_at": datetime.now(timezone.utc).isoformat(),
             },
         )
         db.add(event)
@@ -205,7 +205,7 @@ class MicroForum:
         member_names = forum.get("member_names", {})
 
         # Track who has posted recently (last 3 days)
-        three_days_ago = datetime.utcnow() - timedelta(days=3)
+        three_days_ago = datetime.now(timezone.utc) - timedelta(days=3)
         recent_posters = set()
         for msg in messages:
             posted_at = msg.get("posted_at", "")
@@ -238,7 +238,7 @@ class MicroForum:
 
         needs_starter = False
         if last_message_time:
-            if datetime.utcnow() - last_message_time > timedelta(hours=24):
+            if datetime.now(timezone.utc) - last_message_time > timedelta(hours=24):
                 needs_starter = True
         elif not messages:
             needs_starter = True

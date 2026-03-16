@@ -1,6 +1,6 @@
 """GET /seven7/{user_id} — today's Seven 7 session."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session as DBSession
@@ -18,7 +18,7 @@ coach = CoachAgent()
 @router.get("/seven7/{user_id}", response_model=Seven7Response)
 async def get_seven7(user_id: str, db: DBSession = Depends(get_db)):
     # Check if today's session already exists
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     existing = (
         db.query(Seven7Session)
         .filter(Seven7Session.user_id == user_id, Seven7Session.generated_at >= today_start)
@@ -47,7 +47,7 @@ async def get_seven7(user_id: str, db: DBSession = Depends(get_db)):
     blocks = [Seven7Block(**b) for b in session_data.get("blocks", [])]
     return Seven7Response(
         user_id=user_id,
-        generated_at=datetime.utcnow(),
+        generated_at=datetime.now(timezone.utc),
         greeting=session_data.get("greeting", ""),
         session_title=session_data.get("session_title", ""),
         closing=session_data.get("closing", ""),
@@ -67,7 +67,7 @@ async def energy_checkin(user_id: str, req: EnergyCheckinRequest, db: DBSession 
     db.commit()
 
     # Regenerate today's Seven 7
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     db.query(Seven7Session).filter(
         Seven7Session.user_id == user_id,
         Seven7Session.generated_at >= today_start,
@@ -80,7 +80,7 @@ async def energy_checkin(user_id: str, req: EnergyCheckinRequest, db: DBSession 
     blocks = [Seven7Block(**b) for b in session_data.get("blocks", [])]
     return Seven7Response(
         user_id=user_id,
-        generated_at=datetime.utcnow(),
+        generated_at=datetime.now(timezone.utc),
         greeting=session_data.get("greeting", ""),
         session_title=session_data.get("session_title", ""),
         closing=session_data.get("closing", ""),

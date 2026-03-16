@@ -6,7 +6,7 @@ Pod names are permanent and become part of community identity.
 
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy.orm import Session as DBSession
@@ -39,7 +39,7 @@ class CommunityMatcherAgent:
     def find_pod(self, ctx: UserContext, db: DBSession) -> Optional[PodMatch]:
         """Find compatible pod members for a user."""
         # Get unmatched users (no active pod, pledged in last 7 days)
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
 
         # Users without active pod membership
         matched_user_ids = {

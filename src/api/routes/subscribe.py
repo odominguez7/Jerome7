@@ -1,7 +1,8 @@
 """POST /subscribe — email capture for daily reminders."""
 
 import re
-from datetime import datetime
+import time
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -16,14 +17,22 @@ router = APIRouter()
 _sub_rate: dict[str, list] = {}
 _SUB_RATE_LIMIT = 5
 
+
+def _prune_rate_limits(rate_dict: dict, max_age: float = 7200):
+    cutoff = time.time() - max_age
+    stale = [ip for ip, ts in rate_dict.items() if not ts or ts[-1] < cutoff]
+    for ip in stale:
+        del rate_dict[ip]
+
 _EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
 
 @router.post("/subscribe")
 async def subscribe_email(request: Request, db: Session = Depends(get_db)):
     # Rate limit
+    _prune_rate_limits(_sub_rate)
     ip = request.client.host if request.client else "unknown"
-    now_ts = datetime.utcnow().timestamp()
+    now_ts = datetime.now(timezone.utc).timestamp()
     hour_ago = now_ts - 3600
     hits = _sub_rate.get(ip, [])
     hits = [t for t in hits if t > hour_ago]
@@ -43,7 +52,7 @@ async def subscribe_email(request: Request, db: Session = Depends(get_db)):
     if existing:
         if existing.unsubscribed:
             existing.unsubscribed = False
-            existing.subscribed_at = datetime.utcnow()
+            existing.subscribed_at = datetime.now(timezone.utc)
             db.commit()
             return {"message": "Welcome back. See you tomorrow."}
         return {"message": "You're already subscribed. See you tomorrow."}

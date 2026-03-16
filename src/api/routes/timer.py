@@ -6,14 +6,14 @@ Session type rotates daily: breathwork → meditation → reflection → prepara
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from html import escape as html_escape
 
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
 from src.agents.coach import CoachAgent
-from src.agents.session_types import today_session_type
+from src.agents.session_types import today_session_type, FALLBACK_SESSIONS
 from src.api.meta import head_meta
 
 router = APIRouter()
@@ -24,7 +24,7 @@ _cache: dict = {"date": None, "session": None}
 
 @router.get("/timer", response_class=HTMLResponse)
 async def timer_page():
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     session_type = today_session_type()
 
     if _cache["date"] == today and _cache["session"]:
@@ -33,7 +33,7 @@ async def timer_page():
         try:
             data = await coach.generate_wellness(session_type)
         except Exception:
-            data = await coach.generate_daily()
+            data = FALLBACK_SESSIONS.get(session_type, FALLBACK_SESSIONS["breathwork"])
         _cache["date"] = today
         _cache["session"] = data
 
@@ -644,6 +644,7 @@ async function submitOnboarding() {{
       name: name,
       userId: data.user_id,
       jeromeNumber: data.jerome_number,
+      authToken: data.auth_token,
       role: role,
       goal: goal,
     }};
@@ -838,10 +839,13 @@ function recordSession() {{
 
   // Log to server
   const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
-  if (user.userId) {{
+  if (user.userId && user.authToken) {{
     fetch('/log/' + user.userId, {{
       method: 'POST',
-      headers: {{ 'Content-Type': 'application/json' }},
+      headers: {{
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + user.authToken,
+      }},
       body: JSON.stringify({{ duration_minutes: 7 }}),
     }}).catch(() => {{}});
   }}
@@ -912,5 +916,5 @@ initVoiceToggle();
 </html>"""
     return HTMLResponse(
         content=html,
-        headers={"Cache-Control": "public, max-age=3600"},  # 1hr — session changes daily
+        headers={"Cache-Control": "public, max-age=300, stale-while-revalidate=3300"},
     )

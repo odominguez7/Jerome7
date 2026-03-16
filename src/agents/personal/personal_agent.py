@@ -8,7 +8,7 @@ point for everything that is *personal* to one user.
 import asyncio
 import json
 import os
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
@@ -174,7 +174,7 @@ class PersonalAgent:
                 sessions_missed: int,
             }
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         start = now - timedelta(days=days)
 
         # Sessions completed

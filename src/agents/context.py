@@ -1,7 +1,7 @@
 """UserContext — the shared state object passed to every agent."""
 
 from dataclasses import dataclass, field
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy.orm import Session as DBSession
@@ -57,7 +57,7 @@ def build_user_context(user_id: str, db: DBSession) -> UserContext:
         }
 
     # Sessions last 7 days
-    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
     recent_sessions = (
         db.query(Session)
         .filter(Session.user_id == user_id, Session.logged_at >= seven_days_ago)
@@ -71,7 +71,7 @@ def build_user_context(user_id: str, db: DBSession) -> UserContext:
 
     # Skip history — find hours the user typically skips sessions
     # Look at the last 30 days and find days with no session logged
-    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
     all_sessions = (
         db.query(Session)
         .filter(Session.user_id == user_id, Session.logged_at >= thirty_days_ago)
@@ -127,7 +127,7 @@ def build_user_context(user_id: str, db: DBSession) -> UserContext:
             saves_remaining = 0
 
     # Today's Seven 7
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     todays = (
         db.query(Seven7Session)
         .filter(Seven7Session.user_id == user_id, Seven7Session.generated_at >= today_start)

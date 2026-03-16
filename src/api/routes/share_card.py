@@ -1,6 +1,6 @@
 """GET /share/{user_id} — shareable streak card with OG meta tags for Twitter/Discord/WhatsApp."""
 
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse
@@ -79,7 +79,7 @@ def share_card(user_id: str, db: DBSession = Depends(get_db)):
 
     flag = _get_flag(user.country)
     name = user.name
-    today_str = datetime.utcnow().strftime("%b %d, %Y")
+    today_str = datetime.now(timezone.utc).strftime("%b %d, %Y")
 
     # Build 30-day chain
     chain = _build_chain(user_id, db, days=30)
@@ -107,6 +107,7 @@ def share_card(user_id: str, db: DBSession = Depends(get_db)):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{name} — {current} days unbroken | Jerome7</title>
+<meta name="robots" content="noindex, nofollow">
 
 <!-- OG Meta Tags -->
 <meta property="og:title" content="{og_title}">
@@ -331,7 +332,7 @@ def share_card(user_id: str, db: DBSession = Depends(get_db)):
 
   <div class="actions">
     <a class="cta-join" href="https://jerome7.com">Join Jerome7</a>
-    <a class="cta-twitter" href="https://twitter.com/intent/tweet?text={tweet_text.replace(' ', '+').replace('#', '%23')}" target="_blank">\U0001d54f Share on Twitter</a>
+    <a class="cta-twitter" href="https://twitter.com/intent/tweet?text={tweet_text.replace(' ', '+').replace('#', '%23')}" target="_blank" rel="noopener noreferrer">\U0001d54f Share on Twitter</a>
   </div>
 </div>
 </body>

@@ -449,7 +449,7 @@ async def landing():
   <p>Jerome7 exposes MCP tools — works inside Claude Desktop, GPT, Gemini, or any agent runtime that speaks Model Context Protocol.</p>
   <div class="star-bar">
     <span class="star-text">If this moves you, star it.</span>
-    <a href="https://github.com/odominguez7/Jerome7" class="star-btn" target="_blank">
+    <a href="https://github.com/odominguez7/Jerome7" class="star-btn" target="_blank" rel="noopener noreferrer">
       Star on GitHub
     </a>
   </div>

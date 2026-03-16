@@ -15,7 +15,7 @@ engine = create_engine(
     DATABASE_URL,
     connect_args={"check_same_thread": False} if _is_sqlite else {},
     pool_pre_ping=True,
-    **({"pool_size": 10, "max_overflow": 20} if not _is_sqlite else {}),
+    **({"pool_size": 5, "max_overflow": 5} if not _is_sqlite else {}),
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -42,6 +42,7 @@ def _migrate_add_columns():
         "latitude": "FLOAT",
         "longitude": "FLOAT",
         "city": "VARCHAR",
+        "auth_token": "VARCHAR",
     }
 
     if "users" in inspector.get_table_names():

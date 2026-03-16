@@ -3,7 +3,7 @@
 Jerome7's version of Wordle's colored squares.
 """
 
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from xml.sax.saxutils import escape as xml_escape
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -235,7 +235,7 @@ def session_card_svg(user_id: str, db: DBSession = Depends(get_db)):
     current = streak_row.current_streak if streak_row else 0
 
     flag = _get_flag(user.country)
-    today_str = datetime.utcnow().strftime("%b %d, %Y")
+    today_str = datetime.now(timezone.utc).strftime("%b %d, %Y")
     block_names = _get_block_names(user_id, db)
     chain = _build_chain(user_id, db, days=30)
 

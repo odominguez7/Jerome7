@@ -1,6 +1,6 @@
 """GET /live — real-time collective movement dashboard. The YC demo killer."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
@@ -27,7 +27,7 @@ _FLAG = {
 
 @router.get("/live", response_class=HTMLResponse)
 def live_dashboard(db: DBSession = Depends(get_db)):
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     today_start = datetime(now.year, now.month, now.day)
 
     # Core numbers
@@ -99,6 +99,7 @@ def live_dashboard(db: DBSession = Depends(get_db)):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome7 — Live</title>
+<meta name="robots" content="noindex, nofollow">
 <meta name="description" content="{total_users} builders. {num_countries} countries. Moving right now.">
 <meta property="og:title" content="Jerome7 Live — {showed_up_today} showed up today">
 <meta property="og:description" content="{total_users} builders across {num_countries} countries. {total_minutes} minutes of movement.">

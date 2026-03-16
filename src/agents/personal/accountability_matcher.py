@@ -4,7 +4,7 @@ Pairs users for mutual accountability based on timezone proximity,
 shared goals, and complementary streak lengths.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy.orm import Session as DBSession
@@ -85,7 +85,7 @@ class AccountabilityMatcher:
                 existing_pair_ids.add(mid)
 
         # Candidate pool: all other active users not already paired
-        three_days_ago = datetime.utcnow() - timedelta(days=3)
+        three_days_ago = datetime.now(timezone.utc) - timedelta(days=3)
         candidates = (
             db.query(User)
             .filter(
@@ -234,7 +234,7 @@ class AccountabilityMatcher:
             return {"error": "pod_not_found"}
 
         members_data = []
-        three_days_ago = datetime.utcnow() - timedelta(days=3)
+        three_days_ago = datetime.now(timezone.utc) - timedelta(days=3)
 
         pod_members = (
             db.query(PodMember)

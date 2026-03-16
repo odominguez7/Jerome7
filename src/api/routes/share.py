@@ -1,6 +1,6 @@
 """GET /share-legacy/{user_id} — old shareable streak card. Superseded by share_card.py."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse
@@ -49,7 +49,7 @@ def share_card_legacy(user_id: str, db: DBSession = Depends(get_db)):
     day_labels = "".join(f'<div class="day-label">{d}</div>' for d in DAYS)
 
     name = user.name
-    today = datetime.utcnow().strftime("%b %d, %Y")
+    today = datetime.now(timezone.utc).strftime("%b %d, %Y")
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -58,6 +58,7 @@ def share_card_legacy(user_id: str, db: DBSession = Depends(get_db)):
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta property="og:title" content="{name} — {current} days unbroken">
 <meta property="og:description" content="Jerome7 · YU Show Up · Day {current}">
+<meta name="robots" content="noindex, nofollow">
 <title>{name} — Jerome7</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
@@ -130,7 +131,7 @@ def share_card_legacy(user_id: str, db: DBSession = Depends(get_db)):
   </div>
   <div class="footer">yu showed up · <a href="https://jerome7.com">jerome7.com</a></div>
   <div class="share-buttons">
-    <a class="cta-twitter" href="https://twitter.com/intent/tweet?text=Day+{current}+%F0%9F%94%A5+Just+finished+my+Jerome7+session.+7+minutes.+Every+day.+%E2%80%94+jerome7.com+%23jerome7+%23buildinpublic" target="_blank">𝕏 Share your streak</a>
+    <a class="cta-twitter" href="https://twitter.com/intent/tweet?text=Day+{current}+%F0%9F%94%A5+Just+finished+my+Jerome7+session.+7+minutes.+Every+day.+%E2%80%94+jerome7.com+%23jerome7+%23buildinpublic" target="_blank" rel="noopener noreferrer">𝕏 Share your streak</a>
     <a class="cta" href="https://discord.gg/5AZP8DbEJm">Join the Discord →</a>
   </div>
 </div>
