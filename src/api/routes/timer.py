@@ -7,6 +7,7 @@ Session type rotates daily: breathwork → meditation → reflection → prepara
 import json
 import os
 from datetime import datetime
+from html import escape as html_escape
 
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
@@ -35,9 +36,14 @@ async def timer_page():
         _cache["date"] = today
         _cache["session"] = data
 
-    blocks_json = json.dumps(data.get("blocks", []))
-    title = data.get("session_title", session_type.title())
-    closing = data.get("closing", "You showed up. That's the win.").replace("'", "\\'")
+    # Sanitize AI-generated content to prevent XSS
+    blocks_raw = data.get("blocks", [])
+    for b in blocks_raw:
+        b["name"] = html_escape(b.get("name", ""))
+        b["instruction"] = html_escape(b.get("instruction", ""))
+    blocks_json = json.dumps(blocks_raw)
+    title = html_escape(data.get("session_title", session_type.title()))
+    closing = html_escape(data.get("closing", "You showed up. That's the win.")).replace("'", "\\'")
 
     type_labels = {
         "breathwork": "Guided Breathwork",

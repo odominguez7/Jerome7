@@ -223,11 +223,23 @@ DEFAULT_SESSION = {
 }
 
 
+# Reusable Gemini client (one connection pool for the process)
+_gemini_client = None
+
+
+def _get_gemini_client(api_key: str):
+    """Get or create a reusable Gemini client."""
+    global _gemini_client
+    if _gemini_client is None:
+        from google import genai
+        _gemini_client = genai.Client(api_key=api_key)
+    return _gemini_client
+
+
 def _call_gemini(system_prompt: str, user_content: str, api_key: str) -> str:
-    """Call Gemini 2.0 Flash and return raw text response."""
-    from google import genai
+    """Call Gemini 2.5 Flash and return raw text response."""
     from google.genai import types
-    client = genai.Client(api_key=api_key)
+    client = _get_gemini_client(api_key)
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents=user_content,
