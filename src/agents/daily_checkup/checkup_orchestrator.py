@@ -5,6 +5,7 @@ Powered by Google Gemini 2.5 Flash.
 
 import asyncio
 import json
+import logging
 import os
 from datetime import date, datetime, timedelta, timezone
 
@@ -12,6 +13,8 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
 
 from src.db.models import User, Streak, Session, SessionFeedback, Event
+
+logger = logging.getLogger(__name__)
 
 
 def _call_gemini(system_prompt: str, user_content: str, api_key: str) -> str:
@@ -342,7 +345,7 @@ class CheckupOrchestrator:
             data = json.loads(content)
             return data.get("insights", [])
         except Exception as e:
-            print(f"[CheckupOrchestrator] Insight generation failed: {e}")
+            logger.error("[CheckupOrchestrator] Insight generation failed: %s", e)
             return [
                 f"{results['at_risk'] + results['critical']} users need attention today."
             ]

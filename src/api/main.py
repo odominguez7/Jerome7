@@ -29,7 +29,17 @@ _IS_PROD = bool(os.getenv("RAILWAY_ENVIRONMENT"))
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    logger.info("Jerome7 started — DB initialized")
+    logger.info("Jerome7 started - DB initialized")
+
+    # Verify DB connectivity
+    from src.db.database import SessionLocal
+    from sqlalchemy import text
+    try:
+        with SessionLocal() as db:
+            db.execute(text("SELECT 1"))
+        logger.info("Database connected successfully")
+    except Exception as e:
+        logger.error("Database connection failed: %s", e)
 
     # Pre-warm today's session cache so the first visitor doesn't wait ~25s for Gemini
     try:
@@ -67,12 +77,15 @@ app = FastAPI(
 _ALLOWED_ORIGINS = [
     "https://jerome7.com",
     "https://www.jerome7.com",
-    "https://api.jerome7.com",
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:8000",
+    "https://jerome7-production.up.railway.app",
 ]
+if not _IS_PROD:
+    _ALLOWED_ORIGINS += [
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8000",
+    ]
 
 app.add_middleware(
     CORSMiddleware,

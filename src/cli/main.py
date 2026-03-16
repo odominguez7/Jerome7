@@ -1,6 +1,7 @@
 """Jerome 7 CLI — yu seven7 / yu log / yu streak / yu pod."""
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -9,7 +10,7 @@ import requests
 
 CONFIG_DIR = Path.home() / ".jerome7"
 CONFIG_FILE = CONFIG_DIR / "config.json"
-DEFAULT_API_URL = "http://localhost:8000"
+DEFAULT_API_URL = os.environ.get("JEROME7_API_URL", "https://jerome7.com")
 
 
 def get_config():

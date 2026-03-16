@@ -6,6 +6,7 @@ Powered by Google Gemini 2.5 Flash.
 
 import asyncio
 import json
+import logging
 import os
 from datetime import date, datetime, timezone
 
@@ -13,6 +14,8 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
 
 from src.db.models import User, Streak, Session, SessionFeedback, Event
+
+logger = logging.getLogger(__name__)
 
 
 def _call_gemini(system_prompt: str, user_content: str, api_key: str) -> str:
@@ -264,7 +267,7 @@ class StorySharing:
             )
             return json.loads(content)
         except Exception as e:
-            print(f"[StorySharing] Gemini story generation failed: {e}")
+            logger.error("[StorySharing] Gemini story generation failed: %s", e)
             return None
 
     def _build_fallback_story(self, stats: dict) -> dict:

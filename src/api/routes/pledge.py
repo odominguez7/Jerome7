@@ -139,24 +139,26 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
     hits = [t for t in hits if t > hour_ago]
     if len(hits) >= _PLEDGE_RATE_LIMIT:
         _pledge_rate[ip] = hits
-        raise HTTPException(status_code=429, detail="Too many signups. Try again later.")
+        raise HTTPException(status_code=429, detail="Too many signups. Try again later.", headers={"Retry-After": "3600"})
     hits.append(now_ts)
     _pledge_rate[ip] = hits
 
     # --- 0b. Bot protection: honeypot ---
     if req.website:
-        # Bot detected — return fake success
+        # Bot detected — return realistic-looking success but store nothing
         return UserResponse(
-            user_id="bot", name=req.name or "", jerome_number=9999,
-            country=None, auth_token=None,
+            user_id=str(uuid.uuid4()), name=req.name or "",
+            jerome_number=_next_jerome_number(db) + 1000,
+            country=None, auth_token=str(uuid.uuid4()),
         )
 
     # --- 0c. Bot protection: time-based ---
     if req.elapsed is not None and req.elapsed < 3000:
-        # Too fast — likely bot
+        # Too fast — likely bot, return realistic-looking success but store nothing
         return UserResponse(
-            user_id="bot", name=req.name or "", jerome_number=9999,
-            country=None, auth_token=None,
+            user_id=str(uuid.uuid4()), name=req.name or "",
+            jerome_number=_next_jerome_number(db) + 1000,
+            country=None, auth_token=str(uuid.uuid4()),
         )
 
     # --- 1. Validate name (no placeholders) ---

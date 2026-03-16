@@ -188,7 +188,7 @@ async def landing():
     That became the Boston Marathon. Then Ironman 70.3. Then MIT.
     Not because I was exceptional. Because I was consistent."
   </div>
-  <div class="quote-author">— Omar, Jerome7 (Founder)</div>
+  <div class="quote-author">- Omar, Jerome7 (Founder)</div>
 </div>
 
 <!-- HOW IT WORKS -->

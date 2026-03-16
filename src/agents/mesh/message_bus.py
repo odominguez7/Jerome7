@@ -4,9 +4,12 @@ Lightweight event bus that lives in process memory.
 For persistence, agents should also write to the Event table via A2AProtocol.
 """
 
+import logging
 import time
 from collections import defaultdict
 from typing import Callable, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class MessageBus:
@@ -66,7 +69,7 @@ class MessageBus:
                     cb(stamped)
                     delivered += 1
                 except Exception as e:
-                    print(f"[MessageBus] Error delivering to {agent_id}: {e}")
+                    logger.error("[MessageBus] Error delivering to %s: %s", agent_id, e)
 
         return delivered
 

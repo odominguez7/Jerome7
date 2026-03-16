@@ -4,6 +4,7 @@ Ties together the registry, protocol, message bus, and collective
 insights into a single entry point for the rest of the codebase.
 """
 
+import logging
 from datetime import datetime, timedelta, date, timezone
 
 from sqlalchemy import func
@@ -15,6 +16,8 @@ from src.agents.mesh.agent_registry import AgentRegistry
 from src.agents.mesh.a2a_protocol import A2AProtocol
 from src.agents.mesh.message_bus import MessageBus
 from src.agents.mesh.collective_insights import CollectiveInsights
+
+logger = logging.getLogger(__name__)
 
 
 class AgentMesh:
@@ -93,7 +96,7 @@ class AgentMesh:
             "payload": data,
         })
 
-        print(f"[AgentMesh] Broadcast insight:{insight_type} to {count} agents")
+        logger.info("[AgentMesh] Broadcast insight:%s to %d agents", insight_type, count)
 
     async def find_accountability_pair(self, user_id: str) -> dict:
         """Find the best accountability partner for a user.

@@ -7,6 +7,7 @@ generation when an API key is available.
 
 import asyncio
 import json
+import logging
 import os
 from collections import defaultdict
 from datetime import datetime, timedelta, date, timezone
@@ -17,6 +18,8 @@ from sqlalchemy.orm import Session as DBSession
 from src.db.models import (
     User, Streak, Session, SessionFeedback, Event,
 )
+
+logger = logging.getLogger(__name__)
 
 
 INSIGHT_EVENT_TYPE = "mesh:collective_insight"
@@ -73,7 +76,7 @@ class CollectiveInsights:
             try:
                 insights = await self._gemini_insights(stats)
             except Exception as e:
-                print(f"[CollectiveInsights] Gemini error, using rules: {e}")
+                logger.error("[CollectiveInsights] Gemini error, using rules: %s", e)
                 insights = self._rule_based_insights(stats)
         else:
             insights = self._rule_based_insights(stats)

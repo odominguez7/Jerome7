@@ -3,10 +3,13 @@
 The bridge opens at 14 days unbroken.
 """
 
+import logging
 import os
 from dataclasses import dataclass
 
 from src.agents.context import UserContext
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -67,7 +70,7 @@ class YUMCPBridge:
                     data = await resp.json()
                     return [ClassOption(**c) for c in data.get("classes", [])]
         except Exception as e:
-            print(f"[YU Bridge] MCP call failed: {e}")
+            logger.error("[YU Bridge] MCP call failed: %s", e)
             return self.mock_classes(activity_type)
 
     async def book_class(self, ctx: UserContext, class_id: str) -> Booking:
@@ -94,12 +97,12 @@ class YUMCPBridge:
                     data = await resp.json()
                     return Booking(**data)
         except Exception as e:
-            print(f"[YU Bridge] Booking failed: {e}")
+            logger.error("[YU Bridge] Booking failed: %s", e)
             raise
 
     def mock_classes(self, activity_type: str = "any") -> list[ClassOption]:
         """Return 3 realistic mock classes for local dev."""
-        print("[YU Bridge] Running in mock mode — set YU_MCP_SERVER_URL for live.")
+        logger.info("[YU Bridge] Running in mock mode — set YU_MCP_SERVER_URL for live.")
         return [
             ClassOption(
                 class_id="mock-yoga-001",

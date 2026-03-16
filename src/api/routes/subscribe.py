@@ -44,7 +44,7 @@ async def subscribe_email(request: Request, db: Session = Depends(get_db)):
     hits = [t for t in hits if t > hour_ago]
     if len(hits) >= _SUB_RATE_LIMIT:
         _sub_rate[ip] = hits
-        raise HTTPException(status_code=429, detail="Too many requests. Try again later.")
+        raise HTTPException(status_code=429, detail="Too many requests. Try again later.", headers={"Retry-After": "3600"})
     hits.append(now_ts)
     _sub_rate[ip] = hits
 
@@ -110,7 +110,7 @@ async def submit_email(user_id: str, request: Request, db: Session = Depends(get
     hits = [t for t in hits if t > hour_ago]
     if len(hits) >= _EMAIL_RATE_LIMIT:
         _email_rate[ip] = hits
-        raise HTTPException(status_code=429, detail="Too many requests. Try again later.")
+        raise HTTPException(status_code=429, detail="Too many requests. Try again later.", headers={"Retry-After": "3600"})
     hits.append(now_ts)
     _email_rate[ip] = hits
 

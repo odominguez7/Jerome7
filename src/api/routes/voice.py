@@ -5,6 +5,7 @@ Uses Web Speech API fallback + ElevenLabs AI TTS.
 """
 
 import json
+import logging
 import os
 import time
 from datetime import datetime, timezone
@@ -15,6 +16,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, Response, JSONResponse
 
 from src.api.routes.daily import get_daily, get_daily_wellness
+
+logger = logging.getLogger("jerome7")
 
 router = APIRouter()
 
@@ -148,7 +151,7 @@ async def voice_generate(request: Request):
     """Generate ElevenLabs TTS audio for today's session. Cached per day."""
     ip = request.client.host if request.client else "unknown"
     if not _check_voice_rate(ip):
-        return JSONResponse(status_code=429, content={"error": "Rate limited. Try again later."})
+        return JSONResponse(status_code=429, content={"error": "Rate limited. Try again later."}, headers={"Retry-After": "3600"})
 
     api_key = _get_api_key()
     voice_id = _get_voice_id()
@@ -199,15 +202,18 @@ async def voice_generate(request: Request):
         async with httpx.AsyncClient(timeout=60.0) as client:
             resp = await client.post(url, json=payload, headers=headers)
             if resp.status_code != 200:
+                logger.error("ElevenLabs API error (%s): %s", resp.status_code, resp.text[:200])
                 return JSONResponse(
                     status_code=502,
-                    content={"error": f"ElevenLabs API error: {resp.status_code}", "detail": resp.text[:200]},
+                    content={"error": "Voice generation temporarily unavailable."},
                 )
             _audio_cache[today] = resp.content
     except httpx.TimeoutException:
-        return JSONResponse(status_code=504, content={"error": "ElevenLabs API timed out."})
+        logger.error("ElevenLabs API timed out for /voice/generate")
+        return JSONResponse(status_code=504, content={"error": "Voice generation timed out. Try again."})
     except httpx.HTTPError as exc:
-        return JSONResponse(status_code=502, content={"error": f"HTTP error: {str(exc)}"})
+        logger.error("ElevenLabs HTTP error: %s", exc)
+        return JSONResponse(status_code=502, content={"error": "Voice generation temporarily unavailable."})
 
     return {"status": "generated", "url": "/voice/audio", "cached": False}
 
@@ -262,9 +268,14 @@ async def voice_session():
 
     # Serialize blocks safely using json.dumps
     blocks_raw = blocks if isinstance(blocks, list) else []
+    sanitized_blocks = []
     for b in blocks_raw:
-        b["name"] = html_escape(b.get("name", ""))
-        b["instruction"] = html_escape(b.get("instruction", ""))
+        if not isinstance(b, dict):
+            continue
+        b["name"] = html_escape(str(b.get("name", "")))
+        b["instruction"] = html_escape(str(b.get("instruction", "")))
+        sanitized_blocks.append(b)
+    blocks_raw = sanitized_blocks
     blocks_js = json.dumps(blocks_raw)
 
     html = f"""<!DOCTYPE html>
@@ -272,7 +283,7 @@ async def voice_session():
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jerome7 — Voice Session</title>
+<title>Jerome7 - Voice Session</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Guided 7-minute wellness session with AI voice narration.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -557,8 +568,8 @@ async def voice_session():
     </div>
 
     <div class="phase-label" id="phaseLabel">ARRIVAL</div>
-    <div class="block-name" id="blockName">—</div>
-    <div class="block-instruction" id="blockInstruction">—</div>
+    <div class="block-name" id="blockName">...</div>
+    <div class="block-instruction" id="blockInstruction">...</div>
     <div class="timer" id="timer">0:30</div>
     <div class="timer-label">REMAINING</div>
 
@@ -1058,7 +1069,7 @@ async def voice_wellness_generate(request: Request):
     """Generate ElevenLabs TTS audio for today's wellness session. Cached per day."""
     ip = request.client.host if request.client else "unknown"
     if not _check_voice_rate(ip):
-        return JSONResponse(status_code=429, content={"error": "Rate limited. Try again later."})
+        return JSONResponse(status_code=429, content={"error": "Rate limited. Try again later."}, headers={"Retry-After": "3600"})
 
     api_key = _get_api_key()
     voice_id = _get_voice_id()
@@ -1106,15 +1117,18 @@ async def voice_wellness_generate(request: Request):
         async with httpx.AsyncClient(timeout=60.0) as client:
             resp = await client.post(url, json=payload, headers=headers)
             if resp.status_code != 200:
+                logger.error("ElevenLabs wellness API error (%s): %s", resp.status_code, resp.text[:200])
                 return JSONResponse(
                     status_code=502,
-                    content={"error": f"ElevenLabs API error: {resp.status_code}"},
+                    content={"error": "Voice generation temporarily unavailable."},
                 )
             _wellness_audio_cache[today] = resp.content
     except httpx.TimeoutException:
-        return JSONResponse(status_code=504, content={"error": "ElevenLabs API timed out."})
+        logger.error("ElevenLabs API timed out for /voice/wellness/generate")
+        return JSONResponse(status_code=504, content={"error": "Voice generation timed out. Try again."})
     except httpx.HTTPError as exc:
-        return JSONResponse(status_code=502, content={"error": f"HTTP error: {str(exc)}"})
+        logger.error("ElevenLabs wellness HTTP error: %s", exc)
+        return JSONResponse(status_code=502, content={"error": "Voice generation temporarily unavailable."})
 
     return {"status": "generated", "url": "/voice/wellness/audio", "cached": False}
 

@@ -6,6 +6,7 @@ Powered by Google Gemini 2.5 Flash.
 
 import asyncio
 import json
+import logging
 import os
 import random
 from datetime import date, timedelta
@@ -14,6 +15,8 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
 
 from src.db.models import User, Streak, Session, SessionFeedback, Event
+
+logger = logging.getLogger(__name__)
 
 
 def _call_gemini(system_prompt: str, user_content: str, api_key: str) -> str:
@@ -347,7 +350,7 @@ class CheckupQuestions:
             )
             return json.loads(content)
         except Exception as e:
-            print(f"[CheckupQuestions] Gemini processing failed: {e}")
+            logger.error("[CheckupQuestions] Gemini processing failed: %s", e)
             return {
                 "interpretation": "Answer recorded.",
                 "adjustment_type": "none",

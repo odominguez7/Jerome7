@@ -86,7 +86,7 @@ def _burnout_risk(db: DBSession, user_id: str) -> dict:
 
     # Long streak without breaks can signal burnout
     if streak.current_streak > 30:
-        signals.append("Extended streak (30+ days) — check for fatigue")
+        signals.append("Extended streak (30+ days) - check for fatigue")
         risk_score += 15
 
     # Recent difficulty ratings trending high
@@ -115,7 +115,7 @@ def _burnout_risk(db: DBSession, user_id: str) -> dict:
 
     # Multiple streak breaks
     if streak.streak_broken_count >= 3:
-        signals.append(f"{streak.streak_broken_count} streak breaks — possible frustration cycle")
+        signals.append(f"{streak.streak_broken_count} streak breaks - possible frustration cycle")
         risk_score += 15
 
     # Days since last session
@@ -743,7 +743,7 @@ async def find_match(user_id: str, db: DBSession = Depends(get_db)):
             "timezone": match_user.timezone,
             "compatibility_score": match_score,
         },
-        "message": f"Matched with @{match_user.name} — {match_streak.current_streak} day streak, "
+        "message": f"Matched with @{match_user.name} - {match_streak.current_streak} day streak, "
                    f"{'same' if match_user.timezone == user.timezone else 'different'} timezone.",
     }
 
@@ -861,7 +861,7 @@ async def mesh_page(db: DBSession = Depends(get_db)):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Agent Mesh &mdash; Jerome7</title>
+<title>Agent Mesh - Jerome7</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -1015,7 +1015,7 @@ async def mesh_page(db: DBSession = Depends(get_db)):
       <div class="sidebar-title">Agent Mesh</div>
       <div class="sidebar-live">
         <div class="dot"></div>
-        LIVE &mdash; {active_streaks} agents online
+        LIVE - {active_streaks} agents online
       </div>
     </div>
 

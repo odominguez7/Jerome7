@@ -162,7 +162,7 @@ def agents_observatory(db: DBSession = Depends(get_db)):
         .all()
     )
     for nudge, user in recent_nudges:
-        events.append((nudge.sent_at, f'<span class="ev-icon">&#x1F514;</span> Nudge predicted @{user.name} might skip &mdash; sending reminder'))
+        events.append((nudge.sent_at, f'<span class="ev-icon">&#x1F514;</span> Nudge predicted @{user.name} might skip - sending reminder'))
 
     # Recent pods
     recent_pods = (
@@ -205,7 +205,7 @@ def agents_observatory(db: DBSession = Depends(get_db)):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agent Observatory &mdash; Jerome7</title>
+<title>Agent Observatory - Jerome7</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Watch Jerome7's 5 AI agents work in real-time.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -399,7 +399,7 @@ def agents_observatory(db: DBSession = Depends(get_db)):
           <div class="ag-stat-label">Sessions Generated</div>
         </div>
         <div class="ag-stat">
-          <div class="ag-stat-val">{round(avg_difficulty, 1) if avg_difficulty else "&mdash;"}</div>
+          <div class="ag-stat-val">{round(avg_difficulty, 1) if avg_difficulty else "--"}</div>
           <div class="ag-stat-label">Avg Difficulty</div>
         </div>
       </div>

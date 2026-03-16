@@ -6,12 +6,15 @@ Powered by Google Gemini 2.5 Flash.
 
 import asyncio
 import json
+import logging
 import os
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session as DBSession
 
 from src.db.models import User, Event, generate_uuid
+
+logger = logging.getLogger(__name__)
 
 
 def _call_gemini(system_prompt: str, user_content: str, api_key: str) -> str:
@@ -280,7 +283,7 @@ class MicroForum:
             )
             return json.loads(content)
         except Exception as e:
-            print(f"[MicroForum] Moderation failed: {e}")
+            logger.error("[MicroForum] Moderation failed: %s", e)
             return {
                 "health_score": 60,
                 "silent_members": silent_names,

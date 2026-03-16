@@ -39,9 +39,16 @@ async def timer_page():
 
     # Sanitize AI-generated content to prevent XSS
     blocks_raw = data.get("blocks", [])
+    if not isinstance(blocks_raw, list):
+        blocks_raw = []
+    sanitized_blocks = []
     for b in blocks_raw:
-        b["name"] = html_escape(b.get("name", ""))
-        b["instruction"] = html_escape(b.get("instruction", ""))
+        if not isinstance(b, dict):
+            continue
+        b["name"] = html_escape(str(b.get("name", "")))
+        b["instruction"] = html_escape(str(b.get("instruction", "")))
+        sanitized_blocks.append(b)
+    blocks_raw = sanitized_blocks
     blocks_json = json.dumps(blocks_raw)
     title = html_escape(data.get("session_title", session_type.title()))
     closing = html_escape(data.get("closing", "You showed up. That's the win."))
@@ -417,8 +424,8 @@ async def timer_page():
   <!-- ACTIVE SESSION -->
   <div id="activeSession" class="hidden">
     <div class="phase-label" id="phaseLabel" style="color:#4ecdc4">{session_type.upper()}</div>
-    <div class="active-name" id="blockName">—</div>
-    <div class="active-instruction" id="blockInstruction">—</div>
+    <div class="active-name" id="blockName">...</div>
+    <div class="active-instruction" id="blockInstruction">...</div>
     <div class="timer" id="timer">7:00</div>
     <div class="paused-label" id="pausedLabel">PAUSED</div>
     <div class="timer-label">REMAINING</div>

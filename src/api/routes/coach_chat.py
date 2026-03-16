@@ -1,6 +1,7 @@
 """GET /coach — Coach Chat UI.  POST /coach/ask — talk to your AI coach."""
 
 import asyncio
+import logging
 import os
 
 from fastapi import APIRouter, Depends
@@ -10,6 +11,8 @@ from sqlalchemy.orm import Session as DBSession
 
 from src.db.database import get_db
 from src.db.models import User, Streak, Seven7Session, Nudge, SessionFeedback
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -167,7 +170,7 @@ async def coach_ask(req: CoachAskRequest, db: DBSession = Depends(get_db)):
         )
         return JSONResponse(content={"response": text.strip(), "agent": "coach"})
     except Exception as e:
-        print(f"[CoachChat] Gemini error: {e}")
+        logger.error("[CoachChat] Gemini error: %s", e)
         return JSONResponse(content={
             "response": _static_fallback(streak),
             "agent": "coach",
