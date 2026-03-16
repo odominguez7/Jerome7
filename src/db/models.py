@@ -158,6 +158,10 @@ class User(Base):
     # Bot protection
     fingerprint = Column(String, nullable=True)
 
+    # Reminder preferences
+    email_reminders = Column(Boolean, default=True)
+    last_reminder_at = Column(DateTime, nullable=True)
+
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     last_active_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 

@@ -1,5 +1,6 @@
 """FastAPI application — Jerome 7 / YU Show Up."""
 
+import asyncio
 import logging
 import os
 import time
@@ -12,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from src.db.database import init_db
 from src.api.routes import pledge, log, seven7, streak, pod, health, streak_page, timer, daily, share, share_card, nudge, landing, leaderboard, analytics, analytics_page, live, twitter, twin, invite, voice, embed, session_card, coach_chat, agents_observatory, world_report, milestones, mesh_api, tokens, globe, sponsor, onboarding, agentcard, milestone_card, social_share, stats
-from src.api.routes import legal, subscribe, admin
+from src.api.routes import legal, subscribe, admin, verify, unsubscribe
 
 # ── Structured logging ────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -59,6 +60,15 @@ async def lifespan(app: FastAPI):
             logger.info("Session cache pre-warmed for %s (%s)", today, session_type)
     except Exception:
         logger.warning("Failed to pre-warm session cache — first visitor will trigger generation")
+
+    # Start daily reminder background loop if SMTP is configured
+    from src.api.email_utils import _smtp_configured
+    if _smtp_configured():
+        from src.api.reminders import reminder_loop
+        asyncio.create_task(reminder_loop())
+        logger.info("Daily reminder loop started")
+    else:
+        logger.info("SMTP not configured, reminder loop disabled")
 
     yield
     logger.info("Jerome7 shutting down")
@@ -268,4 +278,6 @@ app.include_router(social_share.router)
 app.include_router(stats.router)
 app.include_router(legal.router)
 app.include_router(subscribe.router)
+app.include_router(verify.router)
 app.include_router(admin.router)
+app.include_router(unsubscribe.router)

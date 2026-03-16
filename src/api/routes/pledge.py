@@ -1,5 +1,6 @@
 """POST /pledge — onboarding with strict validation and deduplication."""
 
+import logging
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -8,6 +9,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
 from src.api.models import PledgeRequest, UserResponse
+from src.api.email_utils import send_verification_email
 from src.db.database import get_db
 from src.db.models import (
     User, Streak, FitnessLevel,
@@ -15,6 +17,8 @@ from src.db.models import (
 )
 import time
 from datetime import datetime, timezone
+
+logger = logging.getLogger("jerome7")
 
 # Simple rate limiter: max 10 pledges per IP per hour
 _pledge_rate: dict[str, list] = {}
@@ -281,6 +285,13 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
     streak = Streak(user_id=user.id)
     db.add(streak)
     db.commit()
+
+    # Send verification email (non-blocking, don't fail the response)
+    if user.email:
+        try:
+            send_verification_email(user.email, user.id, user.name)
+        except Exception as e:
+            logger.error("Failed to send verification email to %s: %s", user.email, e)
 
     return UserResponse(
         user_id=user.id, name=user.name,

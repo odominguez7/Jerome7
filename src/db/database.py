@@ -46,6 +46,8 @@ def _migrate_add_columns():
         "fingerprint": "VARCHAR",
         "email_verified": "BOOLEAN",
         "email_verify_token": "VARCHAR",
+        "email_reminders": "BOOLEAN DEFAULT TRUE",
+        "last_reminder_at": "TIMESTAMP",
     }
 
     if "users" in inspector.get_table_names():
