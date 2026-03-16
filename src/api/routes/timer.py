@@ -579,7 +579,7 @@ async function loadCommunityStats() {{
     communityData = data;
     document.getElementById('statJeromes').textContent = data.total_jeromes || 0;
     document.getElementById('statToday').textContent = data.sessions_today || 0;
-    document.getElementById('statCountries').textContent = data.countries_represented || 0;
+    document.getElementById('statCountries').textContent = data.countries || 0;
   }} catch(e) {{
     // Silently fail
   }}
@@ -611,7 +611,7 @@ async function submitOnboarding() {{
     const resp = await fetch('/pledge', {{
       method: 'POST',
       headers: {{ 'Content-Type': 'application/json' }},
-      body: JSON.stringify({{ name: name, goal: goal || 'just_try', age_bracket: '25-34' }}),
+      body: JSON.stringify({{ name: name, goal: goal || 'just_try', age_bracket: '25-34', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', source: 'web' }}),
     }});
     const data = await resp.json();
 
@@ -814,10 +814,10 @@ function recordSession() {{
   // Log to server
   const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
   if (user.userId) {{
-    fetch('/log', {{
+    fetch('/log/' + user.userId, {{
       method: 'POST',
       headers: {{ 'Content-Type': 'application/json' }},
-      body: JSON.stringify({{ user_id: user.userId }}),
+      body: JSON.stringify({{ duration_minutes: 7 }}),
     }}).catch(() => {{}});
   }}
 }}
