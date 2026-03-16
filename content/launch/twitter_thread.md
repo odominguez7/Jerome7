@@ -121,7 +121,7 @@ Because if you're already shipping code, your wellness layer should be where you
 
 I'm investing $1,000 of my own money into this community.
 
-Every dollar tracked publicly. No VC. No ads. No premium tier. Apache 2.0. Personally funded.
+Every dollar tracked publicly. No VC. No ads. No premium tier. MIT. Personally funded.
 
 I'm an MIT student subsidizing hosting costs personally.
 

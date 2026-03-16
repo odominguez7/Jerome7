@@ -2,7 +2,7 @@
 
 7 minutes. Show up. Build with us.
 
-Jerome7 is open source (Apache 2.0) and we welcome contributions from builders everywhere.
+Jerome7 is open source (MIT) and we welcome contributions from builders everywhere.
 
 ## Quick Start
 

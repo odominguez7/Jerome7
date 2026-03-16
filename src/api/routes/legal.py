@@ -107,7 +107,7 @@ async def terms_of_service():
 <p>Sessions are AI-generated daily by Google Gemini and narrated by ElevenLabs. Content varies each day and is the same for every user globally.</p>
 
 <h2>Open Source</h2>
-<p>Jerome7 is licensed under Apache 2.0. You can view, fork, and contribute to the source code on <a href="https://github.com/odominguez7/Jerome7">GitHub</a>.</p>
+<p>Jerome7 is licensed under MIT. You can view, fork, and contribute to the source code on <a href="https://github.com/odominguez7/Jerome7">GitHub</a>.</p>
 
 <h2>Limitations</h2>
 <ul>

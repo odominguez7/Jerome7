@@ -3,7 +3,7 @@ name = "jerome7"
 version = "0.1.0"
 description = "YU Show Up — 7 minutes a day. An act of love. A community of builders showing up."
 authors = ["Omar Dominguez"]
-license = "Apache-2.0"
+license = "MIT"
 readme = "README.md"
 packages = [{include = "src"}]
 

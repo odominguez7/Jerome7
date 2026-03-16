@@ -46,7 +46,7 @@ What makes it different:
 
 **From your terminal:** `npx jerome7`. That's it.
 
-Personally funded. No premium tier. No ads. Apache 2.0. I'm investing $1K of my own money into this community, tracked publicly.
+Personally funded. No premium tier. No ads. MIT. I'm investing $1K of my own money into this community, tracked publicly.
 
 Built because 86% of Gen Z report burnout before 25. Seven minutes is the intervention.
 

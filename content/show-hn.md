@@ -41,7 +41,7 @@ jerome7.com/globe. Watch the world light up.
 reduces stress (p < .001), increases serenity, decreases anxiety.
 
 **Details:**
-- Personally funded. Open source. No paywall. Apache 2.0.
+- Personally funded. Open source. No paywall. MIT.
 - `npx jerome7` or `npx jerome7 --wellness` from your terminal
 - 14 builders from 8+ countries so far
 

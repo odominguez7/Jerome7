@@ -34,7 +34,7 @@ There's a live 3D globe at jerome7.com/globe where every builder who shows up be
 
 Jerome7 is:
 - Personally funded by the founder. No premium tier. No ads.
-- Open source under Apache 2.0
+- Open source under MIT
 - Available from your terminal: npx jerome7
 
 I'm personally investing $1,000 into this community, tracked publicly. Because this isn't a startup. It's a commitment to the builders who don't have time to take care of themselves but need it the most.

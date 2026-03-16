@@ -228,4 +228,4 @@ PRs welcome. The codebase is straightforward:
 
 ## License
 
-Apache 2.0. Personally funded by the founder. Open source.
+MIT. Personally funded by the founder. Open source.

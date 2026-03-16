@@ -130,7 +130,7 @@ Jerome7 is live and being used by builders across multiple countries. Daily rete
 
 ## Why I'm Personally Funding This
 
-Jerome7 is personally funded by the founder while the community grows. No premium tier, no "unlock advanced features," no subscription. It's open source under Apache 2.0, built at MIT.
+Jerome7 is personally funded by the founder while the community grows. No premium tier, no "unlock advanced features," no subscription. It's open source under MIT, built at MIT.
 
 Seven minutes of movement shouldn't have a paywall. The people who need this most -- the ones working 12-hour days, the ones who've failed at every gym membership, the ones who think fitness isn't for them -- are exactly the people who won't pay $15/month for another app.
 

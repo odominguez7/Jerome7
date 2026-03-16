@@ -276,7 +276,7 @@ async def landing():
 <!-- FOOTER -->
 <footer style="text-align:center;padding:40px 24px;border-top:1px solid #21262d;color:#484f58;font-size:13px">
   <div style="margin-bottom:8px;font-weight:700;color:#8b949e;letter-spacing:2px">JEROME7</div>
-  <div style="margin-bottom:16px">Personally funded. Open source. Apache 2.0.</div>
+  <div style="margin-bottom:16px">Personally funded. Open source. MIT.</div>
   <div style="display:flex;gap:16px;justify-content:center">
     <a href="/privacy" style="color:#484f58;text-decoration:none">Privacy</a>
     <a href="/terms" style="color:#484f58;text-decoration:none">Terms</a>

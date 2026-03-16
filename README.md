@@ -9,7 +9,7 @@
 The open-source AI wellness infrastructure for builders, coders, and dreamers.
 
 [![GitHub Stars](https://img.shields.io/github/stars/odominguez7/Jerome7?style=for-the-badge&color=e8713a&label=Stars)](https://github.com/odominguez7/Jerome7/stargazers)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![Jerome Count](https://img.shields.io/badge/dynamic/json?url=https://api.jerome7.com/stats&query=$.total_jeromes&label=Jeromes&style=for-the-badge&color=01696F)](https://jerome7.com/globe)
 [![Discord](https://img.shields.io/discord/1303563828498292758?style=for-the-badge&logo=discord&color=5865F2)](https://discord.gg/5AZP8DbEJm)
 
@@ -86,7 +86,7 @@ We welcome every contribution. [Read the guide](CONTRIBUTING.md).
 
 **Built by [Omar](https://github.com/odominguez7) & [Miguel](https://jerome7.com)**
 
-Apache 2.0 · Personally funded · Open source · No paywall
+MIT · Personally funded · Open source · No paywall
 
 *It's on YU.*
 

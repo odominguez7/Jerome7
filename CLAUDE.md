@@ -1,7 +1,7 @@
 # Jerome7: Project Instructions for Claude Code
 
 ## What is Jerome7
-Daily 7-minute guided wellness for builders. Breathwork, meditation, reflection, preparation. Rotating daily. Powered by 5 AI agents. Personally funded by the founder. Open source. Apache 2.0.
+Daily 7-minute guided wellness for builders. Breathwork, meditation, reflection, preparation. Rotating daily. Powered by 5 AI agents. Personally funded by the founder. Open source. MIT.
 
 ## Stack
 - **Backend**: FastAPI (Python 3.13), SQLAlchemy ORM, SQLite (dev) / PostgreSQL (prod)
