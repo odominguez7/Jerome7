@@ -64,7 +64,7 @@ async def timer_page():
     ai_available = "true" if os.getenv("ELEVENLABS_API_KEY", "") else "false"
 
     _meta = head_meta(
-        title=f"Jerome7 — {type_label}",
+        title=f"Jerome7 | {type_label}",
         description=f"Today's 7-minute guided {session_type} session. Same for every builder on earth.",
         url="https://jerome7.com/timer",
     )
@@ -73,7 +73,7 @@ async def timer_page():
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jerome7 — {type_label}</title>
+<title>Jerome7 | {type_label}</title>
 <meta name="description" content="Today's 7-minute guided {session_type} session. Same for every builder on earth.">
 {_meta}
 <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -81,7 +81,7 @@ def post_daily_tweet(db: DBSession = Depends(get_db)):
     tweet_2 = (
         f"\U0001f30d {total_users} builders. {active_streaks} active streaks. "
         f"{countries_count} countries.\n\n"
-        f"Free forever. Open source.\n"
+        f"Personally funded. Open source.\n"
         f"github.com/odominguez7/Jerome7"
     )
 

@@ -34,7 +34,7 @@ Jerome7 exposes itself as an MCP server with 6 tools. Any MCP-compatible agent (
 
 **Stack:** FastAPI, PostgreSQL, Gemini 2.5 Flash, Railway, Cloudflare, MCP protocol, ElevenLabs TTS
 
-Open source, Apache 2.0, free forever. No premium tier.
+Open source, Apache 2.0, personally funded. No premium tier.
 
 - GitHub: https://github.com/odominguez7/Jerome7
 - Live: https://jerome7.com
@@ -84,7 +84,7 @@ Hey r/webdev. I'm Omar, MIT student. Built this as a community project and wante
 
 **Tokens:** Non-financial commitment tokens. Complete a session = 10 tokens. Help others = 25. Code contribution = 50. Redeemable for guided audio, coaching calls, community events.
 
-Everything is open source under Apache 2.0. Free forever, no premium tier.
+Everything is open source under Apache 2.0. Personally funded, no premium tier.
 
 - Live: https://jerome7.com
 - Globe: https://jerome7.com/globe
@@ -135,7 +135,7 @@ The 3-miss rule exists because binary streaks are psychologically fragile. One b
 
 There's a live 3D globe at jerome7.com/globe that lights up with every person who showed up today. Watching dots appear across time zones -- builders in Tokyo, Lagos, Sao Paulo, all doing the same session -- is genuinely motivating.
 
-**It's free. Forever.**
+**Personally funded by the founder while the community grows.**
 
 No premium tier. No "unlock advanced features." No ads. I'm an MIT student subsidizing the hosting costs personally. I'm also investing $1K of my own money into the community, tracked publicly.
 

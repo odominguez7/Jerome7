@@ -118,7 +118,7 @@ def join_page(code: str, db: DBSession = Depends(get_db)):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome7 — {inviter_name} invited you</title>
-<meta name="description" content="{inviter_name} wants you to join Jerome7. 7 minutes a day. Free forever.">
+<meta name="description" content="{inviter_name} wants you to join Jerome7. 7 minutes a day. Personally funded. Open source.">
 <meta property="og:title" content="{inviter_name} invited you to Jerome7">
 <meta property="og:description" content="7 minutes a day. Same session for everyone on earth. {inviter_name} is on a {inviter_streak}-day streak.">
 <meta property="og:url" content="https://jerome7.com/join/{code}">
@@ -188,7 +188,7 @@ def join_page(code: str, db: DBSession = Depends(get_db)):
   </div>
 
   <a href="/timer?invite={code}" class="cta-btn">START YOUR FIRST SESSION</a>
-  <div class="cta-sub">Free forever. Open source.</div>
+  <div class="cta-sub">Community-powered. Open source.</div>
 
   <div class="chain-note">
     When you hit a <strong>7-day streak</strong>, you'll unlock<br>

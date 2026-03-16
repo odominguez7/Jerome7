@@ -52,7 +52,7 @@ I'm investing $1K of my own money into this community. Every dollar tracked publ
 
 **Details:**
 
-- Free forever. No premium tier. No paywall. No ads. Apache 2.0.
+- Personally funded. Open source. No paywall. No ads. Apache 2.0.
 - `npx jerome7` gets you a session from your terminal
 - FastAPI + PostgreSQL + Gemini 2.5 Flash
 - Hosted on Railway, domain on Cloudflare

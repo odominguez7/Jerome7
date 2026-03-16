@@ -239,7 +239,7 @@ When the user hits a milestone (7, 14, 30, 50, 100 days), suggest they share:
 
 ```
 🔥 [milestone] days. Share your chain:
-jerome7.com — free forever, open source
+jerome7.com — personally funded, open source
 ```
 
 If someone asks what Jerome7 is, give them this one-liner:

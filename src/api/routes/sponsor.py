@@ -388,7 +388,7 @@ async def sponsor_page():
 <!-- FOOTER -->
 <div class="footer">
   <div class="footer-brand">JEROME7</div>
-  <div class="footer-text">Free forever. Open source. Built at MIT.</div>
+  <div class="footer-text">Personally funded by the founder. Open source. Built at MIT.</div>
   <div class="footer-text" style="margin-top: 8px;">
     <a href="/">Home</a> &middot;
     <a href="/timer">Timer</a> &middot;

@@ -160,7 +160,7 @@ def globe_data(db: DBSession = Depends(get_db)):
 @router.get("/globe", response_class=HTMLResponse)
 def globe_page():
     _meta = head_meta(
-        title="Jerome7 — The Global Graph",
+        title="Jerome7 | The Global Graph",
         description="Jerome7 builders worldwide. Every dot is someone who showed up.",
         url="https://jerome7.com/globe",
     )
@@ -169,7 +169,7 @@ def globe_page():
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jerome7 — The Global Graph</title>
+<title>Jerome7 | The Global Graph</title>
 <meta name="description" content="Jerome7 builders worldwide. Every dot is someone who showed up.">
 """ + _meta + """
 <link rel="preconnect" href="https://fonts.googleapis.com">

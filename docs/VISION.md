@@ -73,7 +73,7 @@ Five AI agents coordinate behind the scenes:
 
 Jerome7 is:
 
-- **Free forever.** No premium tier. No paywall. No ads.
+- **Personally funded by the founder.** No premium tier. No paywall. No ads.
 - **Open source.** Every line of code is public.
 - **MCP-native.** Works inside Claude, GPT, Gemini, or any agent runtime that speaks Model Context Protocol.
 - **Community-owned.** The roadmap is shaped by the people who show up.

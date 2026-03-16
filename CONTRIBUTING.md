@@ -65,4 +65,4 @@ integrations/       # OpenClaw, ZeroClaw configs
 - [jerome7.com](https://jerome7.com)
 - Open an issue
 
-Built at MIT. Free forever.
+Built at MIT. Personally funded. Open source.

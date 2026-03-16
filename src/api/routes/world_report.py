@@ -430,7 +430,7 @@ def report_page(db: DBSession = Depends(get_db)):
   <!-- Footer -->
   <div class="footer">
     <div class="footer-brand">JEROME7</div>
-    <div class="footer-text">Free forever. Open source. Built at MIT.</div>
+    <div class="footer-text">Personally funded by the founder. Open source. Built at MIT.</div>
     <div class="footer-text" style="margin-top:8px;">
       <a href="/">Home</a> · <a href="/timer">Timer</a> ·
       <a href="/leaderboard">Leaderboard</a> ·

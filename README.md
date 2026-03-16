@@ -19,7 +19,7 @@ The open-source AI wellness infrastructure for builders, coders, and dreamers.
 
 ---
 
-> *"I was 80 lbs overweight. Couldn't run a mile. Started with 7 minutes a day. That became the Boston Marathon. Then Ironman 70.3. Then MIT. Not because I was exceptional — because I was consistent."*
+> *"I was 80 lbs overweight. Couldn't run a mile. Started with 7 minutes a day. That became the Boston Marathon. Then Ironman 70.3. Then MIT. Not because I was exceptional. Because I was consistent."*
 >
 > — Omar, Jerome7 (Founder)
 
@@ -27,7 +27,7 @@ The open-source AI wellness infrastructure for builders, coders, and dreamers.
 
 ## What is Jerome7?
 
-A daily 7-minute guided session — breathwork, meditation, reflection, or preparation — powered by AI agents that learn your patterns and match you with accountability partners worldwide.
+A daily 7-minute guided session: breathwork, meditation, reflection, or preparation. Powered by AI agents that learn your patterns and match you with accountability partners worldwide.
 
 **No exercise. No equipment. Just earphones and a place to sit.**
 
@@ -162,7 +162,7 @@ If you believe 7 minutes can change a life, **[star this repo](https://github.co
 
 **Built by [Omar](https://github.com/odominguez7) & [Miguel](https://jerome7.com)**
 
-Apache 2.0 · Free forever · No premium tier · No paywall
+Apache 2.0 · Personally funded · Open source · No paywall
 
 *It's on YU.*
 

@@ -6,8 +6,8 @@ _PLAUSIBLE = """<script async src="https://plausible.io/js/pa-Ar14FrKY9n2naAlU6c
 
 
 def head_meta(
-    title: str = "Jerome7 — 7 minutes. Show up.",
-    description: str = "Daily 7-minute guided wellness for builders. Breathwork, meditation, reflection. Free forever.",
+    title: str = "Jerome7 | 7 minutes. Show up.",
+    description: str = "Daily 7-minute guided wellness for builders. Breathwork, meditation, reflection. Personally funded. Open source.",
     url: str = "https://jerome7.com",
     og_type: str = "website",
 ) -> str:

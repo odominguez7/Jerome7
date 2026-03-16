@@ -312,7 +312,7 @@ def live_dashboard(db: DBSession = Depends(get_db)):
   <div class="cta">
     <div class="cta-text">7 minutes. Same session for everyone on earth. Every day.</div>
     <a href="/timer" class="cta-btn">START TODAY'S SESSION</a>
-    <div class="cta-sub">Free forever. Open source. No account needed.</div>
+    <div class="cta-sub">Personally funded. Open source. No account needed.</div>
   </div>
 
   <div class="footer">

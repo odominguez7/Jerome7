@@ -102,7 +102,7 @@ def build_thread(daily, leaderboard, analytics):
         f"• ZeroClaw TOML\n"
         f"• Direct API\n\n"
         f"{total_users} builders. {active_streaks} active streaks.\n\n"
-        f"Free forever. github.com/odominguez7/Jerome7\n\n"
+        f"Personally funded. Open source. github.com/odominguez7/Jerome7\n\n"
         f"#fitness #AI #buildinpublic #MCP #OpenClaw"
     )
 

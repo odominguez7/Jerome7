@@ -33,7 +33,7 @@ The technical innovation I'm most proud of: Jerome7 is MCP-native. It's a Model 
 There's a live 3D globe at jerome7.com/globe where every builder who shows up becomes a dot. Watching it light up across time zones is the most rewarding thing I've built.
 
 Jerome7 is:
-- Free forever. No premium tier. No ads.
+- Personally funded by the founder. No premium tier. No ads.
 - Open source under Apache 2.0
 - Available from your terminal: npx jerome7
 

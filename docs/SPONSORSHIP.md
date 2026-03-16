@@ -2,7 +2,7 @@
 
 ## Why Sponsor Jerome7?
 
-Jerome7 is free forever. No premium tier. No ads. No paywall. That means it runs on the generosity of people who believe showing up matters.
+Jerome7 is personally funded by the founder while the community grows. No premium tier. No ads. No paywall. It runs on the generosity of people who believe showing up matters.
 
 Omar is investing $1,000 of his own money to launch Jerome7. Every dollar is tracked publicly.
 

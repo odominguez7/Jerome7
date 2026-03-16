@@ -1,6 +1,6 @@
 # Jerome7 — Agent Integrations
 
-Add Jerome7 to any AI agent. No API key needed. Free forever.
+Add Jerome7 to any AI agent. No API key needed. Community-powered. Open source.
 
 ## Quick Install
 

@@ -26,8 +26,8 @@ async def landing():
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jerome7 — 7 minutes. Show up. The world gets better.</title>
-<meta name="description" content="Daily 7-minute guided wellness for builders. Breathwork, meditation, reflection. Powered by AI agents. Free forever.">
+<title>Jerome7 | 7 minutes. Show up. The world gets better.</title>
+<meta name="description" content="Daily 7-minute guided wellness for builders. Breathwork, meditation, reflection. Powered by AI agents. Personally funded. Open source.">
 {_meta}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -286,7 +286,7 @@ async def landing():
   <div class="quote-text">
     "I was 80 lbs overweight. Couldn't run a mile. Started with 7 minutes a day.
     That became the Boston Marathon. Then Ironman 70.3. Then MIT.
-    Not because I was exceptional — because I was consistent."
+    Not because I was exceptional. Because I was consistent."
   </div>
   <div class="quote-author">— Omar, Jerome7 (Founder)</div>
 </div>
@@ -295,7 +295,7 @@ async def landing():
 <section>
   <div class="section-label">WHAT IS JEROME7</div>
   <h2>A daily 7-minute guided session.</h2>
-  <p>Breathwork, meditation, reflection, or preparation — powered by AI agents that learn your patterns and match you with accountability partners worldwide.</p>
+  <p>Breathwork, meditation, reflection, or preparation, powered by AI agents that learn your patterns and match you with accountability partners worldwide.</p>
   <p>The activity changes every 24 hours. Same session for every builder on Earth. Like Wordle, but for your mind.</p>
 </section>
 
@@ -333,7 +333,7 @@ async def landing():
 <section>
   <div class="section-label">ROTATING DAILY</div>
   <h2>4 session types. One each day.</h2>
-  <p>The session rotates automatically. You don't choose — you show up.</p>
+  <p>The session rotates automatically. You don't choose. You show up.</p>
 
   <div class="types">
     <div class="type-card">
@@ -378,7 +378,7 @@ async def landing():
 <section>
   <div class="section-label">UNDER THE HOOD</div>
   <h2>5 AI agents. One mission.</h2>
-  <p>Jerome7 isn't a meditation app. It's a coordination system — agents that learn your patterns, predict burnout, and match you with accountability partners.</p>
+  <p>Jerome7 isn't a meditation app. It's a coordination system: agents that learn your patterns, predict burnout, and match you with accountability partners.</p>
 
   <div class="agents">
     <div class="agent">
@@ -473,7 +473,7 @@ async def landing():
 <!-- FOOTER -->
 <div class="footer">
   <div class="footer-brand">JEROME7</div>
-  <div class="footer-text">Free forever. Open source. No premium tier. No paywall.</div>
+  <div class="footer-text">Personally funded. Open source. No paywall.</div>
   <div class="footer-text" style="margin-top: 8px;">
     <a href="/timer">Session</a> &middot;
     <a href="/globe">Globe</a> &middot;

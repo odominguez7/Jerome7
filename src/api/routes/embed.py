@@ -30,7 +30,7 @@ async def embed_session(db: DBSession = Depends(get_db)):
     """Today's session in a clean format for embedding in any app.
 
     Returns minimal payload — blocks, title, total time.
-    No authentication required. Free forever.
+    No authentication required. Open source.
     """
     session = await get_daily()
     blocks = session.get("blocks", [])
@@ -128,7 +128,7 @@ def embed_widget():
   <div class="title" id="title">Loading...</div>
   <div class="sub">7 blocks · 60s each · same for everyone</div>
   <a href="https://jerome7.com/timer" target="_blank" class="btn">START</a>
-  <div class="footer"><a href="https://jerome7.com" target="_blank">jerome7.com</a> · free forever</div>
+  <div class="footer"><a href="https://jerome7.com" target="_blank">jerome7.com</a> · open source</div>
 </div>
 <script>
   fetch('https://jerome7.com/api/embed/session')
@@ -465,7 +465,7 @@ GET /api/embed/session               JSON session data
 GET /api/embed/stats                 JSON community stats<button class="copy-btn" onclick="copyCode('code-api')">Copy</button></div>
 
   <div class="footer">
-    <a href="https://jerome7.com">Jerome7</a> &mdash; 7 minutes a day. Free forever.
+    <a href="https://jerome7.com">Jerome7</a> &mdash; 7 minutes a day. Personally funded. Open source.
   </div>
 </div>
 

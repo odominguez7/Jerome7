@@ -28,7 +28,7 @@ _HEAD = """<meta charset="UTF-8">
 async def privacy_policy():
     return HTMLResponse(content=f"""<!DOCTYPE html>
 <html lang="en"><head>
-<title>Jerome7 — Privacy Policy</title>
+<title>Jerome7 | Privacy Policy</title>
 {_HEAD}
 </head><body>
 <div class="container">
@@ -39,10 +39,10 @@ async def privacy_policy():
 <h2>What We Collect</h2>
 <p>When you sign up, we collect:</p>
 <ul>
-<li><strong>Name</strong> — to personalize your Jerome# identity</li>
-<li><strong>Goal</strong> — to tailor your wellness experience</li>
-<li><strong>Timezone</strong> — auto-detected from your browser for country mapping</li>
-<li><strong>Session data</strong> — completion timestamps and streak counts</li>
+<li><strong>Name</strong>: to personalize your Jerome# identity</li>
+<li><strong>Goal</strong>: to tailor your wellness experience</li>
+<li><strong>Timezone</strong>: auto-detected from your browser for country mapping</li>
+<li><strong>Session data</strong>: completion timestamps and streak counts</li>
 </ul>
 <p>We do <strong>not</strong> collect email addresses (unless you provide one), passwords, payment info, health data, or location coordinates.</p>
 
@@ -79,7 +79,7 @@ async def privacy_policy():
 async def terms_of_service():
     return HTMLResponse(content=f"""<!DOCTYPE html>
 <html lang="en"><head>
-<title>Jerome7 — Terms of Service</title>
+<title>Jerome7 | Terms of Service</title>
 {_HEAD}
 </head><body>
 <div class="container">

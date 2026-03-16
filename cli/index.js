@@ -126,7 +126,7 @@ async function runSession(session) {
   const closing = session.closing || "You showed up. That's the win.";
   console.log(`  ${DIM}${closing}${RESET}`);
   console.log();
-  console.log(`  ${DIM}jerome7.com/timer · free forever · open source${RESET}`);
+  console.log(`  ${DIM}jerome7.com/timer · personally funded · open source${RESET}`);
   console.log();
 }
 

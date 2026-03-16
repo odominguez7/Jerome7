@@ -10,7 +10,7 @@
 
 ## Description (260 chars max)
 
-**Jerome7 generates one 7-minute bodyweight session daily -- same for everyone on Earth. 5 AI agents adapt difficulty, predict skips, match accountability pods, and track your chain. MCP-native, open source, free forever. Like Wordle, but you move.** (248 chars)
+**Jerome7 generates one 7-minute bodyweight session daily -- same for everyone on Earth. 5 AI agents adapt difficulty, predict skips, match accountability pods, and track your chain. MCP-native, open source, personally funded. Like Wordle, but you move.** (252 chars)
 
 ---
 
@@ -46,7 +46,7 @@ What makes it different:
 
 **From your terminal:** `npx jerome7`. That's it.
 
-Free forever. No premium tier. No ads. Apache 2.0. I'm investing $1K of my own money into this community, tracked publicly.
+Personally funded. No premium tier. No ads. Apache 2.0. I'm investing $1K of my own money into this community, tracked publicly.
 
 Built because 86% of Gen Z report burnout before 25. Seven minutes is the intervention.
 
