@@ -14,6 +14,7 @@ from fastapi.responses import HTMLResponse
 
 from src.agents.coach import CoachAgent
 from src.agents.session_types import today_session_type
+from src.api.meta import head_meta
 
 router = APIRouter()
 coach = CoachAgent()
@@ -62,15 +63,23 @@ async def timer_page():
     type_desc = type_descriptions.get(session_type, "7 minutes of guided wellness.")
     ai_available = "true" if os.getenv("ELEVENLABS_API_KEY", "") else "false"
 
+    _meta = head_meta(
+        title=f"Jerome7 — {type_label}",
+        description=f"Today's 7-minute guided {session_type} session. Same for every builder on earth.",
+        url="https://jerome7.com/timer",
+    )
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome7 — {type_label}</title>
 <meta name="description" content="Today's 7-minute guided {session_type} session. Same for every builder on earth.">
+{_meta}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{
     background: #0d1117; color: #c9d1d9;

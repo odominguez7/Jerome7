@@ -4,6 +4,8 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
+
+from src.api.meta import head_meta
 from sqlalchemy import func
 from sqlalchemy.orm import Session as DBSession
 
@@ -157,6 +159,11 @@ def globe_data(db: DBSession = Depends(get_db)):
 
 @router.get("/globe", response_class=HTMLResponse)
 def globe_page():
+    _meta = head_meta(
+        title="Jerome7 — The Global Graph",
+        description="Jerome7 builders worldwide. Every dot is someone who showed up.",
+        url="https://jerome7.com/globe",
+    )
     html = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -164,9 +171,9 @@ def globe_page():
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome7 — The Global Graph</title>
 <meta name="description" content="Jerome7 builders worldwide. Every dot is someone who showed up.">
-<meta property="og:title" content="Jerome7 — The Global Graph">
-<meta property="og:description" content="A 3D globe of every builder who showed up today.">
+""" + _meta + """
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }

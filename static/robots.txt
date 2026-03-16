@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /log/
+Disallow: /nudge/
+Disallow: /analytics/
+Disallow: /checkup/
+Disallow: /tokens/
+
+Sitemap: https://jerome7.com/sitemap.xml

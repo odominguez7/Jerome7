@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
 from src.agents.session_types import today_session_type
+from src.api.meta import head_meta
 
 router = APIRouter()
 
@@ -19,6 +20,7 @@ async def landing():
     }
     today_label = type_labels.get(session_type, session_type.title())
 
+    _meta = head_meta()
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,15 +28,11 @@ async def landing():
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerome7 — 7 minutes. Show up. The world gets better.</title>
 <meta name="description" content="Daily 7-minute guided wellness for builders. Breathwork, meditation, reflection. Powered by AI agents. Free forever.">
-<meta property="og:title" content="Jerome7 — 7 minutes. Show up.">
-<meta property="og:description" content="Daily 7-minute guided wellness for builders, coders, and dreamers. Same session for everyone. Free forever.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://jerome7.com">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Jerome7 — 7 minutes. Show up.">
-<meta name="twitter:description" content="Daily guided breathwork, meditation, reflection. Same session for every builder on earth.">
+{_meta}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{
     background: #0d1117; color: #c9d1d9;
@@ -483,6 +481,13 @@ function copyCli() {{
   }});
 }}
 </script>
+<footer style="text-align:center;padding:32px 0 16px;font-size:0.7rem;color:#30363d;">
+  <a href="/privacy" style="color:#484f58;text-decoration:none;">Privacy</a>
+  <span style="color:#21262d;margin:0 8px;">|</span>
+  <a href="/terms" style="color:#484f58;text-decoration:none;">Terms</a>
+  <span style="color:#21262d;margin:0 8px;">|</span>
+  <span style="color:#484f58;">Apache 2.0</span>
+</footer>
 </body>
 </html>"""
     return HTMLResponse(
