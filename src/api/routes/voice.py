@@ -29,10 +29,14 @@ _audio_cache: dict[str, bytes] = {}
 _wellness_audio_cache: dict[str, bytes] = {}
 
 
+# Bump this when voice settings change to force cache regeneration
+_VOICE_SETTINGS_VERSION = "v2"
+
+
 def _disk_path(prefix: str, date_str: str) -> str:
-    # Include voice ID in filename so changing voice auto-invalidates cache
-    vid = _get_voice_id()[-6:]  # last 6 chars of voice ID
-    return os.path.join(_CACHE_DIR, f"{prefix}-{date_str}-{vid}.mp3")
+    # Include voice ID + settings version so any change auto-invalidates cache
+    vid = _get_voice_id()[-6:]
+    return os.path.join(_CACHE_DIR, f"{prefix}-{date_str}-{vid}-{_VOICE_SETTINGS_VERSION}.mp3")
 
 
 def _save_to_disk(prefix: str, date_str: str, data: bytes):
