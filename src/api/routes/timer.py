@@ -520,7 +520,8 @@ function selectVoice(mode) {{
   btnAi.style.color = mode === 'ai' ? '#fff' : '#484f58';
   btnBrowser.style.background = mode === 'browser' ? '#E85D04' : 'none';
   btnBrowser.style.color = mode === 'browser' ? '#fff' : '#484f58';
-  document.getElementById('voiceNote').textContent = mode === 'ai'
+  const vn = document.getElementById('voiceNote');
+  if (vn) vn.textContent = mode === 'ai'
     ? 'AI-narrated by ElevenLabs. Use earphones.'
     : 'Browser voice with ambient 432Hz audio. Use earphones.';
 }}
@@ -1027,9 +1028,10 @@ function tick() {{
     remaining--;
     totalElapsed++;
     totalRemaining--;
+    if (totalRemaining < 0) totalRemaining = 0;
     document.getElementById('timer').textContent = formatTime(totalRemaining);
-    document.getElementById('blockTimer').textContent = 'BLOCK ' + (currentBlock + 1) + '/' + blocks.length + ' - ' + formatTime(remaining);
-    document.getElementById('progress').style.width = (totalElapsed / TOTAL * 100) + '%';
+    document.getElementById('blockTimer').textContent = 'BLOCK ' + (currentBlock + 1) + '/' + blocks.length + ' - ' + formatTime(Math.max(0, remaining));
+    document.getElementById('progress').style.width = Math.min(100, totalElapsed / TOTAL * 100) + '%';
     document.getElementById('progress').style.backgroundColor = typeColor;
 
     if (remaining <= 0) {{
@@ -1092,6 +1094,7 @@ function finishSession() {{
 }}
 
 function formatTime(s) {{
+  if (s < 0) s = 0;
   const m = Math.floor(s / 60);
   const sec = s % 60;
   return m + ':' + sec.toString().padStart(2, '0');
