@@ -205,7 +205,32 @@
       "Bash(python3 -m ruff check src/ --select E402)",
       "Bash(python3 -m ruff check src/api/email_utils.py src/api/routes/verify.py src/api/routes/pledge.py src/api/main.py)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://jerome7.com/admin\")",
-      "Bash(python3 -m ruff check src/api/routes/timer.py)"
+      "Bash(python3 -m ruff check src/api/routes/timer.py)",
+      "Bash(grep -E '\\\\.py$')",
+      "Bash(grep -r \"from src.api.routes import\\\\|from src.agents import\\\\|from src.mcp import\" '/Users/odominguez7/Desktop/YU/Jerome 7 - github/src' --include=*.py)",
+      "Bash(grep -r \"from src.api.routes\\\\|import.*routes\" '/Users/odominguez7/Desktop/YU/Jerome 7 - github/src' --include=*.py)",
+      "Bash(grep -r \"from src.agents\\\\|from\\\\.\\\\.agents import\\\\|import.*agents\" '/Users/odominguez7/Desktop/YU/Jerome 7 - github/src' --include=*.py)",
+      "Bash(grep -r \"mesh_api\\\\|agents_observatory\\\\|world_report\\\\|twin\" '/Users/odominguez7/Desktop/YU/Jerome 7 - github/src/api/routes' --include=*.py)",
+      "Bash(wc -l \"/Users/odominguez7/Desktop/YU/Jerome 7 - github/src/api/routes/\"*.py)",
+      "Bash(grep -l \"pass$\\\\|TODO\\\\|FIXME\\\\|placeholder\" \"/Users/odominguez7/Desktop/YU/Jerome 7 - github/src/api/routes/\"*.py)",
+      "Bash(find src/api/routes -type f -name \"*.py\" -exec bash -c 'lines=$\\(wc -l < \"\"\"\"$1\"\"\"\"\\); echo \"\"\"\"$lines | $1\"\"\"\"' _ {})",
+      "Bash(grep -r \"coach\\\\|CoachAgent\" '/Users/odominguez7/Desktop/YU/Jerome 7 - github/src/api' --include=*.py)",
+      "Bash(grep -r 'from src.agents' '/Users/odominguez7/Desktop/YU/Jerome 7 - github' --include=*.py)",
+      "Bash(grep -r import.*agents '/Users/odominguez7/Desktop/YU/Jerome 7 - github' --include=*.py)",
+      "Bash(grep -l \"CommunityMatcherAgent\\\\|StreakAgent\\\\|NudgeAgent\\\\|SchedulerAgent\" \"/Users/odominguez7/Desktop/YU/Jerome 7 - github/src/api/routes/\"*.py)",
+      "Bash(grep -l \"CommunityMatcherAgent\\\\|StreakAgent\\\\|NudgeAgent\\\\|SchedulerAgent\" \"/Users/odominguez7/Desktop/YU/Jerome 7 - github/src/api/\"*.py)",
+      "Bash(grep -r \"import redis\\\\|from redis\\\\|redis\\\\.\" '/Users/odominguez7/Desktop/YU/Jerome 7 - github/src' --include=*.py)",
+      "Bash(grep -r \"import psycopg2\\\\|from psycopg2\\\\|import pg\\\\|from pg\\\\|import motor\\\\|from motor\" '/Users/odominguez7/Desktop/YU/Jerome 7 - github/src' --include=*.py)",
+      "Bash(grep -r \"discord_bot\\\\|bot.py\" '/Users/odominguez7/Desktop/YU/Jerome 7 - github' --include=*.py)",
+      "Bash(grep -r \"events.py\\\\|from src import events\\\\|from src.events import\" '/Users/odominguez7/Desktop/YU/Jerome 7 - github' --include=*.py)",
+      "Bash(grep -r \"from src.api.email_utils\\\\|import email_utils\" '/Users/odominguez7/Desktop/YU/Jerome 7 - github/src' --include=*.py)",
+      "Bash(grep -r \"def.*test\\\\|class.*Test\\\\|pytest\" '/Users/odominguez7/Desktop/YU/Jerome 7 - github' --include=*.py)",
+      "Bash(wc -l /Users/odominguez7/Desktop/YU/Jerome 7 - github/src/agents/*.py /Users/odominguez7/Desktop/YU/Jerome 7 - github/src/agents/**/*.py)",
+      "Bash(find src/api/routes -name \"*.py\" -exec wc -l {} +)",
+      "Bash(find src/agents -name \"*.py\" -exec wc -l {} +)",
+      "Bash(timeout 10 python3 -c \"from src.api.main import app; print\\(''App imports OK''\\); print\\(f''Routes: {len\\(app.routes\\)}''\\)\")",
+      "Bash(python3 -c \"from src.api.main import app; print\\(''App imports OK''\\); print\\(f''Routes: {len\\(app.routes\\)}''\\)\")",
+      "Bash(find src:*)"
     ]
   }
 }
