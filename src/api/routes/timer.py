@@ -500,7 +500,7 @@ async def timer_page():
       </div>
     </div>
 
-    <button class="start-btn" id="startBtn" onclick="beginSession()">BEGIN SESSION</button>
+    <button class="start-btn" id="startBtn" onclick="beginSession().catch(console.error)">BEGIN SESSION</button>
     <div class="voice-note" id="voiceNote">Binaural beats require earphones for full effect.</div>
   </div>
 
@@ -972,8 +972,52 @@ function buildAdaptiveGreeting() {{
   return greeting;
 }}
 
+// ── Fetch pattern insights from API for richer context ──
+async function fetchPatternInsights() {{
+  if (!jeromeNumber) return null;
+  try {{
+    const resp = await fetch('/api/insights/' + jeromeNumber);
+    if (!resp.ok) return null;
+    return await resp.json();
+  }} catch {{ return null; }}
+}}
+
+function buildInsightGreeting(insights) {{
+  if (!insights) return buildAdaptiveGreeting();
+
+  const hour = new Date().getHours();
+  let timeGreet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  let identity = jeromeNumber ? ', Jerome' + jeromeNumber : (userName && userName !== 'builder' ? ', ' + userName : '');
+  let g = timeGreet + identity + '. ';
+
+  // Streak context from server
+  const streak = insights.current_streak || 0;
+  const status = insights.streak_status || 'new';
+  const rate = insights.completion_rate || 0;
+  const score = insights.consistency_score || 0;
+
+  if (status === 'new') {{
+    g += 'Welcome to Jerome7. 7 minutes. That is all it takes. ';
+  }} else if (status === 'returned') {{
+    g += 'You came back. That takes more courage than starting. ';
+  }} else if (status === 'at_risk') {{
+    g += 'Yesterday was a miss. Today you showed up. That is the difference. ';
+  }} else if (streak <= 7) {{
+    g += 'Day ' + streak + '. Building the foundation. ';
+  }} else if (streak <= 30) {{
+    g += 'Day ' + streak + '. ' + Math.round(rate) + '% completion rate. You are proving this to yourself. ';
+  }} else if (streak <= 100) {{
+    g += 'Day ' + streak + '. Consistency score: ' + score + '. You are becoming someone different. ';
+  }} else {{
+    g += 'Day ' + streak + '. Legendary. ';
+  }}
+
+  g += 'Today is ' + sessionType + '. Let us begin.';
+  return g;
+}}
+
 // ── Session runner ──
-function beginSession() {{
+async function beginSession() {{
   document.getElementById('preStart').classList.add('hidden');
   document.getElementById('activeSession').classList.remove('hidden');
 
@@ -990,8 +1034,9 @@ function beginSession() {{
     aiAudio.currentTime = 0;
     aiAudio.play().catch(() => {{}});
   }} else {{
-    // Adaptive AI greeting based on streak, time of day, and history
-    const greeting = buildAdaptiveGreeting();
+    // Fetch real pattern data from server, fall back to local
+    const insights = await fetchPatternInsights();
+    const greeting = insights ? buildInsightGreeting(insights) : buildAdaptiveGreeting();
     speak(greeting);
   }}
 

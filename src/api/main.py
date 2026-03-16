@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from src.db.database import init_db
 from src.api.routes import pledge, log, seven7, streak, health, streak_page, timer, daily, landing, voice, globe, onboarding, stats
-from src.api.routes import legal, subscribe, admin, verify, unsubscribe, badge, wellness_check
+from src.api.routes import legal, subscribe, admin, verify, unsubscribe, badge, wellness_check, insights
 
 # ── Structured logging ────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -260,3 +260,4 @@ app.include_router(admin.router)
 app.include_router(unsubscribe.router)
 app.include_router(badge.router)
 app.include_router(wellness_check.router)
+app.include_router(insights.router)

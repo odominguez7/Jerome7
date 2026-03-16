@@ -164,9 +164,9 @@ async def landing():
 <!-- HERO -->
 <div class="hero">
   <div class="brand-label">JEROME7</div>
-  <h1><span>7</span> minutes.<br>Show up.<br>The world gets better.</h1>
-  <div class="tagline">Daily guided breathwork, meditation, and reflection for builders, coders, and dreamers.</div>
-  <div class="tagline-sub">No exercise. No equipment. Just earphones and a place to sit.</div>
+  <h1><span>7</span> minutes.<br>Before you ship.<br>Show up for yourself.</h1>
+  <div class="tagline">The performance protocol for builders. AI-guided breathwork, meditation, and focus. Same session for every builder on Earth, every day.</div>
+  <div class="tagline-sub">No equipment. Just earphones and 7 minutes. The commit you make to yourself before you commit code.</div>
 
   <div class="cta-row">
     <a href="/timer" class="btn btn-primary">START YOUR 7 MINUTES</a>
