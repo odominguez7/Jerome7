@@ -43,6 +43,9 @@ def _migrate_add_columns():
         "longitude": "FLOAT",
         "city": "VARCHAR",
         "auth_token": "VARCHAR",
+        "fingerprint": "VARCHAR",
+        "email_verified": "BOOLEAN",
+        "email_verify_token": "VARCHAR",
     }
 
     if "users" in inspector.get_table_names():

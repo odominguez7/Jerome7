@@ -368,6 +368,10 @@ async def timer_page():
       <option value="community">Find community</option>
     </select>
 
+    <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;width:0;overflow:hidden" aria-hidden="true">
+      <input type="text" name="website" id="hp-field" tabindex="-1" autocomplete="off">
+    </div>
+
     <button class="modal-btn" id="ob-submit" onclick="submitOnboarding()">CLAIM MY JEROME#</button>
     <button class="modal-skip" onclick="skipOnboarding()">skip for now</button>
   </div>
@@ -452,6 +456,16 @@ async def timer_page():
           style="padding:8px 14px;background:#E85D04;color:#fff;border:none;border-radius:6px;font-family:inherit;font-weight:700;font-size:0.8rem;cursor:pointer;">COPY</button>
       </div>
     </div>
+    <div class="email-prompt" style="margin-top:24px">
+      <p style="color:#8b949e;font-size:14px">Get session reminders and verify your Jerome# identity</p>
+      <div style="display:flex;gap:8px;justify-content:center;max-width:360px;margin:0 auto">
+        <input type="email" id="email-input" placeholder="your@email.com"
+               style="flex:1;padding:10px 14px;background:#161b22;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-family:'JetBrains Mono',monospace;font-size:14px;outline:none">
+        <button onclick="submitEmail()"
+                style="padding:10px 20px;background:#E85D04;border:none;border-radius:8px;color:white;font-family:'JetBrains Mono',monospace;cursor:pointer;font-size:14px">Verify</button>
+      </div>
+      <div id="email-status" style="margin-top:8px;font-size:13px"></div>
+    </div>
     <div class="complete-links">
       <a href="/">Home</a>
       <a href="/globe">Globe</a>
@@ -469,6 +483,7 @@ async def timer_page():
 
 <script>
 // ── Config ──
+const pageLoadTime = Date.now();
 const blocks = {blocks_json};
 const sessionType = '{session_type}';
 const closingText = '{closing}';
@@ -658,7 +673,7 @@ async function submitOnboarding() {{
     const resp = await fetch('/pledge', {{
       method: 'POST',
       headers: {{ 'Content-Type': 'application/json' }},
-      body: JSON.stringify({{ name: name, goal: goal || 'just_try', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', source: 'web' }}),
+      body: JSON.stringify({{ name: name, goal: goal || 'just_try', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', source: 'web', website: document.getElementById('hp-field').value, elapsed: Date.now() - pageLoadTime, fp: navigator.language + '|' + screen.width + 'x' + screen.height + '|' + new Date().getTimezoneOffset() }}),
     }});
     const data = await resp.json();
 
@@ -960,6 +975,41 @@ function copyReferral() {{
   const el = document.getElementById('referralLink');
   if (el) el.value = 'https://jerome7.com/timer' + (jnum ? '?ref=jerome' + jnum : '');
 }})();
+
+// ── Email verification ──
+async function submitEmail() {{
+  const email = document.getElementById('email-input').value.trim();
+  if (!email) return;
+  const statusEl = document.getElementById('email-status');
+  const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
+  if (!user.userId || !user.authToken) {{
+    statusEl.style.color = '#f85149';
+    statusEl.textContent = 'Complete onboarding first.';
+    return;
+  }}
+  try {{
+    const res = await fetch('/user/' + user.userId + '/email', {{
+      method: 'POST',
+      headers: {{
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + user.authToken,
+      }},
+      body: JSON.stringify({{email}}),
+    }});
+    const data = await res.json();
+    if (res.ok) {{
+      statusEl.style.color = '#E85D04';
+      statusEl.textContent = 'Verification link ready! Check back soon.';
+      document.getElementById('email-input').disabled = true;
+    }} else {{
+      statusEl.style.color = '#f85149';
+      statusEl.textContent = data.detail || 'Something went wrong.';
+    }}
+  }} catch(e) {{
+    statusEl.style.color = '#f85149';
+    statusEl.textContent = 'Connection error. Try again.';
+  }}
+}}
 
 // ── Init ──
 if ('speechSynthesis' in window) window.speechSynthesis.getVoices();

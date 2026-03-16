@@ -25,6 +25,11 @@ class PledgeRequest(BaseModel):
     invite_code: Optional[str] = None    # pod chain invite code
     github_username: Optional[str] = None
 
+    # Bot protection fields (not stored directly)
+    website: Optional[str] = None        # honeypot — should always be empty
+    elapsed: Optional[int] = None        # ms since page load
+    fp: Optional[str] = None             # browser fingerprint
+
 
 class LogSessionRequest(BaseModel):
     seven7_title: Optional[str] = None

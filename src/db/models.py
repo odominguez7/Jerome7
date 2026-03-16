@@ -126,6 +126,8 @@ class User(Base):
     name = Column(String, nullable=False)
     display_name = Column(String, nullable=True)
     email = Column(String, unique=True, nullable=True)
+    email_verified = Column(Boolean, default=False)
+    email_verify_token = Column(String, nullable=True)
     timezone = Column(String, nullable=False, default="UTC")
     fitness_level = Column(Enum(FitnessLevel), nullable=False, default=FitnessLevel.beginner)
     energy_today = Column(Enum(EnergyLevel), nullable=True)
@@ -152,6 +154,9 @@ class User(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     city = Column(String, nullable=True)
+
+    # Bot protection
+    fingerprint = Column(String, nullable=True)
 
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     last_active_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

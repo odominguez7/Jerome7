@@ -190,7 +190,13 @@
       "Bash(python3 -m ruff check src/ --fix)",
       "Bash(python3 -m ruff check src/)",
       "Bash(python3 -m ruff check src/ --output-format json)",
-      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); files=set\\(d[''''filename''''] for d in data if d[''''code'''']==''''F821''''\\); print\\(''''\\\\n''''.join\\(sorted\\(files\\)\\)\\)\")"
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); files=set\\(d[''''filename''''] for d in data if d[''''code'''']==''''F821''''\\); print\\(''''\\\\n''''.join\\(sorted\\(files\\)\\)\\)\")",
+      "Bash(curl -sI https://jerome7.com/globe)",
+      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.min.js\")",
+      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.min.js\")",
+      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js\")",
+      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js\")",
+      "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js\")"
     ]
   }
 }

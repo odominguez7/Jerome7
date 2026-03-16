@@ -143,6 +143,22 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
     hits.append(now_ts)
     _pledge_rate[ip] = hits
 
+    # --- 0b. Bot protection: honeypot ---
+    if req.website:
+        # Bot detected — return fake success
+        return UserResponse(
+            user_id="bot", name=req.name or "", jerome_number=9999,
+            country=None, auth_token=None,
+        )
+
+    # --- 0c. Bot protection: time-based ---
+    if req.elapsed is not None and req.elapsed < 3000:
+        # Too fast — likely bot
+        return UserResponse(
+            user_id="bot", name=req.name or "", jerome_number=9999,
+            country=None, auth_token=None,
+        )
+
     # --- 1. Validate name (no placeholders) ---
     name = (req.name or "").strip()
     if not name or len(name) < 2:
@@ -244,6 +260,7 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
             github_username=req.github_username,
             role=UserRole.member,
             auth_token=auth_token,
+            fingerprint=req.fp,
         )
         db.add(user)
         try:
