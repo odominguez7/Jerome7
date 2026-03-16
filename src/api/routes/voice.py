@@ -156,10 +156,12 @@ def _build_narration(blocks: list[dict], closing: str) -> str:
     for i, b in enumerate(blocks, 1):
         name = b.get("name", f"Block {i}")
         instruction = b.get("instruction", "")
-        lines.append(f"Block {i}. {name}. {instruction}.")
-        if i < len(blocks):
-            lines.append("...")
-    lines.append("...")
+        # Add generous pauses between blocks so users can actually do the exercise
+        lines.append(f"Block {i}. ... {name}.")
+        lines.append("...")
+        lines.append(f"{instruction}.")
+        lines.append("... ... ...")  # ~6 seconds of silence for the user to practice
+    lines.append("... ...")
 
     # ── INTENTION (60s) ──────────────────────────────────────────────────
     lines.append(
@@ -1086,26 +1088,52 @@ async def voice_session():
 # ── Wellness audio generation ──────────────────────────────────────────────
 
 def _build_wellness_narration(blocks: list[dict], session_type: str, closing: str) -> str:
-    """Build narration script for wellness sessions (breathwork/meditation/reflection/preparation)."""
+    """Build narration script for wellness sessions.
+
+    Uses generous pauses (...) so the user has real time to breathe,
+    feel, and practice each instruction before the next one comes.
+    """
     lines = []
 
-    # Opening
+    # Opening - warm, slow, grounding
     lines.append(
         "Welcome to Jerome 7. "
-        f"Today is a {session_type} session. "
-        "Builders around the world are with you right now. "
-        "Find a comfortable position. Close your eyes if that feels right."
     )
     lines.append("...")
+    lines.append(
+        f"Today is a {session_type} session. "
+        "Builders around the world are with you right now."
+    )
+    lines.append("... ...")
+    lines.append(
+        "Find a comfortable position. "
+        "Relax your shoulders. "
+        "Close your eyes if that feels right."
+    )
+    lines.append("... ... ...")
 
-    # Walk through each block
+    # Walk through each block with breathing room
     for i, b in enumerate(blocks, 1):
         name = b.get("name", f"Block {i}")
         instruction = b.get("instruction", "")
-        lines.append(f"{name}. {instruction}")
-        lines.append("...")
+        # Announce the block name
+        lines.append(f"{name}.")
+        lines.append("... ...")
+        # Give the instruction slowly
+        lines.append(f"{instruction}")
+        # Long pause so the user can actually DO the instruction
+        lines.append("... ... ... ...")
 
-    # Closing
+    # Closing - gentle, warm
+    lines.append("... ...")
+    lines.append(
+        "Session complete. "
+    )
+    lines.append("...")
+    lines.append(
+        "You showed up. That is the win."
+    )
+    lines.append("... ...")
     lines.append(closing)
     return "\n".join(lines)
 

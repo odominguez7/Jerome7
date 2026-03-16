@@ -38,6 +38,8 @@ async def timer_page():
         _cache["session"] = data
 
     # Sanitize AI-generated content to prevent XSS
+    # json.dumps is safe for embedding in <script> (escapes </script>, quotes, etc.)
+    # html_escape only for content rendered as HTML text, NOT for speech/JS strings
     blocks_raw = data.get("blocks", [])
     if not isinstance(blocks_raw, list):
         blocks_raw = []
@@ -45,14 +47,15 @@ async def timer_page():
     for b in blocks_raw:
         if not isinstance(b, dict):
             continue
-        b["name"] = html_escape(str(b.get("name", "")))
-        b["instruction"] = html_escape(str(b.get("instruction", "")))
+        # Strip any HTML tags from AI output but keep apostrophes natural
+        b["name"] = str(b.get("name", "")).replace("<", "").replace(">", "")
+        b["instruction"] = str(b.get("instruction", "")).replace("<", "").replace(">", "")
         sanitized_blocks.append(b)
     blocks_raw = sanitized_blocks
-    blocks_json = json.dumps(blocks_raw)
+    blocks_json = json.dumps(blocks_raw)  # json.dumps escapes for safe JS embedding
     title = html_escape(data.get("session_title", session_type.title()))
-    closing = html_escape(data.get("closing", "You showed up. That's the win."))
-    closing_js = json.dumps(closing)  # properly escaped for JS embedding
+    closing_raw = str(data.get("closing", "You showed up. That's the win.")).replace("<", "").replace(">", "")
+    closing_js = json.dumps(closing_raw)
 
     type_labels = {
         "breathwork": "Guided Breathwork",
@@ -422,7 +425,7 @@ async def timer_page():
   <div id="complete" class="hidden">
     <div class="complete-check">&#10003;</div>
     <div class="complete-title" id="completeTitle">SESSION COMPLETE</div>
-    <div class="complete-text" id="closingText">{closing}</div>
+    <div class="complete-text" id="closingText">{html_escape(closing_raw)}</div>
 
     <!-- Streak visual -->
     <div id="streakVisual" style="margin:24px 0">
@@ -753,17 +756,34 @@ async function showPersonalGreeting() {{
 }}
 
 // ── Voice narration (browser speech) ──
+let speechVoice = null;
+
+function initSpeechVoice() {{
+  if (!('speechSynthesis' in window)) return;
+  const voices = window.speechSynthesis.getVoices();
+  // Prefer calm, natural voices
+  const preferredNames = ['Samantha', 'Karen', 'Moira', 'Tessa', 'Fiona', 'Daniel'];
+  speechVoice = voices.find(v => preferredNames.some(n => v.name.includes(n)));
+  if (!speechVoice) speechVoice = voices.find(v => v.lang && v.lang.startsWith('en') && v.name.includes('Enhanced'));
+  if (!speechVoice) speechVoice = voices.find(v => v.lang && v.lang.startsWith('en'));
+}}
+
 function speak(text) {{
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  u.rate = 0.8; u.pitch = 1.0; u.volume = 1.0;
-  const voices = window.speechSynthesis.getVoices();
-  const preferredNames = ['Samantha', 'Karen', 'Moira', 'Daniel'];
-  let chosen = voices.find(v => preferredNames.some(n => v.name.includes(n)));
-  if (!chosen) chosen = voices.find(v => v.lang && v.lang.startsWith('en'));
-  if (chosen) u.voice = chosen;
+  u.rate = 0.75; u.pitch = 0.95; u.volume = 0.9;
+  if (speechVoice) u.voice = speechVoice;
   window.speechSynthesis.speak(u);
+}}
+
+// Speak with a calm pause before starting
+function speakCalm(text, delayMs) {{
+  if (!('speechSynthesis' in window)) return;
+  setTimeout(() => {{
+    if (sessionFinished || isPaused) return;
+    speak(text);
+  }}, delayMs || 1500);
 }}
 
 // ── Breathing animation (CSS-driven, fast + smooth) ──
@@ -951,7 +971,7 @@ async function beginSession() {{
     // Fetch real pattern data from server, fall back to local
     const insights = await fetchPatternInsights();
     const greeting = insights ? buildInsightGreeting(insights) : buildAdaptiveGreeting();
-    speak(greeting);
+    speakCalm(greeting, 1000);
   }}
 
   currentBlock = 0;
@@ -1029,7 +1049,9 @@ function showBlock(i) {{
 
   // Narrate block (only with browser speech -- AI voice handles its own pacing)
   if (voiceMode !== 'ai' || !aiReady) {{
-    setTimeout(() => {{ speak(b.name + '. ' + (b.instruction || '')); }}, 400);
+    // Give 2 seconds of silence before narrating the next block
+    // This lets the user breathe and settle into the new phase
+    speakCalm(b.name + '. ... ' + (b.instruction || ''), 2000);
   }}
 }}
 
@@ -1099,13 +1121,13 @@ function finishSession() {{
 
   // Adaptive closing narration (browser speech only)
   if (voiceMode !== 'ai' || !aiReady) {{
-    let closingNarration = 'Session complete. ';
-    if (day === 1) closingNarration += 'Day 1 is done. The hardest part is over. ';
-    else if (day === 7) closingNarration += 'One full week. 7 days of showing up. ';
-    else if (day === 30) closingNarration += '30 days. You built something real. ';
+    let closingNarration = 'Session complete. ... ';
+    if (day === 1) closingNarration += 'Day 1 is done. ... The hardest part is over. ';
+    else if (day === 7) closingNarration += 'One full week. ... 7 days of showing up. ';
+    else if (day === 30) closingNarration += '30 days. ... You built something real. ';
     else closingNarration += 'Day ' + day + '. ';
-    closingNarration += jLabel + ' showed up. ' + closingText;
-    speak(closingNarration);
+    closingNarration += '... ' + jLabel + ' showed up. ... ' + closingText;
+    speakCalm(closingNarration, 1500);
   }}
 }}
 
@@ -1293,7 +1315,12 @@ async function submitEmail() {{
 }}
 
 // ── Init ──
-if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
+if ('speechSynthesis' in window) {{
+  window.speechSynthesis.getVoices();
+  // Some browsers load voices async
+  window.speechSynthesis.onvoiceschanged = initSpeechVoice;
+  initSpeechVoice();
+}}
 checkOnboarding();
 showPersonalGreeting();
 initVoiceToggle();
