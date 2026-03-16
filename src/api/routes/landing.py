@@ -288,17 +288,48 @@ async def landing():
   </div>
 </section>
 
-<!-- BADGE / GITHUB INTEGRATION -->
-<section style="text-align:center">
+<!-- DEVELOPER INTEGRATIONS -->
+<section>
   <div class="section-label">FOR BUILDERS</div>
-  <h2>Show your streak on GitHub.</h2>
-  <p>Add your Jerome7 badge to your README. Every day you show up, it updates.</p>
-  <div style="margin:24px 0">
-    <img src="/badge/7.svg" alt="Jerome7 badge" style="height:28px">
+  <h2>Baked into your workflow.</h2>
+  <p style="margin-bottom:32px">Jerome7 lives where you already work. Not another app to open.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <!-- GitHub Action -->
+    <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:24px">
+      <div style="font-size:20px;margin-bottom:8px">&#9881;&#65039;</div>
+      <div style="font-size:14px;font-weight:700;color:#f0f6fc;margin-bottom:4px">GitHub Action</div>
+      <div style="font-size:11px;color:#484f58;line-height:1.5;margin-bottom:12px">Add a wellness gate to your PRs. Won't merge until the author has done their 7 minutes. One YAML file. Whole team sees it.</div>
+      <div style="font-size:10px;color:#7ee787;letter-spacing:0.5px">.github/workflows/wellness-gate.yml</div>
+    </div>
+    <!-- Pre-commit hook -->
+    <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:24px">
+      <div style="font-size:20px;margin-bottom:8px">&#128274;</div>
+      <div style="font-size:14px;font-weight:700;color:#f0f6fc;margin-bottom:4px">Pre-commit Hook</div>
+      <div style="font-size:11px;color:#484f58;line-height:1.5;margin-bottom:12px">Block your own commits until you show up. One command to install. Skip anytime with --no-verify. Your code, your rules.</div>
+      <div style="font-size:10px;color:#7ee787;letter-spacing:0.5px">npx jerome7 --setup-hook</div>
+    </div>
+    <!-- README Badge -->
+    <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:24px">
+      <div style="font-size:20px;margin-bottom:8px">&#127942;</div>
+      <div style="font-size:14px;font-weight:700;color:#f0f6fc;margin-bottom:4px">README Badge</div>
+      <div style="font-size:11px;color:#484f58;line-height:1.5;margin-bottom:12px">Show your streak on your GitHub profile. Updates daily. When someone sees it, they ask "what's Jerome7?"</div>
+      <img src="/badge/7.svg" alt="badge" style="height:24px;margin-top:4px">
+    </div>
+    <!-- CLI -->
+    <div style="background:#161b22;border:1px solid #21262d;border-radius:12px;padding:24px">
+      <div style="font-size:20px;margin-bottom:8px">&#9000;&#65039;</div>
+      <div style="font-size:14px;font-weight:700;color:#f0f6fc;margin-bottom:4px">Terminal Session</div>
+      <div style="font-size:11px;color:#484f58;line-height:1.5;margin-bottom:12px">Run your 7 minutes from the terminal. No browser needed. Audio cues, breathing timer, streak tracking. One command.</div>
+      <div style="font-size:10px;color:#7ee787;letter-spacing:0.5px">npx jerome7 --wellness</div>
+    </div>
   </div>
-  <div class="cli-strip" style="display:inline-flex">
-    <code id="badge-code" style="font-size:11px;color:#7ee787">![Jerome7](https://jerome7.com/badge/YOUR_NUMBER.svg)</code>
-    <button class="copy-btn" onclick="copyBadge()">COPY</button>
+
+  <div style="text-align:center;margin-top:24px">
+    <div class="cli-strip" style="display:inline-flex">
+      <code id="badge-code" style="font-size:11px;color:#7ee787">![Jerome7](https://jerome7.com/badge/YOUR_NUMBER.svg)</code>
+      <button class="copy-btn" onclick="copyBadge()">COPY</button>
+    </div>
   </div>
 </section>
 

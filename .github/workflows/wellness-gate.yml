@@ -1,0 +1,63 @@
+# Jerome7 Wellness Gate
+# Add this to ANY repo to require daily wellness before merging PRs.
+# Docs: https://jerome7.com/docs/github-action
+#
+# Usage: Copy this file to .github/workflows/wellness-gate.yml
+# Set JEROME_NUMBER as a repository secret or use your GitHub username mapping.
+#
+# This check will PASS if the PR author completed their 7-minute session today.
+# This check will FAIL (softly) if they haven't — nudging them to show up.
+
+name: "Jerome7 Wellness Check"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  wellness-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check daily wellness
+        id: check
+        run: |
+          JEROME_NUM="${{ secrets.JEROME_NUMBER }}"
+          if [ -z "$JEROME_NUM" ]; then
+            echo "::notice::No JEROME_NUMBER secret set. Get yours at https://jerome7.com/timer"
+            echo "completed=skip" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          RESPONSE=$(curl -sf "https://jerome7.com/api/wellness-check/$JEROME_NUM" 2>/dev/null || echo '{"completed":false}')
+          COMPLETED=$(echo "$RESPONSE" | jq -r '.completed // false')
+          MESSAGE=$(echo "$RESPONSE" | jq -r '.message // "Check your wellness at jerome7.com"')
+          STREAK=$(echo "$RESPONSE" | jq -r '.streak // 0')
+
+          echo "completed=$COMPLETED" >> $GITHUB_OUTPUT
+          echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+          echo "streak=$STREAK" >> $GITHUB_OUTPUT
+
+          if [ "$COMPLETED" = "true" ]; then
+            echo "::notice::$MESSAGE"
+          else
+            echo "::warning::$MESSAGE — Start now: https://jerome7.com/timer"
+          fi
+
+      - name: Wellness status
+        if: steps.check.outputs.completed == 'false'
+        run: |
+          echo "::warning::You haven't completed your 7 minutes today."
+          echo "::warning::Start now: https://jerome7.com/timer"
+          echo ""
+          echo "Jerome7 Wellness Gate is a gentle nudge, not a blocker."
+          echo "To make this a required check, add it to branch protection rules."
+          echo ""
+          echo "Your streak: ${{ steps.check.outputs.streak }} days"
+          # Exit 1 only if repo wants to enforce (via branch protection)
+          exit 1
+
+      - name: Wellness verified
+        if: steps.check.outputs.completed == 'true'
+        run: |
+          echo "✓ ${{ steps.check.outputs.message }}"
+          echo "Streak: ${{ steps.check.outputs.streak }} days"

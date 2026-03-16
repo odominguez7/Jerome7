@@ -8,6 +8,8 @@
  *   npx jerome7 --wellness   → start today's wellness session (breathwork/meditation/reflection/preparation)
  *   npx jerome7 --peek       → preview blocks without starting timer
  *   npx jerome7 --json       → output session as JSON for piping to other tools
+ *   npx jerome7 --gate N     → pre-commit hook: exit 1 if Jerome N hasn't done today's session
+ *   npx jerome7 --setup-hook → install Jerome7 as a git pre-commit hook in current repo
  */
 
 const https = require("https");
@@ -155,11 +157,79 @@ function outputJson(session) {
   console.log(JSON.stringify(session, null, 2));
 }
 
+// ── Wellness Gate (pre-commit hook mode) ──
+async function gateCheck(jeromeNum) {
+  return new Promise((resolve, reject) => {
+    https.get(`${API}/api/wellness-check/${jeromeNum}`, (res) => {
+      let body = "";
+      res.on("data", (d) => (body += d));
+      res.on("end", () => {
+        try { resolve(JSON.parse(body)); } catch { reject(new Error("Invalid response")); }
+      });
+    }).on("error", reject);
+  });
+}
+
+async function runGate(jeromeNum) {
+  try {
+    const data = await gateCheck(jeromeNum);
+    if (data.completed) {
+      console.log(`  ${GREEN}✓${RESET} ${data.message}`);
+      console.log(`  ${DIM}streak: ${data.streak} days${RESET}`);
+      process.exit(0);
+    } else {
+      console.log(`  ${ORANGE}✗${RESET} ${data.message}`);
+      console.log(`  ${DIM}complete your 7 minutes: ${WHITE}https://jerome7.com/timer${RESET}`);
+      console.log(`  ${DIM}skip with: git commit --no-verify${RESET}`);
+      process.exit(1);
+    }
+  } catch {
+    // If API is down, don't block commits
+    console.log(`  ${DIM}jerome7: could not reach API, allowing commit${RESET}`);
+    process.exit(0);
+  }
+}
+
+function setupHook() {
+  const fs = require("fs");
+  const path = require("path");
+  const hookDir = path.join(process.cwd(), ".git", "hooks");
+  if (!fs.existsSync(hookDir)) {
+    console.log(`  ${ORANGE}error:${RESET} not a git repository`);
+    process.exit(1);
+  }
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  rl.question(`  ${DIM}Enter your Jerome# (e.g. 42):${RESET} `, (num) => {
+    rl.close();
+    const n = parseInt(num, 10);
+    if (!n || n < 1) { console.log(`  ${ORANGE}invalid number${RESET}`); process.exit(1); }
+    const hookPath = path.join(hookDir, "pre-commit");
+    const hookContent = `#!/bin/sh\nnpx jerome7 --gate ${n}\n`;
+    fs.writeFileSync(hookPath, hookContent, { mode: 0o755 });
+    console.log(`  ${GREEN}✓${RESET} pre-commit hook installed`);
+    console.log(`  ${DIM}every commit will check if Jerome${n} showed up today${RESET}`);
+    console.log(`  ${DIM}skip anytime with: git commit --no-verify${RESET}`);
+  });
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const peek = args.includes("--peek") || args.includes("-p");
   const json = args.includes("--json") || args.includes("-j");
   const wellness = args.includes("--wellness") || args.includes("-w");
+
+  // Gate mode (pre-commit hook)
+  const gateIdx = args.indexOf("--gate");
+  if (gateIdx !== -1) {
+    const num = parseInt(args[gateIdx + 1], 10);
+    if (!num) { console.log(`  ${ORANGE}usage:${RESET} npx jerome7 --gate YOUR_JEROME_NUMBER`); process.exit(1); }
+    return runGate(num);
+  }
+
+  // Setup hook mode
+  if (args.includes("--setup-hook")) {
+    return setupHook();
+  }
 
   const endpoint = wellness ? `${API}/daily/wellness` : `${API}/daily`;
 
