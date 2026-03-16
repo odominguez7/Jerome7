@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 
 from src.db.database import init_db
 from src.api.routes import pledge, log, seven7, streak, pod, health, streak_page, timer, daily, share, share_card, nudge, landing, leaderboard, analytics, analytics_page, live, twitter, twin, invite, voice, embed, session_card, coach_chat, agents_observatory, world_report, milestones, mesh_api, tokens, globe, sponsor, onboarding, agentcard, milestone_card, social_share, stats
-from src.api.routes import legal
+from src.api.routes import legal, subscribe
 
 # ── Structured logging ────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -166,3 +166,4 @@ app.include_router(milestone_card.router)
 app.include_router(social_share.router)
 app.include_router(stats.router)
 app.include_router(legal.router)
+app.include_router(subscribe.router)

@@ -421,8 +421,18 @@ async def timer_page():
     <div class="share-row">
       <button class="share-btn primary" onclick="copyCard()">Copy to Clipboard</button>
       <button class="share-btn" onclick="shareTwitter()">Share on Twitter</button>
+      <button class="share-btn" onclick="shareLinkedIn()">Share on LinkedIn</button>
     </div>
     <div class="toast" id="toast">copied to clipboard</div>
+    <div style="margin:20px 0;padding:16px;background:#161b22;border-radius:8px;border:1px solid #30363d;">
+      <div style="font-size:0.75rem;color:#484f58;margin-bottom:8px;">INVITE A FRIEND</div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="referralLink" readonly
+          style="flex:1;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-family:inherit;font-size:0.8rem;">
+        <button onclick="copyReferral()"
+          style="padding:8px 14px;background:#E85D04;color:#fff;border:none;border-radius:6px;font-family:inherit;font-weight:700;font-size:0.8rem;cursor:pointer;">COPY</button>
+      </div>
+    </div>
     <div class="complete-links">
       <a href="/">Home</a>
       <a href="/globe">Globe</a>
@@ -864,6 +874,32 @@ function shareTwitter() {{
   const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(buildCardText());
   window.open(url, '_blank');
 }}
+
+function shareLinkedIn() {{
+  const url = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent('https://jerome7.com/timer');
+  window.open(url, '_blank');
+}}
+
+function copyReferral() {{
+  const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
+  const jnum = user.jeromeNumber || '';
+  const link = 'https://jerome7.com/timer' + (jnum ? '?ref=jerome' + jnum : '');
+  document.getElementById('referralLink').value = link;
+  navigator.clipboard.writeText(link).then(() => {{
+    const toast = document.getElementById('toast');
+    toast.textContent = 'referral link copied!';
+    toast.style.display = 'block';
+    setTimeout(() => {{ toast.style.display = 'none'; toast.textContent = 'copied to clipboard'; }}, 2000);
+  }});
+}}
+
+// Set referral link on load
+(function() {{
+  const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
+  const jnum = user.jeromeNumber || '';
+  const el = document.getElementById('referralLink');
+  if (el) el.value = 'https://jerome7.com/timer' + (jnum ? '?ref=jerome' + jnum : '');
+}})();
 
 // ── Init ──
 if ('speechSynthesis' in window) window.speechSynthesis.getVoices();

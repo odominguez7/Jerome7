@@ -455,6 +455,21 @@ async def landing():
   </div>
 </section>
 
+<!-- EMAIL CAPTURE -->
+<section style="text-align:center;padding:48px 0;">
+  <h2 style="font-size:1.3rem;color:#E85D04;margin-bottom:8px;">Get reminded daily</h2>
+  <p style="color:#484f58;font-size:0.8rem;margin-bottom:20px;">One email. 7 minutes. No spam. Unsubscribe anytime.</p>
+  <form id="emailForm" onsubmit="return submitEmail(event)" style="display:flex;gap:8px;max-width:420px;margin:0 auto;">
+    <input type="email" id="emailInput" placeholder="your@email.com" required
+      style="flex:1;padding:12px 16px;background:#161b22;border:1px solid #30363d;border-radius:8px;color:#c9d1d9;font-family:inherit;font-size:0.85rem;outline:none;">
+    <button type="submit" id="emailBtn"
+      style="padding:12px 20px;background:#E85D04;color:#fff;border:none;border-radius:8px;font-family:inherit;font-weight:700;font-size:0.85rem;cursor:pointer;white-space:nowrap;">
+      REMIND ME
+    </button>
+  </form>
+  <div id="emailMsg" style="color:#7ee787;font-size:0.8rem;margin-top:12px;display:none;"></div>
+</section>
+
 <!-- FOOTER -->
 <div class="footer">
   <div class="footer-brand">JEROME7</div>
@@ -472,6 +487,38 @@ async def landing():
 </div>
 
 <script>
+async function submitEmail(e) {{
+  e.preventDefault();
+  const email = document.getElementById('emailInput').value.trim();
+  const btn = document.getElementById('emailBtn');
+  const msg = document.getElementById('emailMsg');
+  btn.disabled = true; btn.textContent = '...';
+  try {{
+    const resp = await fetch('/subscribe', {{
+      method: 'POST',
+      headers: {{ 'Content-Type': 'application/json' }},
+      body: JSON.stringify({{ email: email }}),
+    }});
+    const data = await resp.json();
+    if (resp.ok) {{
+      msg.textContent = data.message || 'You\\'re in. See you tomorrow.';
+      msg.style.color = '#7ee787';
+      msg.style.display = 'block';
+      document.getElementById('emailInput').value = '';
+    }} else {{
+      msg.textContent = data.detail || 'Something went wrong.';
+      msg.style.color = '#f85149';
+      msg.style.display = 'block';
+    }}
+  }} catch(err) {{
+    msg.textContent = 'Network error. Try again.';
+    msg.style.color = '#f85149';
+    msg.style.display = 'block';
+  }}
+  btn.disabled = false; btn.textContent = 'REMIND ME';
+  return false;
+}}
+
 function copyCli() {{
   navigator.clipboard.writeText('npx jerome7 --wellness').then(() => {{
     const btn = document.querySelector('.copy-btn');

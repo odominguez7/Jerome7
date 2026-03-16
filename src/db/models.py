@@ -335,3 +335,12 @@ class SocialShare(Base):
     content = Column(Text, nullable=True)
     external_url = Column(Text, nullable=True)
     shared_at = Column(DateTime, default=datetime.utcnow)
+
+
+class EmailSubscriber(Base):
+    __tablename__ = "email_subscribers"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    email = Column(String, unique=True, nullable=False)
+    subscribed_at = Column(DateTime, default=datetime.utcnow)
+    unsubscribed = Column(Boolean, default=False)
