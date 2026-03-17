@@ -445,13 +445,18 @@ async def timer_page():
       <div id="post-ob-status" style="font-size:11px;margin-top:8px;color:#7ee787"></div>
     </div>
 
+    <!-- Wellness graph (shown if registered) -->
+    <div id="wellnessGraph" class="hidden" style="margin-bottom:24px;max-width:400px;margin-left:auto;margin-right:auto">
+      <div style="font-size:9px;letter-spacing:2px;color:#484f58;margin-bottom:8px">YOUR WELLNESS GRAPH</div>
+      <img id="graphImg" src="" alt="Wellness contribution graph" style="width:100%;border-radius:6px;border:1px solid #21262d">
+    </div>
+
     <!-- Badge + share (shown if registered) -->
     <div id="postShare" class="hidden" style="margin-bottom:24px">
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
         <button class="share-btn primary" onclick="shareSession()">Share</button>
-        <button class="share-btn" onclick="copyBadge()">Copy Badge</button>
+        <button class="share-btn" onclick="copyGraph()">Copy Graph</button>
       </div>
-      <div id="badgePreview" style="margin-top:12px"></div>
     </div>
     <div class="toast" id="toast">copied to clipboard</div>
 
@@ -1109,9 +1114,12 @@ function finishSession() {{
     document.getElementById('postOnboard').classList.remove('hidden');
   }} else {{
     document.getElementById('postShare').classList.remove('hidden');
+    // Show wellness contribution graph
     if (jeromeNumber) {{
-      document.getElementById('badgePreview').innerHTML =
-        '<img src="/badge/' + jeromeNumber + '.svg" alt="badge" style="height:28px">';
+      const graphEl = document.getElementById('wellnessGraph');
+      const graphImg = document.getElementById('graphImg');
+      graphImg.src = '/graph/' + jeromeNumber + '.svg?t=' + Date.now();
+      graphEl.classList.remove('hidden');
     }}
   }}
 
@@ -1238,15 +1246,15 @@ async function postSessionRegister() {{
   }}
 }}
 
-function copyBadge() {{
+function copyGraph() {{
   const num = jeromeNumber || 'YOUR_NUMBER';
-  const md = '![Jerome7](https://jerome7.com/badge/' + num + '.svg)';
+  const md = '![Jerome7](https://jerome7.com/graph/' + num + '.svg)';
   copyToClipboard(md).then((ok) => {{
     if (ok) {{
       const toast = document.getElementById('toast');
-      toast.textContent = 'badge markdown copied!';
+      toast.textContent = 'graph markdown copied! paste in your GitHub README';
       toast.style.display = 'block';
-      setTimeout(() => toast.style.display = 'none', 2000);
+      setTimeout(() => toast.style.display = 'none', 3000);
     }}
   }});
 }}
