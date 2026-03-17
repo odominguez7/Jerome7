@@ -4,26 +4,39 @@
 
 # Jerome7
 
-**The commit you make to yourself before you commit code.**
+**i breathe before i ship.**
 
-AI-powered 7-minute wellness protocol for builders. Not a meditation app. A performance system.
+7 minutes of daily wellness for builders. Open source. No paywall. No login.
+
+[![Jerome7 Wellness](https://jerome7.com/graph/7.svg)](https://jerome7.com/timer?ref=readme)
 
 [![GitHub Stars](https://img.shields.io/github/stars/odominguez7/Jerome7?style=for-the-badge&color=e8713a&label=Stars)](https://github.com/odominguez7/Jerome7/stargazers)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![Jerome Count](https://img.shields.io/badge/dynamic/json?url=https://api.jerome7.com/stats&query=$.total_jeromes&label=Jeromes&style=for-the-badge&color=01696F)](https://jerome7.com/globe)
-[![Discord](https://img.shields.io/discord/1303563828498292758?style=for-the-badge&logo=discord&color=5865F2)](https://discord.gg/5AZP8DbEJm)
 
-[Live App](https://jerome7.com) · [Start Now](https://jerome7.com/timer) · [Globe](https://jerome7.com/globe) · [Discord](https://discord.gg/5AZP8DbEJm)
+[Start Now](https://jerome7.com/timer) · [Get Your Graph](https://jerome7.com/graph) · [Globe](https://jerome7.com/globe) · [Discord](https://discord.gg/5AZP8DbEJm)
 
 </div>
 
 ---
 
+## Add your wellness graph to your GitHub profile
+
+One line. Updated daily. Every visitor sees your streak.
+
+```markdown
+[![Jerome7 Wellness](https://jerome7.com/graph/YOUR_NUMBER.svg)](https://jerome7.com/timer?ref=graph)
+```
+
+**How to get your number:** Open [jerome7.com/timer](https://jerome7.com/timer), breathe for 7 minutes. Your Jerome# is assigned automatically. No signup. No login. Just show up.
+
+---
+
 ## Why
 
-Builders burn out in silence. 72% of developers report mental health issues (Stack Overflow 2024). Headspace costs $70/year and speaks to yoga moms. Nothing exists for the person who just shipped at 2 AM and can't sleep.
+72% of developers report mental health issues (Stack Overflow 2024). Headspace costs $70/year and speaks to yoga moms. Nothing exists for the builder who just shipped at 2 AM and can't sleep.
 
-Jerome7 is 7 minutes of breathwork, meditation, reflection, or preparation. Same session for every builder on Earth, rotating daily. AI-generated content. AI voice narration. Binaural beats. Streak accountability. Open source. No paywall.
+Jerome7 is 7 minutes of breathwork, meditation, reflection, or preparation. Same session for every builder on Earth, rotating daily. AI-generated. AI-narrated. Binaural beats. Streak accountability. Free forever.
 
 **The science**: Box breathing drops cortisol 25% (Ma et al., 2017). Brief meditation boosts focus 14% (Zeidan et al., 2010). Theta binaural beats reduce anxiety 26% (Garcia-Argibay et al., 2019). Habits lock in at 66 days (Lally et al., 2010). Jerome7 is built around all four.
 
@@ -39,63 +52,27 @@ Or open [jerome7.com/timer](https://jerome7.com/timer) and press START.
 
 ## Architecture
 
-Jerome7 is an **agentic wellness system**, not a timer with a Gemini API call. Three specialized agents coordinate to deliver personalized sessions:
+Three AI agents coordinate to deliver personalized sessions:
 
-```
-                    +------------------+
-                    |   Coach Agent    |  Gemini 2.5 Flash
-                    |  Generates the   |  Session content
-                    |  daily session   |  + voice script
-                    +--------+---------+
-                             |
-              +--------------+--------------+
-              |                             |
-    +---------v---------+       +-----------v---------+
-    |   Pattern Agent   |       |   Streak Agent      |
-    |  Analyzes user    |       |  3-miss rule.       |
-    |  behavior over    |       |  1 save per 30 days.|
-    |  time. Completion |       |  Chain mechanics.    |
-    |  rates, skip      |       |  Longest streak     |
-    |  patterns, best   |       |  tracking.          |
-    |  session times.   |       |                     |
-    +-------------------+       +---------------------+
-```
+| Agent | What It Does | Source |
+|-------|-------------|--------|
+| **Coach** | Generates daily sessions via Gemini 2.5 Flash. 4 rotating types: breathwork, meditation, reflection, preparation. | `src/agents/coach.py` |
+| **Pattern** | Analyzes user behavior: completion rates, preferred times, consistency scoring. | `src/agents/pattern.py` |
+| **Streak** | 3-miss rule: miss 3 days and your chain breaks. 1 save per 30 days. | `src/agents/streak.py` |
 
-### Agent Details
+### API Endpoints
 
-| Agent | What It Does | How It Works |
-|-------|-------------|-------------|
-| **Coach** | Generates daily sessions via Gemini 2.5 Flash. 4 rotating types: breathwork, meditation, reflection, preparation. Validates 420-second structure. Falls back to handcrafted sessions if AI fails. | `src/agents/coach.py` |
-| **Pattern** | Analyzes user behavior: completion rates, preferred session times, streak patterns, consistency scoring. Powers adaptive greetings and personalized insights. | `src/agents/pattern.py` |
-| **Streak** | Enforces the 3-miss rule: miss 3 days and your chain breaks. 1 save per 30 days. Tracks current and longest streaks. The habit formation engine. | `src/agents/streak.py` |
-
-### Protocol Support
-
-| Protocol | Implementation | Status |
-|----------|---------------|--------|
-| **A2A** (Google) | Agent discovery via `/.well-known/agent.json` | Live |
-| **Wellness Check API** | `GET /api/wellness-check/{jerome_number}` | Live |
-| **Pattern Insights API** | `GET /api/insights/{jerome_number}` | Live |
-
-AI assistants (Claude, ChatGPT, custom agents) can query your wellness data through these endpoints. Your streak is now part of your AI context.
-
----
-
-## Viral Mechanics (for builders, by builders)
-
-### Wellness Contribution Graph
-
-Your GitHub profile has a code contribution graph. Now it has a wellness one too.
-
-```markdown
-![Jerome7 Graph](https://jerome7.com/graph/YOUR_NUMBER.svg)
-```
-
-One line in your profile README. Every visitor sees it. The visual contrast between a full code graph and an empty wellness graph is the message.
+| Endpoint | Description |
+|----------|------------|
+| `GET /api/wellness-check/{jerome_number}` | Check if a Jerome has completed today's session |
+| `GET /api/wellness-check/github/{username}` | Same, by GitHub username |
+| `GET /api/insights/{jerome_number}` | Streak data, completion rate, patterns |
+| `GET /graph/{jerome_number}.svg` | Dynamic wellness contribution graph (SVG) |
+| `/.well-known/agent.json` | A2A agent discovery (Google protocol) |
 
 ### GitHub Action: Wellness Gate
 
-Add one YAML file to your repo. PRs won't merge until the author completes their 7 minutes.
+Add one YAML file. PRs won't merge until the author completes their 7 minutes.
 
 ```yaml
 # .github/workflows/wellness-gate.yml
@@ -115,42 +92,6 @@ jobs:
           fi
 ```
 
-One install = entire team exposed. Peer pressure through infrastructure.
-
-### Pre-Commit Hook
-
-```bash
-npx jerome7 --setup-hook
-```
-
-Blocks your own commits until you show up. Skip anytime with `--no-verify`.
-
-### README Badge
-
-```markdown
-![Jerome7](https://jerome7.com/badge/YOUR_NUMBER.svg)
-```
-
-Show your streak on your GitHub profile. When someone sees it, they ask "what's Jerome7?"
-
----
-
-## Security and Anti-Abuse
-
-Jerome7 is production-hardened with layered protections:
-
-| Layer | Protection |
-|-------|-----------|
-| **Bot detection** | Honeypot fields + timing-based checks (< 3s = rejected silently) |
-| **Rate limiting** | Per-IP (10 pledges/hr, 5 voice calls/hr) + per-user (5-min cooldown on session logs) |
-| **Session validation** | Duration must be 5-15 min, max 3 sessions/day |
-| **Auth tokens** | UUID Bearer tokens with 90-day expiration |
-| **Fingerprint dedup** | Browser fingerprint prevents multi-account abuse from same device |
-| **Real IP extraction** | Cloudflare CF-Connecting-IP > X-Forwarded-For > fallback |
-| **Email verification** | HMAC-based stateless verification tokens |
-
-All authentication is centralized in `src/api/auth.py`. No copy-pasted auth logic.
-
 ---
 
 ## Tech Stack
@@ -161,7 +102,7 @@ All authentication is centralized in `src/api/auth.py`. No copy-pasted auth logi
 | Database | PostgreSQL (prod), SQLite (dev) |
 | AI | Gemini 2.5 Flash (sessions), ElevenLabs (voice) |
 | Audio | Web Audio API (binaural beats, 5 frequency presets) |
-| Globe | Three.js + WebGL (real-time user visualization) |
+| Globe | Three.js + WebGL (real-time visualization) |
 | Protocols | A2A (Google agent discovery) |
 | Hosting | Railway (auto-deploys from main) |
 | CLI | `npx jerome7` |
@@ -181,18 +122,12 @@ I was 80 lbs overweight. Could not run a mile. Started with 7 minutes a day. Tha
 
 ---
 
-## Contributing
-
-Every contribution is welcome. [Read the guide](CONTRIBUTING.md).
-
----
-
 <div align="center">
 
 **Built by [Omar](https://github.com/odominguez7) (Jerome7)**
 
 MIT License. Personally funded. Open source. No paywall.
 
-*Show up.*
+*You are important. Take care of yourself.*
 
 </div>

@@ -437,8 +437,8 @@ async def timer_page():
       <button onclick="copyGraph()" style="width:100%;padding:14px;background:#E85D04;border:none;border-radius:100px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:8px;transition:all 0.2s" onmouseover="this.style.background='#ff6b1a'" onmouseout="this.style.background='#E85D04'">ADD TO GITHUB PROFILE</button>
 
       <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
-        <button class="share-btn" onclick="shareSession()">Share</button>
         <button class="share-btn" onclick="tweetSession()">Post on X</button>
+        <a href="https://github.com/odominguez7/Jerome7" target="_blank" class="share-btn" style="text-decoration:none;text-align:center">Star on GitHub</a>
       </div>
     </div>
 
@@ -1340,6 +1340,9 @@ if ('speechSynthesis' in window) {{
 checkOnboarding();
 showPersonalGreeting();
 initVoiceToggle();
+// Track referral source
+const urlRef = new URLSearchParams(window.location.search).get('ref');
+if (urlRef) localStorage.setItem('jerome7_ref', urlRef);
 </script>
 </body>
 </html>"""
