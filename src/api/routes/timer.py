@@ -575,6 +575,9 @@ function selectVoice(mode) {{
     : 'Browser voice with ambient 432Hz audio. Use earphones.';
 }}
 
+let voiceRetries = 0;
+const MAX_VOICE_RETRIES = 3;
+
 async function prepareAiVoice() {{
   if (!aiAvailable || aiReady || aiGenerating) return;
   aiGenerating = true;
@@ -583,45 +586,53 @@ async function prepareAiVoice() {{
   status.textContent = 'loading AI voice...';
 
   try {{
-    // Kick off generation (returns immediately with 202 if not cached)
     const resp = await fetch('/voice/wellness/generate', {{ method: 'POST' }});
-    const data = await resp.json();
 
     if (resp.status === 200) {{
-      // Already cached, load audio directly
       const loaded = await loadAiAudio();
       if (loaded) {{
         aiReady = true;
         status.textContent = 'AI voice ready';
         status.style.color = '#7ee787';
         aiGenerating = false;
+        voiceRetries = 0;
         return;
       }}
     }} else if (resp.status === 202) {{
-      // Generating in background. Poll for audio.
       status.textContent = 'generating AI voice...';
-      const loaded = await pollForAudio(60000);
+      const loaded = await pollForAudio(90000);
       if (loaded) {{
         aiReady = true;
         status.textContent = 'AI voice ready';
         status.style.color = '#7ee787';
         aiGenerating = false;
+        voiceRetries = 0;
         return;
       }}
     }}
   }} catch(e) {{
     console.error('voice prep error:', e);
   }}
-  // Failed
-  status.textContent = 'using browser voice';
-  voiceMode = 'browser';
+
+  // Failed. Retry up to 3 times with increasing delay.
   aiGenerating = false;
+  voiceRetries++;
+  if (voiceRetries <= MAX_VOICE_RETRIES) {{
+    const delay = voiceRetries * 15000; // 15s, 30s, 45s
+    status.textContent = 'AI voice loading... retry ' + voiceRetries + '/' + MAX_VOICE_RETRIES;
+    setTimeout(() => prepareAiVoice(), delay);
+  }} else {{
+    status.textContent = 'using browser voice';
+    voiceMode = 'browser';
+  }}
 }}
 
 async function pollForAudio(maxMs) {{
   const start = Date.now();
+  let interval = 2000;
   while (Date.now() - start < maxMs) {{
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise(r => setTimeout(r, interval));
+    interval = Math.min(interval + 1000, 5000); // back off: 2s, 3s, 4s, 5s...
     try {{
       const resp = await fetch('/voice/wellness/audio', {{ method: 'HEAD' }});
       if (resp.ok) {{

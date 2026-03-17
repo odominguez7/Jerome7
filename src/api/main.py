@@ -62,20 +62,38 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.warning("Failed to pre-warm session cache — first visitor will trigger generation")
 
-    # Pre-warm voice audio (loads from disk cache or generates via ElevenLabs)
-    try:
-        from src.api.routes.voice import _ensure_wellness_audio
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        if os.getenv("ELEVENLABS_API_KEY"):
+    # Pre-warm voice audio + start background loop for daily rotation
+    if os.getenv("ELEVENLABS_API_KEY"):
+        try:
+            from src.api.routes.voice import _ensure_wellness_audio
+            today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             ok = await _ensure_wellness_audio(today)
             if ok:
                 logger.info("Voice audio ready for %s", today)
             else:
-                logger.warning("Voice audio generation failed for %s, will retry on first request", today)
-        else:
-            logger.info("ELEVENLABS_API_KEY not set, voice disabled")
-    except Exception as e:
-        logger.warning("Failed to pre-warm voice audio: %s", e)
+                logger.warning("Voice audio generation failed for %s, background loop will retry", today)
+        except Exception as e:
+            logger.warning("Failed to pre-warm voice audio: %s", e)
+
+        # Background loop: check every 30 min, auto-generate for new day + retry failures
+        async def _voice_loop():
+            from src.api.routes.voice import _ensure_wellness_audio
+            while True:
+                await asyncio.sleep(1800)  # 30 min
+                try:
+                    day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                    ok = await _ensure_wellness_audio(day)
+                    if ok:
+                        logger.info("Voice loop: audio confirmed for %s", day)
+                    else:
+                        logger.warning("Voice loop: generation failed for %s, will retry in 30m", day)
+                except Exception as exc:
+                    logger.error("Voice loop error: %s", exc)
+
+        asyncio.create_task(_voice_loop())
+        logger.info("Voice background loop started (30m interval)")
+    else:
+        logger.info("ELEVENLABS_API_KEY not set, voice disabled")
 
     # Start daily reminder background loop if SMTP is configured
     from src.api.email_utils import _smtp_configured

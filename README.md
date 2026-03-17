@@ -12,7 +12,6 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/odominguez7/Jerome7?style=for-the-badge&color=e8713a&label=Stars)](https://github.com/odominguez7/Jerome7/stargazers)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
-[![Jerome Count](https://img.shields.io/badge/dynamic/json?url=https://api.jerome7.com/stats&query=$.total_jeromes&label=Jeromes&style=for-the-badge&color=01696F)](https://jerome7.com/globe)
 
 [Start Now](https://jerome7.com/timer) · [Get Your Graph](https://jerome7.com/graph) · [Globe](https://jerome7.com/globe) · [Discord](https://discord.gg/5AZP8DbEJm)
 
@@ -32,13 +31,48 @@ One line. Updated daily. Every visitor sees your streak.
 
 ---
 
+## The Origin Story
+
+> *"I never saved anything for the swim back."*
+> -- Jerome Eugene Morrow, Gattaca
+
+7 years ago: 80 lbs overweight. Sedentary. Stuck in a loop I could feel but couldn't name.
+
+I didn't have a plan. I just started. And I never stopped.
+
+That became the Boston Marathon. Ironman 70.3. Marrying the love of my life. This year, MIT -- where I found AI, code, and the world of building and shipping. My one regret? Not finding it sooner.
+
+**None of this happened because I'm the smartest person in the room. It happened because I showed up every day.** Consistency is a muscle. You can train it. You train it by doing one thing, always, without exception.
+
+That's what Jerome7 is. The one thing. 7 minutes. Named after a man engineered to be perfect who gave his identity to someone told he'd never be enough. For builders who don't accept what others say they can or can't do.
+
+---
+
 ## Why
 
-72% of developers report mental health issues (Stack Overflow 2024). Headspace costs $70/year and speaks to yoga moms. Nothing exists for the builder who just shipped at 2 AM and can't sleep.
+86% of Gen Z reports burnout before 25. We optimize code but never optimize the person writing it. We celebrate shipping but never talk about what it costs.
+
+**Your commit history means nothing if you're falling apart.**
 
 Jerome7 is 7 minutes of breathwork, meditation, reflection, or preparation. Same session for every builder on Earth, rotating daily. AI-generated. AI-narrated. Binaural beats. Streak accountability. Free forever.
 
-**The science**: Box breathing drops cortisol 25% (Ma et al., 2017). Brief meditation boosts focus 14% (Zeidan et al., 2010). Theta binaural beats reduce anxiety 26% (Garcia-Argibay et al., 2019). Habits lock in at 66 days (Lally et al., 2010). Jerome7 is built around all four.
+**The science:** Box breathing drops cortisol 25% (Ma et al., 2017). Brief meditation boosts focus 14% (Zeidan et al., 2010). Theta binaural beats reduce anxiety 26% (Garcia-Argibay et al., 2019). Habits lock in at 66 days (Lally et al., 2010). Jerome7 is built around all four.
+
+Vibe-coding and AI opened a door for people like me -- but **developers, engineers, and deep domain experts matter more than ever.** What's coming is multi-skilled human teams: technical + non-technical + agentic tools, breaking every status quo together. Jerome7 is proof of that thesis.
+
+---
+
+## We Need an OpenClaw for Humans
+
+I want to keep learning. I want to learn from **you.**
+
+I dream about YC, about working harder than I've ever worked, creating jobs, and building something bigger than myself. I want to show that a non-technical person can build things that matter -- and stand beside the most talented engineers on Earth.
+
+But this isn't about me. It's about building **open infrastructure for human maintenance** the way we built it for servers. Stress monitoring. Daily check-ins. Mental health data that's ours. A community that talks about burnout as openly as we talk about latency.
+
+**You find a friend in me.**
+
+---
 
 ## Quick Start
 
@@ -116,18 +150,29 @@ pip install -r requirements.txt
 python -m uvicorn src.api.main:app --reload
 ```
 
-## The Origin Story
+---
 
-I was 80 lbs overweight. Could not run a mile. Started with 7 minutes a day. That became the Boston Marathon. Then Ironman 70.3. Then MIT. Not because I was exceptional. Because I was consistent. Jerome7 is that 7 minutes, open-sourced for every builder on Earth.
+## Star This Repo
+
+Every star tells the next burned-out dev scrolling at 1 AM: *someone built this for you.*
+
+## Make It Better
+
+- **Open issues** -- tell me what's broken, what's missing, what you need
+- **Submit PRs** -- improve the audio, the agents, the UX, the science
+- **Fork it** -- build your version, we'll learn from each other
+- **Share it** -- X, Reddit, HN, Discord. Wherever builders live.
+
+**Show your commitment before you commit.**
 
 ---
 
 <div align="center">
 
-**Built by [Omar](https://github.com/odominguez7) (Jerome7)**
+**Built by [Omar](https://github.com/odominguez7) · Jerome #7 · MIT Sloan '26**
 
 MIT License. Personally funded. Open source. No paywall.
 
-*You are important. Take care of yourself.*
+*Consistency compounds. Code ships. But only if you're still standing.*
 
 </div>
