@@ -378,7 +378,7 @@ async def timer_page():
       <button id="btnAiVoice" onclick="selectVoice('ai')">AI</button>
       <button id="btnBrowserVoice" onclick="selectVoice('browser')">BROWSER</button>
     </div>
-    <div id="aiStatus" style="display:none"></div>
+    <div id="aiStatus" style="display:none;font-size:11px;color:#484f58;margin-top:8px"></div>
 
     <!-- Jerome# identity link -->
     <div id="identityLink" style="margin-top:24px;font-size:11px;color:#484f58">
@@ -579,46 +579,71 @@ async function prepareAiVoice() {{
   if (!aiAvailable || aiReady || aiGenerating) return;
   aiGenerating = true;
   const status = document.getElementById('aiStatus');
-  const startBtn = document.getElementById('startBtn');
   status.style.display = 'block';
   status.textContent = 'loading AI voice...';
-  if (startBtn) {{ startBtn.textContent = 'LOADING VOICE...'; startBtn.style.opacity = '0.6'; }}
 
   try {{
+    // Kick off generation (returns immediately with 202 if not cached)
     const resp = await fetch('/voice/wellness/generate', {{ method: 'POST' }});
     const data = await resp.json();
-    if (resp.ok) {{
-      aiAudio = new Audio('/voice/wellness/audio?t=' + Date.now());
-      aiAudio.preload = 'auto';
-      aiAudio.addEventListener('canplaythrough', () => {{
+
+    if (resp.status === 200) {{
+      // Already cached, load audio directly
+      const loaded = await loadAiAudio();
+      if (loaded) {{
         aiReady = true;
         status.textContent = 'AI voice ready';
-        if (startBtn) {{ startBtn.textContent = 'START'; startBtn.style.opacity = '1'; }}
-      }}, {{ once: true }});
-      aiAudio.addEventListener('error', () => {{
-        status.textContent = 'using browser voice';
-        voiceMode = 'browser';
-        if (startBtn) {{ startBtn.textContent = 'START'; startBtn.style.opacity = '1'; }}
-      }});
-      // Timeout: if audio doesn't load in 15s, proceed with browser voice
-      setTimeout(() => {{
-        if (!aiReady) {{
-          voiceMode = 'browser';
-          status.textContent = 'using browser voice';
-          if (startBtn) {{ startBtn.textContent = 'START'; startBtn.style.opacity = '1'; }}
-        }}
-      }}, 15000);
-    }} else {{
-      status.textContent = (data.error || 'AI voice unavailable');
-      voiceMode = 'browser';
-      if (startBtn) {{ startBtn.textContent = 'START'; startBtn.style.opacity = '1'; }}
+        status.style.color = '#7ee787';
+        aiGenerating = false;
+        return;
+      }}
+    }} else if (resp.status === 202) {{
+      // Generating in background. Poll for audio.
+      status.textContent = 'generating AI voice...';
+      const loaded = await pollForAudio(60000);
+      if (loaded) {{
+        aiReady = true;
+        status.textContent = 'AI voice ready';
+        status.style.color = '#7ee787';
+        aiGenerating = false;
+        return;
+      }}
     }}
   }} catch(e) {{
-    status.textContent = 'using browser voice';
-    voiceMode = 'browser';
-    if (startBtn) {{ startBtn.textContent = 'START'; startBtn.style.opacity = '1'; }}
+    console.error('voice prep error:', e);
   }}
+  // Failed
+  status.textContent = 'using browser voice';
+  voiceMode = 'browser';
   aiGenerating = false;
+}}
+
+async function pollForAudio(maxMs) {{
+  const start = Date.now();
+  while (Date.now() - start < maxMs) {{
+    await new Promise(r => setTimeout(r, 3000));
+    try {{
+      const resp = await fetch('/voice/wellness/audio', {{ method: 'HEAD' }});
+      if (resp.ok) {{
+        return await loadAiAudio();
+      }}
+    }} catch {{}}
+  }}
+  return false;
+}}
+
+function loadAiAudio() {{
+  return new Promise((resolve) => {{
+    aiAudio = new Audio('/voice/wellness/audio?t=' + Date.now());
+    aiAudio.preload = 'auto';
+    let settled = false;
+    const done = (val) => {{ if (!settled) {{ settled = true; resolve(val); }} }};
+    aiAudio.addEventListener('canplaythrough', () => done(true), {{ once: true }});
+    aiAudio.addEventListener('loadeddata', () => done(true), {{ once: true }});
+    aiAudio.addEventListener('error', () => done(false));
+    setTimeout(() => done(false), 30000);
+    aiAudio.load();
+  }});
 }}
 
 function initVoiceToggle() {{
@@ -629,7 +654,7 @@ function initVoiceToggle() {{
     voiceMode = 'browser';
     selectVoice('browser');
   }} else {{
-    // Auto-generate AI voice in background
+    // Auto-generate AI voice in background (non-blocking, user can start anytime)
     prepareAiVoice();
   }}
 }}

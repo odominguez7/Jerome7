@@ -1259,21 +1259,66 @@ async def _ensure_wellness_audio(today: str | None = None) -> bool:
         return False
 
 
+_bg_generating = False  # track if background generation is in progress
+
+
 @router.post("/voice/wellness/generate")
 async def voice_wellness_generate(request: Request):
-    """Generate ElevenLabs TTS audio for today's wellness session. Cached per day."""
+    """Generate ElevenLabs TTS audio for today's wellness session.
+
+    Returns immediately if audio is cached.
+    If not cached, kicks off background generation and returns 202 (generating).
+    Client should poll GET /voice/wellness/audio until it returns 200.
+    """
+    global _bg_generating
     from src.api.auth import get_real_ip
     ip = get_real_ip(request)
     if not _check_voice_rate(ip):
-        return JSONResponse(status_code=429, content={"error": "Rate limited. Try again later."}, headers={"Retry-After": "3600"})
+        return JSONResponse(status_code=429, content={"error": "Rate limited."}, headers={"Retry-After": "3600"})
 
     if not _get_api_key():
         return JSONResponse(status_code=503, content={"error": "ElevenLabs API key not configured."})
 
-    ok = await _ensure_wellness_audio()
-    if ok:
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    # Already cached? Return immediately.
+    if today in _wellness_audio_cache:
         return {"status": "generated", "url": "/voice/wellness/audio", "cached": True}
-    return JSONResponse(status_code=502, content={"error": "Voice generation temporarily unavailable. Using browser voice."})
+    disk_data = _load_from_disk("wellness", today)
+    if disk_data:
+        _wellness_audio_cache[today] = disk_data
+        return {"status": "generated", "url": "/voice/wellness/audio", "cached": True}
+
+    # Not cached. Start background generation if not already running.
+    if not _bg_generating:
+        _bg_generating = True
+        asyncio.create_task(_bg_generate_wellness(today))
+
+    return JSONResponse(status_code=202, content={"status": "generating", "message": "Audio is being generated. Poll /voice/wellness/audio."})
+
+
+async def _bg_generate_wellness(today: str):
+    """Background task to generate wellness audio without blocking the request."""
+    global _bg_generating
+    try:
+        await _ensure_wellness_audio(today)
+    except Exception as exc:
+        logger.error("Background wellness audio generation failed: %s", exc)
+    finally:
+        _bg_generating = False
+
+
+@router.head("/voice/wellness/audio")
+async def voice_wellness_audio_head():
+    """Check if today's wellness audio exists."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if today in _wellness_audio_cache:
+        return Response(status_code=200, headers={"Content-Type": "audio/mpeg"})
+    disk_data = _load_from_disk("wellness", today)
+    if disk_data:
+        _wellness_audio_cache[today] = disk_data
+        return Response(status_code=200, headers={"Content-Type": "audio/mpeg"})
+    return Response(status_code=404)
 
 
 @router.get("/voice/wellness/audio")
