@@ -445,19 +445,24 @@ async def timer_page():
       <div id="post-ob-status" style="font-size:11px;margin-top:8px;color:#7ee787"></div>
     </div>
 
-    <!-- Wellness graph (shown if registered) -->
+    <!-- Wellness graph + share CTA (shown if registered) -->
     <div id="wellnessGraph" class="hidden" style="margin-bottom:24px;max-width:400px;margin-left:auto;margin-right:auto">
-      <div style="font-size:9px;letter-spacing:2px;color:#484f58;margin-bottom:8px">YOUR WELLNESS GRAPH</div>
-      <img id="graphImg" src="" alt="Wellness contribution graph" style="width:100%;border-radius:6px;border:1px solid #21262d">
-    </div>
+      <img id="graphImg" src="" alt="Wellness contribution graph" style="width:100%;border-radius:6px;border:1px solid #21262d;margin-bottom:16px">
 
-    <!-- Badge + share (shown if registered) -->
-    <div id="postShare" class="hidden" style="margin-bottom:24px">
-      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button class="share-btn primary" onclick="shareSession()">Share</button>
-        <button class="share-btn" onclick="copyGraph()">Copy Graph</button>
+      <div style="font-size:12px;color:#8b949e;line-height:1.6;margin-bottom:16px">
+        You showed up. Show the world.<br>
+        <span style="color:#484f58">Add this to your GitHub profile README.</span>
+      </div>
+
+      <!-- One-click copy: the hero CTA -->
+      <button onclick="copyGraph()" style="width:100%;padding:14px;background:#E85D04;border:none;border-radius:100px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:8px;transition:all 0.2s" onmouseover="this.style.background='#ff6b1a'" onmouseout="this.style.background='#E85D04'">ADD TO GITHUB PROFILE</button>
+
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+        <button class="share-btn" onclick="shareSession()">Share</button>
+        <button class="share-btn" onclick="tweetSession()">Post on X</button>
       </div>
     </div>
+
     <div class="toast" id="toast">copied to clipboard</div>
 
     <div class="complete-links" style="color:#30363d">
@@ -1108,19 +1113,15 @@ function finishSession() {{
   const jLabel = jeromeNumber ? 'Jerome' + jeromeNumber : (userName || 'You');
   document.getElementById('completeTitle').textContent = jLabel + ' showed up.';
 
-  // Show CTA: onboarding if not registered, share if registered
+  // Show CTA: onboarding if not registered, graph if registered
   const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
   if (!user.userId) {{
     document.getElementById('postOnboard').classList.remove('hidden');
-  }} else {{
-    document.getElementById('postShare').classList.remove('hidden');
-    // Show wellness contribution graph
-    if (jeromeNumber) {{
-      const graphEl = document.getElementById('wellnessGraph');
-      const graphImg = document.getElementById('graphImg');
-      graphImg.src = '/graph/' + jeromeNumber + '.svg?t=' + Date.now();
-      graphEl.classList.remove('hidden');
-    }}
+  }} else if (jeromeNumber) {{
+    const graphEl = document.getElementById('wellnessGraph');
+    const graphImg = document.getElementById('graphImg');
+    graphImg.src = '/graph/' + jeromeNumber + '.svg?t=' + Date.now();
+    graphEl.classList.remove('hidden');
   }}
 
   // Stop AI audio if playing
@@ -1252,7 +1253,7 @@ function copyGraph() {{
   copyToClipboard(md).then((ok) => {{
     if (ok) {{
       const toast = document.getElementById('toast');
-      toast.textContent = 'graph markdown copied! paste in your GitHub README';
+      toast.textContent = 'copied! paste in your GitHub profile README';
       toast.style.display = 'block';
       setTimeout(() => toast.style.display = 'none', 3000);
     }}
@@ -1278,6 +1279,17 @@ async function shareSession() {{
     toast.style.display = 'block';
     setTimeout(() => toast.style.display = 'none', 2000);
   }}
+}}
+
+function tweetSession() {{
+  const day = getStreakDay();
+  const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
+  const jnum = user.jeromeNumber ? 'Jerome' + user.jeromeNumber : '';
+  const text = 'Day ' + day + '. 7 minutes of breathing before shipping.' +
+    (jnum ? ' I\\'m ' + jnum + '.' : '') +
+    ' You are important. Take care of yourself.';
+  const url = 'https://jerome7.com/timer';
+  window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url), '_blank');
 }}
 
 // ── Email verification ──
