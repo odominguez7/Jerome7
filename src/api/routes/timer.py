@@ -405,6 +405,16 @@ async def timer_page():
       <button id="btnBrowserVoice" onclick="selectVoice('browser')">BROWSER</button>
     </div>
     <div id="aiStatus" style="display:none"></div>
+
+    <!-- Jerome# identity link -->
+    <div id="identityLink" style="margin-top:24px;font-size:11px;color:#484f58">
+      <span id="identityReturning" style="display:none">
+        <a href="/graph" style="color:#E85D04;text-decoration:none">view your wellness graph</a>
+      </span>
+      <span id="identityNew">
+        complete your first session to claim your Jerome#
+      </span>
+    </div>
   </div>
 
   <!-- ACTIVE SESSION -->
@@ -693,7 +703,13 @@ function checkOnboarding() {{
     userName = user.name || '';
     jeromeNumber = user.jeromeNumber || null;
   }}
-  // Don't show modal before session. Show it AFTER completion.
+  // Toggle identity link
+  if (jeromeNumber) {{
+    const ret = document.getElementById('identityReturning');
+    const nw = document.getElementById('identityNew');
+    if (ret) ret.style.display = 'inline';
+    if (nw) nw.style.display = 'none';
+  }}
 }}
 
 async function submitOnboarding() {{
@@ -1207,14 +1223,14 @@ async function postSessionRegister() {{
     const resp = await fetch('/pledge', {{
       method: 'POST',
       headers: {{ 'Content-Type': 'application/json' }},
-      body: JSON.stringify({{ name: name, goal: 'post_session', hp: hp }}),
+      body: JSON.stringify({{ name: name, goal: 'post_session', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', source: 'web', website: hp, elapsed: Date.now() - pageLoadTime, fp: navigator.language + '|' + screen.width + 'x' + screen.height + '|' + new Date().getTimezoneOffset() }}),
     }});
     const data = await resp.json();
     if (resp.ok) {{
       userName = name;
       jeromeNumber = data.jerome_number || null;
       localStorage.setItem('jerome7_user', JSON.stringify({{
-        name: name, jeromeNumber: jeromeNumber, userId: data.user_id,
+        name: name, jeromeNumber: jeromeNumber, userId: data.user_id, authToken: data.auth_token,
       }}));
       status.textContent = 'You are Jerome' + jeromeNumber + '.';
       status.style.color = '#7ee787';
@@ -1228,13 +1244,14 @@ async function postSessionRegister() {{
           body: JSON.stringify({{ email: email }}),
         }}).catch(() => {{}});
       }}
-      // Swap to share view after brief delay
+      // Swap to graph view after brief delay
       setTimeout(() => {{
         document.getElementById('postOnboard').classList.add('hidden');
-        document.getElementById('postShare').classList.remove('hidden');
         if (jeromeNumber) {{
-          document.getElementById('badgePreview').innerHTML =
-            '<img src="/badge/' + jeromeNumber + '.svg" alt="badge" style="height:28px">';
+          const graphEl = document.getElementById('wellnessGraph');
+          const graphImg = document.getElementById('graphImg');
+          graphImg.src = '/graph/' + jeromeNumber + '.svg?t=' + Date.now();
+          graphEl.classList.remove('hidden');
         }}
       }}, 1500);
     }} else {{
