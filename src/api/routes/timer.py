@@ -490,6 +490,52 @@ let sessionFinished = false;
 let totalRemaining = 0;
 let breathTimeout = null;
 
+// ── Robust Device Fingerprint ──
+// Canvas + WebGL + hardware signals. Unique per device/browser combo.
+async function getDeviceFingerprint() {{
+  const parts = [];
+  // 1. Canvas fingerprint (GPU-specific rendering)
+  try {{
+    const c = document.createElement('canvas');
+    c.width = 200; c.height = 50;
+    const ctx = c.getContext('2d');
+    ctx.textBaseline = 'top';
+    ctx.font = '14px Arial';
+    ctx.fillStyle = '#E85D04';
+    ctx.fillRect(0, 0, 62, 20);
+    ctx.fillStyle = '#069';
+    ctx.fillText('Jerome7fp', 2, 15);
+    ctx.fillStyle = 'rgba(102,204,0,0.7)';
+    ctx.fillText('Jerome7fp', 4, 17);
+    parts.push(c.toDataURL());
+  }} catch {{ parts.push('no-canvas'); }}
+  // 2. WebGL renderer (GPU model)
+  try {{
+    const gl = document.createElement('canvas').getContext('webgl');
+    const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+    if (dbg) {{
+      parts.push(gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL));
+      parts.push(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL));
+    }}
+  }} catch {{ parts.push('no-webgl'); }}
+  // 3. Hardware signals
+  parts.push(navigator.hardwareConcurrency || 0);
+  parts.push(navigator.deviceMemory || 0);
+  parts.push(screen.width + 'x' + screen.height);
+  parts.push(screen.colorDepth);
+  parts.push(navigator.language);
+  parts.push(new Date().getTimezoneOffset());
+  parts.push(navigator.platform);
+  parts.push(navigator.maxTouchPoints || 0);
+  // 4. Hash it
+  const raw = parts.join('|||');
+  const encoder = new TextEncoder();
+  const data = encoder.encode(raw);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}}
+
 // ── Clipboard helper (fallback for iOS/older browsers) ──
 async function copyToClipboard(text) {{
   try {{
@@ -665,12 +711,33 @@ function toggleAmbient() {{
 
 // ── Community Stats ──
 // ── Onboarding ──
-function checkOnboarding() {{
+async function checkOnboarding() {{
   const stored = localStorage.getItem('jerome7_user');
   if (stored) {{
     const user = JSON.parse(stored);
     userName = user.name || '';
     jeromeNumber = user.jeromeNumber || null;
+  }}
+  // Recovery: if no Jerome# locally, check if this device already has one
+  if (!jeromeNumber) {{
+    try {{
+      const fp = await getDeviceFingerprint();
+      const resp = await fetch('/api/auto-claim', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json', 'X-FP': fp, 'X-TZ': Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', 'X-Recovery': '1' }},
+      }});
+      if (resp.ok) {{
+        const data = await resp.json();
+        if (data.recovered) {{
+          jeromeNumber = data.jerome_number;
+          userName = data.name || ('Jerome' + jeromeNumber);
+          localStorage.setItem('jerome7_user', JSON.stringify({{
+            name: userName, jeromeNumber: jeromeNumber, userId: data.user_id, authToken: data.auth_token, fp: fp,
+          }}));
+          showPersonalGreeting();
+        }}
+      }}
+    }} catch {{}}
   }}
   updateIdentityLink();
 }}
@@ -1138,7 +1205,7 @@ function buildCardText() {{
 }}
 
 async function autoClaimJerome() {{
-  const fp = navigator.language + '|' + screen.width + 'x' + screen.height + '|' + new Date().getTimezoneOffset();
+  const fp = await getDeviceFingerprint();
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
   try {{
     const resp = await fetch('/api/auto-claim', {{
@@ -1150,10 +1217,11 @@ async function autoClaimJerome() {{
       jeromeNumber = data.jerome_number;
       userName = data.name || ('Jerome' + jeromeNumber);
       localStorage.setItem('jerome7_user', JSON.stringify({{
-        name: userName, jeromeNumber: jeromeNumber, userId: data.user_id, authToken: data.auth_token,
+        name: userName, jeromeNumber: jeromeNumber, userId: data.user_id, authToken: data.auth_token, fp: fp,
       }}));
       document.getElementById('completeTitle').textContent = 'Jerome' + jeromeNumber + ' showed up.';
       updateIdentityLink();
+      showPersonalGreeting();
     }}
   }} catch(e) {{
     console.error('auto-claim failed', e);

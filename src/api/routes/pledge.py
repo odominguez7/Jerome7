@@ -144,15 +144,6 @@ def _find_existing_user(db, req):
 @router.post("/api/auto-claim")
 def auto_claim(request: Request, db: Session = Depends(get_db)):
     """Zero-friction Jerome# assignment. No form. Just finish breathing."""
-    import json
-    body = {}
-    try:
-        import asyncio
-        # Sync endpoint, read body manually
-        pass
-    except Exception:
-        pass
-
     from src.api.auth import get_real_ip
     ip = get_real_ip(request)
 
@@ -175,9 +166,10 @@ def _do_auto_claim(request: Request, db: Session, ip: str):
     """Core auto-claim logic, called from endpoint and internally."""
     fp = request.headers.get("x-fp", "")
     tz = request.headers.get("x-tz", "UTC")
+    is_recovery = request.headers.get("x-recovery") == "1"
 
-    # If fingerprint exists, return existing user
-    if fp and len(fp) > 10:
+    # If fingerprint matches existing user, return them (recovery or dedup)
+    if fp and len(fp) >= 64:  # SHA-256 hash = 64 hex chars
         existing = db.query(User).filter(User.fingerprint == fp).first()
         if existing:
             if not existing.jerome_number:
@@ -188,7 +180,16 @@ def _do_auto_claim(request: Request, db: Session, ip: str):
                 "jerome_number": existing.jerome_number,
                 "auth_token": existing.auth_token,
                 "name": existing.name,
+                "recovered": True,
             }
+
+    # Recovery mode: don't create new user, just check
+    if is_recovery:
+        return {"recovered": False}
+
+    # Reject weak fingerprints (must be SHA-256 = 64 hex chars)
+    if not fp or len(fp) < 64:
+        raise HTTPException(status_code=400, detail="Invalid device fingerprint.")
 
     # Create anonymous user
     jerome_number = _next_jerome_number(db)
@@ -203,7 +204,7 @@ def _do_auto_claim(request: Request, db: Session, ip: str):
         role=UserRole.member,
         auth_token=auth_token,
         token_issued_at=datetime.now(timezone.utc),
-        fingerprint=fp if fp and len(fp) > 10 else None,
+        fingerprint=fp,
         goal=UserGoal.just_try,
     )
     db.add(user)
@@ -225,6 +226,7 @@ def _do_auto_claim(request: Request, db: Session, ip: str):
         "jerome_number": jerome_number,
         "auth_token": auth_token,
         "name": user.name,
+        "recovered": False,
     }
 
 
