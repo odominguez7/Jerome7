@@ -112,7 +112,7 @@ def _require_enum(enum_cls, value, field_name):
 
 def _find_existing_user(db, req):
     """Deduplicate across sources.
-    Priority: discord_id > email > name+timezone (case-insensitive).
+    Priority: discord_id > email > fingerprint > name+timezone (case-insensitive).
     """
     if req.discord_id:
         user = db.query(User).filter(User.discord_id == req.discord_id).first()
@@ -121,6 +121,12 @@ def _find_existing_user(db, req):
 
     if req.email:
         user = db.query(User).filter(User.email == req.email).first()
+        if user:
+            return user
+
+    # Fingerprint match: same device = same person
+    if req.fp and len(req.fp) > 10:
+        user = db.query(User).filter(User.fingerprint == req.fp).first()
         if user:
             return user
 
@@ -139,7 +145,8 @@ def _find_existing_user(db, req):
 def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(get_db)):
     # --- 0. Rate limit ---
     _prune_rate_limits(_pledge_rate)
-    ip = request.client.host if request.client else "unknown"
+    from src.api.auth import get_real_ip
+    ip = get_real_ip(request)
     now_ts = datetime.now(timezone.utc).timestamp()
     hour_ago = now_ts - 3600
     hits = _pledge_rate.get(ip, [])
@@ -214,6 +221,7 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
         # Backfill auth_token if missing
         if not existing.auth_token:
             existing.auth_token = str(uuid.uuid4())
+            existing.token_issued_at = datetime.now(timezone.utc)
         db.commit()
         return UserResponse(
             user_id=existing.id, name=existing.name,
@@ -271,6 +279,7 @@ def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(ge
             github_username=req.github_username,
             role=UserRole.member,
             auth_token=auth_token,
+            token_issued_at=datetime.now(timezone.utc),
             fingerprint=req.fp,
         )
         db.add(user)

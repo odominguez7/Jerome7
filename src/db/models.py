@@ -97,6 +97,7 @@ class User(Base):
 
     # Auth
     auth_token = Column(String, nullable=True, unique=True, index=True)
+    token_issued_at = Column(DateTime, nullable=True)
 
     # Location (for globe)
     latitude = Column(Float, nullable=True)

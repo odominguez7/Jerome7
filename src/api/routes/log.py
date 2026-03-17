@@ -1,39 +1,27 @@
-"""POST /log — session logging + feedback + status endpoints."""
+"""POST /log -- session logging + feedback + status endpoints."""
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session as DBSession
 
 from src.api.models import LogSessionRequest, SessionResponse, FeedbackRequest, FeedbackResponse
+from src.api.auth import authenticate_user, check_log_rate_limit, validate_session_integrity
 from src.db.database import get_db
-from src.db.models import Session, SessionFeedback, Streak, User
+from src.db.models import Session, SessionFeedback, Streak
 from src.agents.streak import StreakAgent
 
 router = APIRouter()
 streak_agent = StreakAgent()
 
 
-def _authenticate_user(user_id: str, request: Request, db: DBSession) -> User:
-    """Validate Bearer token and return the user, or raise 401/404."""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-
-    auth_header = request.headers.get("authorization", "")
-    if not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header.")
-
-    token = auth_header[7:]  # strip "Bearer "
-    if not user.auth_token or token != user.auth_token:
-        raise HTTPException(status_code=401, detail="Invalid auth token.")
-
-    return user
-
-
 @router.post("/log/{user_id}", response_model=SessionResponse)
 def log_session(user_id: str, req: LogSessionRequest, request: Request, db: DBSession = Depends(get_db)):
-    _authenticate_user(user_id, request, db)
+    authenticate_user(user_id, request, db)
+
+    # Anti-abuse: rate limit + session integrity
+    check_log_rate_limit(user_id)
+    validate_session_integrity(user_id, req.duration_minutes, db)
 
     session = Session(
         user_id=user_id,
@@ -57,7 +45,7 @@ def log_session(user_id: str, req: LogSessionRequest, request: Request, db: DBSe
 
 @router.post("/log/{user_id}/feedback", response_model=FeedbackResponse)
 def log_feedback(user_id: str, req: FeedbackRequest, request: Request, db: DBSession = Depends(get_db)):
-    _authenticate_user(user_id, request, db)
+    authenticate_user(user_id, request, db)
 
     fb = SessionFeedback(
         user_id=user_id,
@@ -75,7 +63,7 @@ def log_feedback(user_id: str, req: FeedbackRequest, request: Request, db: DBSes
 @router.get("/status/{user_id}")
 def user_status(user_id: str, request: Request, db: DBSession = Depends(get_db)):
     """Check if user has logged today + current streak. Used by agent nudges."""
-    user = _authenticate_user(user_id, request, db)
+    user = authenticate_user(user_id, request, db)
 
     today = datetime.now(timezone.utc).date()
     logged_today = (

@@ -1,37 +1,21 @@
-"""GET /streak/{user_id} — streak endpoint (auth required)."""
+"""GET /streak/{user_id} -- streak endpoint (auth required)."""
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session as DBSession
 
 from src.api.models import StreakResponse
+from src.api.auth import authenticate_user
 from src.db.database import get_db
-from src.db.models import User, Streak
+from src.db.models import Streak
 from src.agents.streak import StreakAgent, MILESTONES
 
 router = APIRouter()
 streak_agent = StreakAgent()
 
 
-def _authenticate_user(user_id: str, request: Request, db: DBSession) -> User:
-    """Validate Bearer token and return the user, or raise 401/404."""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-
-    auth_header = request.headers.get("authorization", "")
-    if not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header.")
-
-    token = auth_header[7:]  # strip "Bearer "
-    if not user.auth_token or token != user.auth_token:
-        raise HTTPException(status_code=401, detail="Invalid auth token.")
-
-    return user
-
-
 @router.get("/streak/{user_id}", response_model=StreakResponse)
 def get_streak(user_id: str, request: Request, db: DBSession = Depends(get_db)):
-    user = _authenticate_user(user_id, request, db)
+    user = authenticate_user(user_id, request, db)
 
     streak = db.query(Streak).filter(Streak.user_id == user_id).first()
     if not streak:
@@ -69,7 +53,7 @@ def get_streak(user_id: str, request: Request, db: DBSession = Depends(get_db)):
 
 @router.post("/streak/{user_id}/save")
 def use_save(user_id: str, request: Request, db: DBSession = Depends(get_db)):
-    _authenticate_user(user_id, request, db)
+    authenticate_user(user_id, request, db)
 
     saved = streak_agent.use_save(user_id, db)
     return {"saved": saved}
