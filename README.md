@@ -74,7 +74,6 @@ Jerome7 is an **agentic wellness system**, not a timer with a Gemini API call. T
 | Protocol | Implementation | Status |
 |----------|---------------|--------|
 | **A2A** (Google) | Agent discovery via `/.well-known/agent.json` | Live |
-| **MCP** (Anthropic) | Tool endpoints for AI assistants to query wellness data | Live |
 | **Wellness Check API** | `GET /api/wellness-check/{jerome_number}` | Live |
 | **Pattern Insights API** | `GET /api/insights/{jerome_number}` | Live |
 
@@ -126,6 +125,24 @@ Show your streak on your GitHub profile. When someone sees it, they ask "what's 
 
 ---
 
+## Security and Anti-Abuse
+
+Jerome7 is production-hardened with layered protections:
+
+| Layer | Protection |
+|-------|-----------|
+| **Bot detection** | Honeypot fields + timing-based checks (< 3s = rejected silently) |
+| **Rate limiting** | Per-IP (10 pledges/hr, 5 voice calls/hr) + per-user (5-min cooldown on session logs) |
+| **Session validation** | Duration must be 5-15 min, max 3 sessions/day |
+| **Auth tokens** | UUID Bearer tokens with 90-day expiration |
+| **Fingerprint dedup** | Browser fingerprint prevents multi-account abuse from same device |
+| **Real IP extraction** | Cloudflare CF-Connecting-IP > X-Forwarded-For > fallback |
+| **Email verification** | HMAC-based stateless verification tokens |
+
+All authentication is centralized in `src/api/auth.py`. No copy-pasted auth logic.
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -135,10 +152,9 @@ Show your streak on your GitHub profile. When someone sees it, they ask "what's 
 | AI | Gemini 2.5 Flash (sessions), ElevenLabs (voice) |
 | Audio | Web Audio API (binaural beats, 5 frequency presets) |
 | Globe | Three.js + WebGL (real-time user visualization) |
-| Protocols | A2A (Google), MCP (Anthropic) |
+| Protocols | A2A (Google agent discovery) |
 | Hosting | Railway (auto-deploys from main) |
 | CLI | `npx jerome7` |
-| Email | Resend.com (reminders), Cloudflare (routing) |
 
 ## Run Locally
 
