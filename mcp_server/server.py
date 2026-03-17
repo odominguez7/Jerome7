@@ -92,7 +92,7 @@ def jerome7_pledge(
     age_bracket: str,
     goal: str,
     timezone: str = "UTC",
-    fitness_level: str = "beginner",
+    experience_level: str = "beginner",
     gender: str = "skip",
 ) -> str:
     """Register (pledge) a new user to Jerome7.
@@ -109,13 +109,13 @@ def jerome7_pledge(
         age_bracket: REQUIRED. One of: '18-24', '25-34', '35-44', '45-54', '55+'. Ask the user.
         goal: REQUIRED. One of: 'stress_relief', 'focus', 'consistency', 'community', 'move_more', 'build_strength', 'destress', 'just_try'. Ask the user.
         timezone: IANA timezone string (e.g. 'America/New_York'). Default UTC.
-        fitness_level: One of 'beginner', 'returning', or 'active'. Default beginner.
+        experience_level: One of 'beginner', 'returning', or 'active'. Default beginner.
         gender: One of 'male', 'female', 'other', 'skip'. Default skip.
     """
     body = {
         "name": name,
         "timezone": timezone,
-        "fitness_level": fitness_level,
+        "experience_level": experience_level,
         "source": "mcp",
         "age_bracket": age_bracket,
         "goal": goal,
@@ -212,7 +212,7 @@ def jerome7_pod_match(user_id: str) -> str:
     """Find or create an accountability pod for a user.
 
     Pods are groups of 3-5 people who hold each other accountable.
-    This tool finds compatible users based on timezone, fitness level,
+    This tool finds compatible users based on timezone, experience level,
     and activity window, then proposes or forms a pod.
 
     Args:
