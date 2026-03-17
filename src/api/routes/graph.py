@@ -3,8 +3,10 @@
 from datetime import date, timedelta, datetime, timezone
 
 from fastapi import APIRouter, Depends, Response
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session as DBSession
 
+from src.api.meta import head_meta, nav_html
 from src.db.database import get_db
 from src.db.models import User, Streak, Session
 
@@ -66,7 +68,7 @@ def _build_graph_svg(
                 f'<rect x="{x}" y="{y}" width="{_CELL}" '
                 f'height="{_CELL}" rx="{rx}" fill="{color}">'
                 f"<title>{d.isoformat()}"
-                f'{" - showed up" if has_session else ""}</title></rect>"'
+                f'{" - showed up" if has_session else ""}</title></rect>'
             )
 
     # Stats bar at bottom
@@ -142,3 +144,97 @@ def wellness_graph(jerome_number: int, db: DBSession = Depends(get_db)):
         media_type="image/svg+xml",
         headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
     )
+
+
+@router.get("/graph", response_class=HTMLResponse)
+def graph_page():
+    """Public page: view your wellness contribution graph + copy snippet."""
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wellness Graph | Jerome7</title>
+{head_meta(title="Wellness Graph | Jerome7", description="Your wellness contribution graph. Add it to your GitHub profile.", url="https://jerome7.com/graph")}
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * {{ margin:0; padding:0; box-sizing:border-box; }}
+  body {{ background:#0d1117; color:#e6edf3; font-family:'JetBrains Mono',monospace; min-height:100vh; }}
+  .container {{ max-width:560px; margin:0 auto; padding:100px 24px 60px; text-align:center; }}
+  h1 {{ font-size:24px; font-weight:700; margin-bottom:8px; letter-spacing:1px; }}
+  .sub {{ color:#8b949e; font-size:13px; margin-bottom:32px; line-height:1.6; }}
+  .graph-preview {{ margin-bottom:24px; }}
+  .graph-preview img {{ width:100%; border-radius:6px; border:1px solid #21262d; }}
+  .num-input {{ display:flex; gap:8px; align-items:center; justify-content:center; margin-bottom:24px; }}
+  .num-input label {{ color:#8b949e; font-size:13px; }}
+  .num-input input {{ width:80px; padding:8px 12px; background:#161b22; border:1px solid #30363d; border-radius:6px; color:#e6edf3; font-family:inherit; font-size:14px; text-align:center; }}
+  .num-input input:focus {{ outline:none; border-color:#E85D04; }}
+  .copy-btn {{ width:100%; padding:14px; background:#E85D04; border:none; border-radius:100px; color:#fff; font-family:inherit; font-size:14px; font-weight:700; letter-spacing:1px; cursor:pointer; margin-bottom:12px; }}
+  .copy-btn:hover {{ background:#d14e00; }}
+  .snippet {{ background:#161b22; border:1px solid #30363d; border-radius:6px; padding:12px 16px; font-size:12px; color:#8b949e; word-break:break-all; text-align:left; margin-bottom:24px; }}
+  .hint {{ color:#484f58; font-size:11px; line-height:1.6; }}
+  .toast {{ display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#E85D04; color:#fff; padding:10px 24px; border-radius:100px; font-size:13px; font-weight:700; z-index:9999; }}
+  .start-link {{ display:inline-block; margin-top:24px; color:#E85D04; font-size:13px; text-decoration:none; }}
+  .start-link:hover {{ text-decoration:underline; }}
+</style>
+</head>
+<body>
+{nav_html()}
+<div class="container">
+  <h1>WELLNESS GRAPH</h1>
+  <p class="sub">Your GitHub profile has a code contribution graph.<br>Now it has a wellness one too.</p>
+
+  <div class="num-input">
+    <label>Your Jerome#</label>
+    <input type="number" id="jnum" min="1" placeholder="7" oninput="updatePreview()">
+  </div>
+
+  <div class="graph-preview">
+    <img id="graphImg" src="/graph/0.svg" alt="Wellness contribution graph">
+  </div>
+
+  <div class="snippet" id="snippet">![Jerome7](https://jerome7.com/graph/YOUR_NUMBER.svg)</div>
+
+  <button class="copy-btn" onclick="copySnippet()">COPY FOR GITHUB README</button>
+
+  <p class="hint">Paste this one line into your GitHub profile README.<br>Every visitor sees your wellness streak next to your code.</p>
+
+  <a href="/timer" class="start-link">Don't have a Jerome#? Start your first session.</a>
+</div>
+
+<div class="toast" id="toast">copied!</div>
+
+<script>
+function getStoredNumber() {{
+  try {{
+    const u = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
+    return u.jeromeNumber || '';
+  }} catch {{ return ''; }}
+}}
+
+window.addEventListener('DOMContentLoaded', function() {{
+  const stored = getStoredNumber();
+  if (stored) {{
+    document.getElementById('jnum').value = stored;
+    updatePreview();
+  }}
+}});
+
+function updatePreview() {{
+  const num = document.getElementById('jnum').value || 'YOUR_NUMBER';
+  document.getElementById('graphImg').src = '/graph/' + (parseInt(num) || 0) + '.svg?t=' + Date.now();
+  document.getElementById('snippet').textContent = '![Jerome7](https://jerome7.com/graph/' + num + '.svg)';
+}}
+
+function copySnippet() {{
+  const text = document.getElementById('snippet').textContent;
+  navigator.clipboard.writeText(text).then(function() {{
+    const t = document.getElementById('toast');
+    t.textContent = 'copied! paste in your GitHub profile README';
+    t.style.display = 'block';
+    setTimeout(function() {{ t.style.display = 'none'; }}, 3000);
+  }});
+}}
+</script>
+</body>
+</html>"""
