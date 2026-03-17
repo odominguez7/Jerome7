@@ -143,7 +143,9 @@ def _build_graph_svg(
 
   <!-- Footer -->
   <text x="{_LEFT_PAD}" y="{stats_y}" fill="{_COLOR_TEXT}" font-size="9">{total_sessions} sessions  |  {consistency}% consistent  |  longest: {longest_streak}d</text>
-  <text x="{width - 10}" y="{stats_y}" fill="{_COLOR_TEXT}" font-size="9" text-anchor="end">jerome7.com</text>
+  <a href="https://jerome7.com/timer?ref=graph" target="_blank">
+    <text x="{width - 10}" y="{stats_y}" fill="{_COLOR_ACCENT}" font-size="9" text-anchor="end" font-weight="700">jerome7.com</text>
+  </a>
 </svg>"""
     return svg
 
@@ -259,7 +261,7 @@ window.addEventListener('DOMContentLoaded', function() {{
     if (u.jeromeNumber) {{
       const num = u.jeromeNumber;
       document.getElementById('graphImg').src = '/graph/' + num + '.svg?t=' + Date.now();
-      document.getElementById('snippet').textContent = '![Jerome7 Wellness](https://jerome7.com/graph/' + num + '.svg)';
+      document.getElementById('snippet').textContent = '[![Jerome7 Wellness](https://jerome7.com/graph/' + num + '.svg)](https://jerome7.com/timer?ref=graph)';
       document.getElementById('hasJerome').style.display = 'block';
       document.getElementById('noJerome').style.display = 'none';
     }}

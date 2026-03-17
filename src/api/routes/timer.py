@@ -1244,7 +1244,7 @@ function showGraphReveal() {{
 
 function copyGraph() {{
   const num = jeromeNumber || 'YOUR_NUMBER';
-  const md = '![Jerome7](https://jerome7.com/graph/' + num + '.svg)';
+  const md = '[![Jerome7 Wellness](https://jerome7.com/graph/' + num + '.svg)](https://jerome7.com/timer?ref=graph)';
   copyToClipboard(md).then((ok) => {{
     if (ok) {{
       const toast = document.getElementById('toast');
