@@ -104,28 +104,6 @@ Three AI agents coordinate to deliver personalized sessions:
 | `GET /graph/{jerome_number}.svg` | Dynamic reset graph (SVG) |
 | `/.well-known/agent.json` | A2A agent discovery (Google protocol) |
 
-### GitHub Action: Reset Gate
-
-Add one YAML file. PRs won't merge until the author completes their 7-minute reset.
-
-```yaml
-# .github/workflows/wellness-gate.yml
-name: Jerome7 Wellness Gate
-on: [pull_request]
-jobs:
-  wellness-check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check wellness
-        run: |
-          RESP=$(curl -s https://jerome7.com/api/wellness-check/github/${{ github.actor }})
-          COMPLETED=$(echo $RESP | jq -r '.completed')
-          if [ "$COMPLETED" != "true" ]; then
-            echo "::warning::Complete your 7 minutes first: https://jerome7.com/timer"
-            exit 1
-          fi
-```
-
 ---
 
 ## Tech Stack
