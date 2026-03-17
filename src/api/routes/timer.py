@@ -703,12 +703,18 @@ function checkOnboarding() {{
     userName = user.name || '';
     jeromeNumber = user.jeromeNumber || null;
   }}
-  // Toggle identity link
+  updateIdentityLink();
+}}
+
+function updateIdentityLink() {{
+  const ret = document.getElementById('identityReturning');
+  const nw = document.getElementById('identityNew');
   if (jeromeNumber) {{
-    const ret = document.getElementById('identityReturning');
-    const nw = document.getElementById('identityNew');
     if (ret) ret.style.display = 'inline';
     if (nw) nw.style.display = 'none';
+  }} else {{
+    if (ret) ret.style.display = 'none';
+    if (nw) nw.style.display = 'inline';
   }}
 }}
 
@@ -785,10 +791,10 @@ async function showPersonalGreeting() {{
       }}
     }} catch {{}}
     el.textContent = timeGreet + ', jerome' + user.jeromeNumber + '.';
-  }} else if (user.name) {{
-    el.textContent = timeGreet + ', ' + user.name + '.';
+  }} else if (user.name && user.userId) {{
+    el.textContent = timeGreet + ', ' + user.name + '. complete a session to claim your jerome#.';
   }} else {{
-    el.textContent = timeGreet + '. 7 minutes. lets go.';
+    el.textContent = timeGreet + ', builder. 7 minutes. lets go.';
   }}
 }}
 
@@ -1129,11 +1135,14 @@ function finishSession() {{
   const jLabel = jeromeNumber ? 'Jerome' + jeromeNumber : (userName || 'You');
   document.getElementById('completeTitle').textContent = jLabel + ' showed up.';
 
-  // Show CTA: onboarding if not registered, graph if registered
+  // Show CTA: onboarding if no Jerome#, graph if registered
   const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
-  if (!user.userId) {{
+  if (!jeromeNumber) {{
     document.getElementById('postOnboard').classList.remove('hidden');
-  }} else if (jeromeNumber) {{
+    if (userName && userName !== 'builder') {{
+      document.getElementById('post-ob-name').value = userName;
+    }}
+  }} else {{
     const graphEl = document.getElementById('wellnessGraph');
     const graphImg = document.getElementById('graphImg');
     graphImg.src = '/graph/' + jeromeNumber + '.svg?t=' + Date.now();
