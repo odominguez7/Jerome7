@@ -1,7 +1,7 @@
 {
   "name": "jerome7",
   "display_name": "Jerome7",
-  "description": "7 minutes a day. An act of love. AI-powered daily wellness with breathwork, meditation, reflection, and preparation. Streak tracking, accountability, and smart nudges. Works inside any MCP-compatible agent.",
+  "description": "7 minutes a day. Your daily reset. AI-powered grounding with breathwork, reflection, and preparation. Streak tracking, accountability, and smart nudges. Works inside any MCP-compatible agent.",
   "version": "1.0.0",
   "homepage": "https://jerome7.com",
   "repository": "https://github.com/odominguez7/Jerome7",
@@ -10,8 +10,8 @@
     "name": "Omar Dominguez",
     "url": "https://github.com/odominguez7"
   },
-  "categories": ["wellness", "productivity", "health", "accountability"],
-  "tags": ["wellness", "streaks", "daily", "accountability", "breathwork", "meditation", "7-minutes"],
+  "categories": ["productivity", "health", "accountability", "biohacking"],
+  "tags": ["reset", "streaks", "daily", "accountability", "breathwork", "grounding", "7-minutes"],
   "server": {
     "transport": "stdio",
     "command": "python",

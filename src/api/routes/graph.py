@@ -202,8 +202,8 @@ def graph_page():
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Wellness Graph | Jerome7</title>
-{head_meta(title="Wellness Graph | Jerome7", description="Your wellness contribution graph. Add it to your GitHub profile.", url="https://jerome7.com/graph")}
+<title>Reset Graph | Jerome7</title>
+{head_meta(title="Reset Graph | Jerome7", description="Your daily reset graph. Add it to your GitHub profile.", url="https://jerome7.com/graph")}
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   * {{ margin:0; padding:0; box-sizing:border-box; }}
@@ -229,9 +229,9 @@ def graph_page():
 <body>
 {nav_html()}
 <div class="container">
-  <h1>WELLNESS GRAPH</h1>
+  <h1>RESET GRAPH</h1>
   <p class="tagline">i breathe before i ship</p>
-  <p class="sub">Your GitHub profile shows code contributions.<br>Now it shows you take care of yourself too.</p>
+  <p class="sub">Your GitHub profile shows code contributions.<br>Now it shows you reset before you lock in.</p>
 
   <div class="graph-preview">
     <img id="graphImg" src="/graph/0.svg" alt="Wellness contribution graph">
@@ -246,8 +246,8 @@ def graph_page():
   <div id="noJerome">
     <div class="no-jerome">
       <h2>Get your graph</h2>
-      <p>Complete one 7-minute session.<br>Your Jerome# and graph are assigned automatically.<br>No signup. No login. Just breathe.</p>
-      <a href="/timer" class="start-link">START YOUR 7 MINUTES</a>
+      <p>Complete one 7-minute reset.<br>Your Jerome# and graph are assigned automatically.<br>No signup. No login. Just show up.</p>
+      <a href="/timer" class="start-link">START YOUR RESET</a>
     </div>
   </div>
 </div>

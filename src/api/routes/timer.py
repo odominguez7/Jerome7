@@ -71,7 +71,7 @@ async def timer_page():
         "reflection": "Journaling prompt. Silent reflection. Carry one thing forward.",
         "preparation": "Visualization. 3 priorities. Launch into the day.",
     }
-    type_desc = type_descriptions.get(session_type, "7 minutes of guided wellness.")
+    type_desc = type_descriptions.get(session_type, "7 minutes. your daily reset.")
     ai_available = "true" if os.getenv("ELEVENLABS_API_KEY", "") else "false"
 
     _meta = head_meta(
@@ -383,7 +383,7 @@ async def timer_page():
     <!-- Jerome# identity link -->
     <div id="identityLink" style="margin-top:24px;font-size:11px;color:#484f58">
       <span id="identityReturning" style="display:none">
-        <a href="/graph" style="color:#E85D04;text-decoration:none">view your wellness graph</a>
+        <a href="/graph" style="color:#E85D04;text-decoration:none">view your reset graph</a>
       </span>
       <span id="identityNew">
         breathe for 7 minutes. get your Jerome#.
@@ -426,7 +426,7 @@ async def timer_page():
 
     <!-- Wellness graph + share CTA (shown if registered) -->
     <div id="wellnessGraph" class="hidden" style="margin-bottom:24px;max-width:400px;margin-left:auto;margin-right:auto">
-      <img id="graphImg" src="" alt="Wellness contribution graph" style="width:100%;border-radius:6px;border:1px solid #21262d;margin-bottom:16px">
+      <img id="graphImg" src="" alt="Reset graph" style="width:100%;border-radius:6px;border:1px solid #21262d;margin-bottom:16px">
 
       <div style="font-size:12px;color:#8b949e;line-height:1.6;margin-bottom:16px">
         You showed up. Show the world.<br>

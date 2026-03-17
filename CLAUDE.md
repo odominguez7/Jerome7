@@ -1,7 +1,7 @@
 # Jerome7: Project Instructions for Claude Code
 
 ## What is Jerome7
-Daily 7-minute guided wellness for builders. Breathwork, meditation, reflection, preparation. Rotating daily. Powered by 5 AI agents. Personally funded by the founder. Open source. MIT.
+Daily 7-minute reset for builders. Breathwork, grounding, reflection, preparation. Rotating daily. Powered by 3 AI agents (coach, streak, pattern). Personally funded by the founder. Open source. MIT.
 
 ## Stack
 - **Backend**: FastAPI (Python 3.13), SQLAlchemy ORM, SQLite (dev) / PostgreSQL (prod)
@@ -32,7 +32,8 @@ cli/
 - All HTML pages are inline in Python route files (no template engine except streak_page)
 - JetBrains Mono font, dark theme (#0d1117), orange accent (#E85D04)
 - Nav should be minimal: JEROME7 | Globe | Discord | GitHub | START
-- Jerome7 is WELLNESS (breathing, meditation). Never call it fitness/exercise/bodyweight
+- Jerome7 is a DAILY RESET (breathing, grounding, reflection). Never call it fitness/exercise/bodyweight
+- Use words: reset, grounding, lock in, recharge, maintenance, biohacking. Avoid: wellness, self-care, mindfulness, mental health
 - Jerome# identity: auto-assigned from 8+, Jerome7 = Omar (founder)
 - Session types rotate daily using epoch-based modular arithmetic
 
@@ -53,7 +54,7 @@ node cli/index.js --wellness
 Push to `main` → Railway auto-deploys. No manual steps needed.
 
 ## Important Rules
-- NEVER use exercise/bodyweight/fitness language. This is wellness/breathing/meditation
+- NEVER use exercise/bodyweight/fitness/wellness/self-care/mindfulness language. This is reset/grounding/breathing
 - Keep nav clean: Globe, Discord, GitHub, START only
 - All new DB columns need migration entries in `database.py:_migrate_add_columns()`
 - CORS is whitelisted to specific origins (see main.py)

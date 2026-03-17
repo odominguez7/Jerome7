@@ -6,7 +6,7 @@
 
 **i breathe before i ship.**
 
-7 minutes of daily wellness for builders. Open source. No paywall. No login.
+your daily reset. 7 minutes of grounding before you ship. open source. free forever.
 
 [![Jerome7 Wellness](https://jerome7.com/graph/7.svg)](https://jerome7.com/timer?ref=readme)
 
@@ -19,7 +19,7 @@
 
 ---
 
-## Add your wellness graph to your GitHub profile
+## Add your reset graph to your GitHub profile
 
 One line. Updated daily. Every visitor sees your streak.
 
@@ -54,7 +54,7 @@ That's what Jerome7 is. The one thing. 7 minutes. Named after a man engineered t
 
 **Your commit history means nothing if you're falling apart.**
 
-Jerome7 is 7 minutes of breathwork, meditation, reflection, or preparation. Same session for every builder on Earth, rotating daily. AI-generated. AI-narrated. Binaural beats. Streak accountability. Free forever.
+Jerome7 is a 7-minute daily reset. Breathwork, grounding, reflection, preparation. Same session for every builder on Earth, rotating daily. AI-generated. AI-narrated. Binaural beats. Streak accountability. Free forever.
 
 **The science:** Box breathing drops cortisol 25% (Ma et al., 2017). Brief meditation boosts focus 14% (Zeidan et al., 2010). Theta binaural beats reduce anxiety 26% (Garcia-Argibay et al., 2019). Habits lock in at 66 days (Lally et al., 2010). Jerome7 is built around all four.
 
@@ -98,15 +98,15 @@ Three AI agents coordinate to deliver personalized sessions:
 
 | Endpoint | Description |
 |----------|------------|
-| `GET /api/wellness-check/{jerome_number}` | Check if a Jerome has completed today's session |
+| `GET /api/wellness-check/{jerome_number}` | Check if a Jerome completed today's reset |
 | `GET /api/wellness-check/github/{username}` | Same, by GitHub username |
-| `GET /api/insights/{jerome_number}` | Streak data, completion rate, patterns |
-| `GET /graph/{jerome_number}.svg` | Dynamic wellness contribution graph (SVG) |
+| `GET /api/insights/{jerome_number}` | Streak data, consistency, patterns |
+| `GET /graph/{jerome_number}.svg` | Dynamic reset graph (SVG) |
 | `/.well-known/agent.json` | A2A agent discovery (Google protocol) |
 
-### GitHub Action: Wellness Gate
+### GitHub Action: Reset Gate
 
-Add one YAML file. PRs won't merge until the author completes their 7 minutes.
+Add one YAML file. PRs won't merge until the author completes their 7-minute reset.
 
 ```yaml
 # .github/workflows/wellness-gate.yml

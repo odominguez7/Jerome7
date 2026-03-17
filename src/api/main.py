@@ -64,34 +64,43 @@ async def lifespan(app: FastAPI):
 
     # Pre-warm voice audio + start background loop for daily rotation
     if os.getenv("ELEVENLABS_API_KEY"):
-        try:
-            from src.api.routes.voice import _ensure_wellness_audio
-            today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-            ok = await _ensure_wellness_audio(today)
-            if ok:
-                logger.info("Voice audio ready for %s", today)
-            else:
-                logger.warning("Voice audio generation failed for %s, background loop will retry", today)
-        except Exception as e:
-            logger.warning("Failed to pre-warm voice audio: %s", e)
+        from src.api.routes.voice import _ensure_wellness_audio
 
-        # Background loop: check every 30 min, auto-generate for new day + retry failures
+        # Retry startup pre-warm up to 3 times (ElevenLabs cold start can be slow)
+        voice_ok = False
+        for attempt in range(1, 4):
+            try:
+                today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                voice_ok = await _ensure_wellness_audio(today)
+                if voice_ok:
+                    logger.info("Voice audio ready for %s (attempt %d)", today, attempt)
+                    break
+                logger.warning("Voice pre-warm attempt %d failed for %s", attempt, today)
+            except Exception as e:
+                logger.warning("Voice pre-warm attempt %d error: %s", attempt, e)
+            if attempt < 3:
+                await asyncio.sleep(10)
+
+        # Background loop: 5 min if voice missing, 30 min if voice exists
         async def _voice_loop():
-            from src.api.routes.voice import _ensure_wellness_audio
             while True:
-                await asyncio.sleep(1800)  # 30 min
                 try:
                     day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                    from src.api.routes.voice import _wellness_audio_cache
+                    has_audio = day in _wellness_audio_cache
+                    wait = 1800 if has_audio else 300  # 30 min or 5 min
+                    await asyncio.sleep(wait)
                     ok = await _ensure_wellness_audio(day)
-                    if ok:
-                        logger.info("Voice loop: audio confirmed for %s", day)
-                    else:
-                        logger.warning("Voice loop: generation failed for %s, will retry in 30m", day)
+                    if ok and not has_audio:
+                        logger.info("Voice loop: audio now ready for %s", day)
+                    elif not ok:
+                        logger.warning("Voice loop: still no audio for %s, retrying in 5m", day)
                 except Exception as exc:
                     logger.error("Voice loop error: %s", exc)
+                    await asyncio.sleep(300)
 
         asyncio.create_task(_voice_loop())
-        logger.info("Voice background loop started (30m interval)")
+        logger.info("Voice background loop started")
     else:
         logger.info("ELEVENLABS_API_KEY not set, voice disabled")
 

@@ -49,7 +49,8 @@ cli/                # npx jerome7 CLI tool
 - Python: Follow PEP 8, use type hints
 - Keep routes simple -- one file per feature
 - No shame-based language. "Show up" not "no excuses"
-- This is WELLNESS (breathwork, meditation, reflection). Never fitness/exercise/bodyweight
+- This is a daily reset (breathwork, grounding, reflection). Never fitness/exercise/bodyweight
+- Use: reset, grounding, lock in, recharge, maintenance. Avoid: wellness, self-care, mindfulness
 - "Session" not "workout". "Streak" or "chain" for consistency tracking
 
 ## Need Help?
