@@ -141,6 +141,93 @@ def _find_existing_user(db, req):
     return None
 
 
+@router.post("/api/auto-claim")
+def auto_claim(request: Request, db: Session = Depends(get_db)):
+    """Zero-friction Jerome# assignment. No form. Just finish breathing."""
+    import json
+    body = {}
+    try:
+        import asyncio
+        # Sync endpoint, read body manually
+        pass
+    except Exception:
+        pass
+
+    from src.api.auth import get_real_ip
+    ip = get_real_ip(request)
+
+    # Rate limit
+    _prune_rate_limits(_pledge_rate)
+    now_ts = datetime.now(timezone.utc).timestamp()
+    hour_ago = now_ts - 3600
+    hits = _pledge_rate.get(ip, [])
+    hits = [t for t in hits if t > hour_ago]
+    if len(hits) >= _PLEDGE_RATE_LIMIT:
+        _pledge_rate[ip] = hits
+        raise HTTPException(status_code=429, detail="Too many claims. Try again later.")
+    hits.append(now_ts)
+    _pledge_rate[ip] = hits
+
+    return _do_auto_claim(request, db, ip)
+
+
+def _do_auto_claim(request: Request, db: Session, ip: str):
+    """Core auto-claim logic, called from endpoint and internally."""
+    fp = request.headers.get("x-fp", "")
+    tz = request.headers.get("x-tz", "UTC")
+
+    # If fingerprint exists, return existing user
+    if fp and len(fp) > 10:
+        existing = db.query(User).filter(User.fingerprint == fp).first()
+        if existing:
+            if not existing.jerome_number:
+                existing.jerome_number = _next_jerome_number(db)
+                db.commit()
+            return {
+                "user_id": existing.id,
+                "jerome_number": existing.jerome_number,
+                "auth_token": existing.auth_token,
+                "name": existing.name,
+            }
+
+    # Create anonymous user
+    jerome_number = _next_jerome_number(db)
+    auth_token = str(uuid.uuid4())
+    country = _country_from_ip(request) or _country_from_timezone(tz)
+
+    user = User(
+        name=f"Jerome{jerome_number}",
+        timezone=tz,
+        country=country,
+        jerome_number=jerome_number,
+        role=UserRole.member,
+        auth_token=auth_token,
+        token_issued_at=datetime.now(timezone.utc),
+        fingerprint=fp if fp and len(fp) > 10 else None,
+        goal=UserGoal.just_try,
+    )
+    db.add(user)
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        jerome_number = _next_jerome_number(db)
+        user.jerome_number = jerome_number
+        db.add(user)
+        db.flush()
+
+    streak = Streak(user_id=user.id)
+    db.add(streak)
+    db.commit()
+
+    return {
+        "user_id": user.id,
+        "jerome_number": jerome_number,
+        "auth_token": auth_token,
+        "name": user.name,
+    }
+
+
 @router.post("/pledge", response_model=UserResponse)
 def create_pledge(req: PledgeRequest, request: Request, db: Session = Depends(get_db)):
     # --- 0. Rate limit ---

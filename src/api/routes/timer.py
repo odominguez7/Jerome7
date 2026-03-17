@@ -346,33 +346,7 @@ async def timer_page():
   <a href="/" class="nav-brand">JEROME7</a>
 </nav>
 
-<!-- ONBOARDING MODAL -->
-<div class="modal-overlay hidden" id="onboarding">
-  <div class="modal">
-    <div class="modal-brand">JEROME7</div>
-    <h2 id="onboard-greeting">You showed up. That's the hardest part.</h2>
-    <div class="subtitle">Claim your Jerome# identity. Takes 10 seconds.</div>
-
-    <label>YOUR NAME</label>
-    <input type="text" id="ob-name" placeholder="What should we call you?" maxlength="50" autocomplete="off">
-
-    <label>PRIMARY GOAL</label>
-    <select id="ob-goal">
-      <option value="">Choose...</option>
-      <option value="stress_relief">Stress relief</option>
-      <option value="focus">Better focus</option>
-      <option value="consistency">Build consistency</option>
-      <option value="community">Find community</option>
-    </select>
-
-    <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;width:0;overflow:hidden" aria-hidden="true">
-      <input type="text" name="website" id="hp-field" tabindex="-1" autocomplete="off">
-    </div>
-
-    <button class="modal-btn" id="ob-submit" onclick="submitOnboarding()">CLAIM MY JEROME#</button>
-    <button class="modal-skip" onclick="skipOnboarding()">skip for now</button>
-  </div>
-</div>
+<!-- No onboarding modal. Auto-claim happens after your first session. -->
 
 <div class="container">
 
@@ -412,7 +386,7 @@ async def timer_page():
         <a href="/graph" style="color:#E85D04;text-decoration:none">view your wellness graph</a>
       </span>
       <span id="identityNew">
-        complete your first session to claim your Jerome#
+        breathe for 7 minutes. get your Jerome#.
       </span>
     </div>
   </div>
@@ -443,16 +417,11 @@ async def timer_page():
       <div style="font-size:10px;letter-spacing:2px;color:#484f58">DAY STREAK</div>
     </div>
 
-    <!-- Post-session onboarding (only if not registered) -->
-    <div id="postOnboard" class="hidden" style="margin-bottom:24px;background:#161b22;border:1px solid #21262d;border-radius:12px;padding:24px;max-width:360px;margin-left:auto;margin-right:auto">
-      <div style="font-size:11px;letter-spacing:2px;color:#E85D04;margin-bottom:12px">CLAIM YOUR JEROME#</div>
-      <input type="text" id="post-ob-name" placeholder="your name" maxlength="50" autocomplete="off"
-             style="width:100%;padding:10px 14px;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#f0f6fc;font-family:inherit;font-size:14px;outline:none;margin-bottom:8px">
-      <input type="email" id="post-ob-email" placeholder="email (optional)" autocomplete="off"
-             style="width:100%;padding:10px 14px;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#f0f6fc;font-family:inherit;font-size:14px;outline:none;margin-bottom:12px">
-      <div style="position:absolute;left:-9999px" aria-hidden="true"><input type="text" id="hp-field2" tabindex="-1" autocomplete="off"></div>
-      <button onclick="postSessionRegister()" style="width:100%;padding:12px;background:#E85D04;border:none;border-radius:100px;color:#fff;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer">SAVE MY STREAK</button>
-      <div id="post-ob-status" style="font-size:11px;margin-top:8px;color:#7ee787"></div>
+    <!-- Jerome# reveal (auto-claimed, no form) -->
+    <div id="jeromeReveal" class="hidden" style="margin-bottom:24px;text-align:center">
+      <div id="revealNumber" style="font-size:72px;font-weight:900;color:#E85D04;letter-spacing:-2px;line-height:1"></div>
+      <div style="font-size:11px;letter-spacing:3px;color:#484f58;margin-top:4px;margin-bottom:16px">YOUR IDENTITY</div>
+      <div id="revealMsg" style="font-size:13px;color:#8b949e;line-height:1.5">this is you now. show the world.</div>
     </div>
 
     <!-- Wellness graph + share CTA (shown if registered) -->
@@ -718,51 +687,7 @@ function updateIdentityLink() {{
   }}
 }}
 
-async function submitOnboarding() {{
-  const name = document.getElementById('ob-name').value.trim();
-  if (!name) {{ document.getElementById('ob-name').style.borderColor = '#f85149'; return; }}
-
-  const goal = document.getElementById('ob-goal').value;
-
-  const btn = document.getElementById('ob-submit');
-  btn.disabled = true; btn.textContent = 'CLAIMING...';
-
-  try {{
-    const resp = await fetch('/pledge', {{
-      method: 'POST',
-      headers: {{ 'Content-Type': 'application/json' }},
-      body: JSON.stringify({{ name: name, goal: goal || 'just_try', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', source: 'web', website: document.getElementById('hp-field').value, elapsed: Date.now() - pageLoadTime, fp: navigator.language + '|' + screen.width + 'x' + screen.height + '|' + new Date().getTimezoneOffset() }}),
-    }});
-    const data = await resp.json();
-
-    const userData = {{
-      name: name,
-      userId: data.user_id,
-      jeromeNumber: data.jerome_number,
-      authToken: data.auth_token,
-      goal: goal,
-    }};
-    localStorage.setItem('jerome7_user', JSON.stringify(userData));
-    userName = name;
-    jeromeNumber = data.jerome_number;
-
-    document.getElementById('onboard-greeting').textContent =
-      'You are Jerome' + (data.jerome_number || '?') + '!';
-    btn.textContent = 'LET\\'S GO';
-    btn.disabled = false;
-    btn.onclick = () => document.getElementById('onboarding').classList.add('hidden');
-  }} catch(e) {{
-    localStorage.setItem('jerome7_user', JSON.stringify({{ name: name, goal: goal }}));
-    userName = name;
-    document.getElementById('onboarding').classList.add('hidden');
-  }}
-}}
-
-function skipOnboarding() {{
-  localStorage.setItem('jerome7_user', JSON.stringify({{ name: 'builder', skipped: true }}));
-  userName = 'builder';
-  document.getElementById('onboarding').classList.add('hidden');
-}}
+// Onboarding removed. Jerome# auto-claimed after first session.
 
 // ── Blocks preview ──
 // ── Show personalized greeting on page load ──
@@ -791,10 +716,8 @@ async function showPersonalGreeting() {{
       }}
     }} catch {{}}
     el.textContent = timeGreet + ', jerome' + user.jeromeNumber + '.';
-  }} else if (user.name && user.userId) {{
-    el.textContent = timeGreet + ', ' + user.name + '. complete a session to claim your jerome#.';
   }} else {{
-    el.textContent = timeGreet + ', builder. 7 minutes. lets go.';
+    el.textContent = timeGreet + '. 7 minutes. you got this.';
   }}
 }}
 
@@ -1135,18 +1058,11 @@ function finishSession() {{
   const jLabel = jeromeNumber ? 'Jerome' + jeromeNumber : (userName || 'You');
   document.getElementById('completeTitle').textContent = jLabel + ' showed up.';
 
-  // Show CTA: onboarding if no Jerome#, graph if registered
-  const user = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
+  // Auto-claim Jerome# if not yet claimed, then show graph
   if (!jeromeNumber) {{
-    document.getElementById('postOnboard').classList.remove('hidden');
-    if (userName && userName !== 'builder') {{
-      document.getElementById('post-ob-name').value = userName;
-    }}
+    autoClaimJerome().then(() => showGraphReveal());
   }} else {{
-    const graphEl = document.getElementById('wellnessGraph');
-    const graphImg = document.getElementById('graphImg');
-    graphImg.src = '/graph/' + jeromeNumber + '.svg?t=' + Date.now();
-    graphEl.classList.remove('hidden');
+    showGraphReveal();
   }}
 
   // Stop AI audio if playing
@@ -1221,55 +1137,40 @@ function buildCardText() {{
     'https://jerome7.com/join';
 }}
 
-async function postSessionRegister() {{
-  const name = document.getElementById('post-ob-name').value.trim();
-  const email = document.getElementById('post-ob-email').value.trim();
-  const hp = document.getElementById('hp-field2')?.value || '';
-  const status = document.getElementById('post-ob-status');
-  if (!name) {{ document.getElementById('post-ob-name').style.borderColor = '#f85149'; return; }}
-
+async function autoClaimJerome() {{
+  const fp = navigator.language + '|' + screen.width + 'x' + screen.height + '|' + new Date().getTimezoneOffset();
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
   try {{
-    const resp = await fetch('/pledge', {{
+    const resp = await fetch('/api/auto-claim', {{
       method: 'POST',
-      headers: {{ 'Content-Type': 'application/json' }},
-      body: JSON.stringify({{ name: name, goal: 'post_session', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', source: 'web', website: hp, elapsed: Date.now() - pageLoadTime, fp: navigator.language + '|' + screen.width + 'x' + screen.height + '|' + new Date().getTimezoneOffset() }}),
+      headers: {{ 'Content-Type': 'application/json', 'X-FP': fp, 'X-TZ': tz }},
     }});
-    const data = await resp.json();
     if (resp.ok) {{
-      userName = name;
-      jeromeNumber = data.jerome_number || null;
+      const data = await resp.json();
+      jeromeNumber = data.jerome_number;
+      userName = data.name || ('Jerome' + jeromeNumber);
       localStorage.setItem('jerome7_user', JSON.stringify({{
-        name: name, jeromeNumber: jeromeNumber, userId: data.user_id, authToken: data.auth_token,
+        name: userName, jeromeNumber: jeromeNumber, userId: data.user_id, authToken: data.auth_token,
       }}));
-      status.textContent = 'You are Jerome' + jeromeNumber + '.';
-      status.style.color = '#7ee787';
-      // Update completion title
       document.getElementById('completeTitle').textContent = 'Jerome' + jeromeNumber + ' showed up.';
-      // Subscribe email if provided
-      if (email) {{
-        fetch('/subscribe', {{
-          method: 'POST',
-          headers: {{ 'Content-Type': 'application/json' }},
-          body: JSON.stringify({{ email: email }}),
-        }}).catch(() => {{}});
-      }}
-      // Swap to graph view after brief delay
-      setTimeout(() => {{
-        document.getElementById('postOnboard').classList.add('hidden');
-        if (jeromeNumber) {{
-          const graphEl = document.getElementById('wellnessGraph');
-          const graphImg = document.getElementById('graphImg');
-          graphImg.src = '/graph/' + jeromeNumber + '.svg?t=' + Date.now();
-          graphEl.classList.remove('hidden');
-        }}
-      }}, 1500);
-    }} else {{
-      status.textContent = data.detail || 'Something went wrong.';
-      status.style.color = '#f85149';
+      updateIdentityLink();
     }}
-  }} catch {{
-    status.textContent = 'Network error. Try again.';
-    status.style.color = '#f85149';
+  }} catch(e) {{
+    console.error('auto-claim failed', e);
+  }}
+}}
+
+function showGraphReveal() {{
+  if (jeromeNumber) {{
+    // Show the reveal
+    const reveal = document.getElementById('jeromeReveal');
+    reveal.querySelector('#revealNumber').textContent = 'JEROME' + jeromeNumber;
+    reveal.classList.remove('hidden');
+    // Show graph
+    const graphEl = document.getElementById('wellnessGraph');
+    const graphImg = document.getElementById('graphImg');
+    graphImg.src = '/graph/' + jeromeNumber + '.svg?t=' + Date.now();
+    graphEl.classList.remove('hidden');
   }}
 }}
 
