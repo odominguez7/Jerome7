@@ -62,18 +62,20 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.warning("Failed to pre-warm session cache — first visitor will trigger generation")
 
-    # Pre-warm voice audio (loads from disk cache or generates)
+    # Pre-warm voice audio (loads from disk cache or generates via ElevenLabs)
     try:
-        from src.api.routes.voice import _wellness_audio_cache, _load_from_disk
+        from src.api.routes.voice import _ensure_wellness_audio
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        disk_audio = _load_from_disk("wellness", today)
-        if disk_audio:
-            _wellness_audio_cache[today] = disk_audio
-            logger.info("Voice audio loaded from disk cache for %s", today)
-        elif os.getenv("ELEVENLABS_API_KEY"):
-            logger.info("No cached voice audio, will generate on first request")
-    except Exception:
-        logger.warning("Failed to pre-load voice audio cache")
+        if os.getenv("ELEVENLABS_API_KEY"):
+            ok = await _ensure_wellness_audio(today)
+            if ok:
+                logger.info("Voice audio ready for %s", today)
+            else:
+                logger.warning("Voice audio generation failed for %s, will retry on first request", today)
+        else:
+            logger.info("ELEVENLABS_API_KEY not set, voice disabled")
+    except Exception as e:
+        logger.warning("Failed to pre-warm voice audio: %s", e)
 
     # Start daily reminder background loop if SMTP is configured
     from src.api.email_utils import _smtp_configured

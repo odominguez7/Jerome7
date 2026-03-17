@@ -4,6 +4,7 @@ Phases: ARRIVAL (30s) → BREATHWORK (90s) → PRACTICE (180s) → INTENTION (60
 Uses Web Speech API fallback + ElevenLabs AI TTS.
 """
 
+import asyncio
 import json
 import logging
 import os
@@ -27,6 +28,14 @@ os.makedirs(_CACHE_DIR, exist_ok=True)
 
 _audio_cache: dict[str, bytes] = {}
 _wellness_audio_cache: dict[str, bytes] = {}
+_generating_lock: asyncio.Lock | None = None  # lazy init (no running loop at import time)
+
+
+def _get_lock() -> asyncio.Lock:
+    global _generating_lock
+    if _generating_lock is None:
+        _generating_lock = asyncio.Lock()
+    return _generating_lock
 
 
 # Bump this when voice settings change to force cache regeneration
@@ -197,7 +206,8 @@ def _build_narration(blocks: list[dict], closing: str) -> str:
 @router.post("/voice/generate")
 async def voice_generate(request: Request):
     """Generate ElevenLabs TTS audio for today's session. Cached per day."""
-    ip = request.client.host if request.client else "unknown"
+    from src.api.auth import get_real_ip
+    ip = get_real_ip(request)
     if not _check_voice_rate(ip):
         return JSONResponse(status_code=429, content={"error": "Rate limited. Try again later."}, headers={"Retry-After": "3600"})
 
@@ -281,6 +291,10 @@ async def voice_audio_head():
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     if today in _audio_cache:
         return Response(status_code=200, headers={"Content-Type": "audio/mpeg"})
+    disk_data = _load_from_disk("daily", today)
+    if disk_data:
+        _audio_cache[today] = disk_data
+        return Response(status_code=200, headers={"Content-Type": "audio/mpeg"})
     return Response(status_code=404)
 
 
@@ -288,6 +302,10 @@ async def voice_audio_head():
 async def voice_audio():
     """Stream the cached TTS MP3 for today's session."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if today not in _audio_cache:
+        disk_data = _load_from_disk("daily", today)
+        if disk_data:
+            _audio_cache[today] = disk_data
     audio = _audio_cache.get(today)
     if audio is None:
         return JSONResponse(
@@ -1145,86 +1163,130 @@ def _build_wellness_narration(blocks: list[dict], session_type: str, closing: st
     return "\n".join(lines)
 
 
-@router.post("/voice/wellness/generate")
-async def voice_wellness_generate(request: Request):
-    """Generate ElevenLabs TTS audio for today's wellness session. Cached per day."""
-    ip = request.client.host if request.client else "unknown"
-    if not _check_voice_rate(ip):
-        return JSONResponse(status_code=429, content={"error": "Rate limited. Try again later."}, headers={"Retry-After": "3600"})
+async def _ensure_wellness_audio(today: str | None = None) -> bool:
+    """Ensure today's wellness audio exists in memory. Returns True if available.
 
-    api_key = _get_api_key()
-    voice_id = _get_voice_id()
-    if not api_key:
-        return JSONResponse(
-            status_code=503,
-            content={"error": "ElevenLabs API key not configured."},
-        )
+    This is the single source of truth for wellness audio generation.
+    Called by: endpoint, startup pre-warm, audio serving.
+    Features: lock to prevent duplicate API calls, retry with backoff, disk+memory cache.
+    """
+    if today is None:
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     _prune_cache(_wellness_audio_cache, today)
-    if today in _wellness_audio_cache:
-        return {"status": "generated", "url": "/voice/wellness/audio", "cached": True}
 
-    # Try disk cache
+    # 1. Already in memory
+    if today in _wellness_audio_cache:
+        return True
+
+    # 2. Try disk cache
     disk_data = _load_from_disk("wellness", today)
     if disk_data:
         _wellness_audio_cache[today] = disk_data
+        logger.info("Wellness audio loaded from disk for %s", today)
+        return True
+
+    # 3. Need to generate. Use lock to prevent duplicate ElevenLabs calls.
+    api_key = _get_api_key()
+    if not api_key:
+        return False
+
+    lock = _get_lock()
+    async with lock:
+        # Double-check after acquiring lock (another request may have generated it)
+        if today in _wellness_audio_cache:
+            return True
+        disk_data = _load_from_disk("wellness", today)
+        if disk_data:
+            _wellness_audio_cache[today] = disk_data
+            return True
+
+        # Build the narration script
+        try:
+            session = await get_daily_wellness()
+            if hasattr(session, "model_dump"):
+                session = session.model_dump()
+            elif hasattr(session, "dict"):
+                session = session.dict()
+
+            blocks = session.get("blocks", [])
+            session_type = session.get("session_type", "breathwork")
+            closing = session.get("closing", "You showed up. That's the win.")
+            script = _build_wellness_narration(blocks, session_type, closing)
+        except Exception as exc:
+            logger.error("Failed to build wellness narration: %s", exc)
+            return False
+
+        voice_id = _get_voice_id()
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+        headers = {
+            "xi-api-key": api_key,
+            "Content-Type": "application/json",
+            "Accept": "audio/mpeg",
+        }
+        payload = {
+            "text": script,
+            "model_id": "eleven_turbo_v2_5",
+            "voice_settings": {
+                "stability": 0.85,
+                "similarity_boost": 0.9,
+                "style": 0.15,
+                "use_speaker_boost": False,
+            },
+        }
+
+        # Retry up to 2 times with backoff
+        for attempt in range(2):
+            try:
+                async with httpx.AsyncClient(timeout=90.0) as client:
+                    resp = await client.post(url, json=payload, headers=headers)
+                    if resp.status_code == 200 and len(resp.content) > 1000:
+                        _wellness_audio_cache[today] = resp.content
+                        _save_to_disk("wellness", today, resp.content)
+                        logger.info("Wellness audio generated for %s (%d bytes, attempt %d)", today, len(resp.content), attempt + 1)
+                        return True
+                    else:
+                        logger.error("ElevenLabs error (%s) attempt %d: %s", resp.status_code, attempt + 1, resp.text[:200])
+            except httpx.TimeoutException:
+                logger.error("ElevenLabs timeout attempt %d for %s", attempt + 1, today)
+            except httpx.HTTPError as exc:
+                logger.error("ElevenLabs HTTP error attempt %d: %s", attempt + 1, exc)
+
+            if attempt < 1:
+                await asyncio.sleep(3)  # brief backoff before retry
+
+        logger.error("Failed to generate wellness audio for %s after 2 attempts", today)
+        return False
+
+
+@router.post("/voice/wellness/generate")
+async def voice_wellness_generate(request: Request):
+    """Generate ElevenLabs TTS audio for today's wellness session. Cached per day."""
+    from src.api.auth import get_real_ip
+    ip = get_real_ip(request)
+    if not _check_voice_rate(ip):
+        return JSONResponse(status_code=429, content={"error": "Rate limited. Try again later."}, headers={"Retry-After": "3600"})
+
+    if not _get_api_key():
+        return JSONResponse(status_code=503, content={"error": "ElevenLabs API key not configured."})
+
+    ok = await _ensure_wellness_audio()
+    if ok:
         return {"status": "generated", "url": "/voice/wellness/audio", "cached": True}
-
-    session = await get_daily_wellness()
-    if hasattr(session, "model_dump"):
-        session = session.model_dump()
-    elif hasattr(session, "dict"):
-        session = session.dict()
-
-    blocks = session.get("blocks", [])
-    session_type = session.get("session_type", "breathwork")
-    closing = session.get("closing", "You showed up. That's the win.")
-
-    script = _build_wellness_narration(blocks, session_type, closing)
-
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
-    headers = {
-        "xi-api-key": api_key,
-        "Content-Type": "application/json",
-        "Accept": "audio/mpeg",
-    }
-    payload = {
-        "text": script,
-        "model_id": "eleven_turbo_v2_5",
-        "voice_settings": {
-            "stability": 0.85,
-            "similarity_boost": 0.9,
-            "style": 0.15,
-            "use_speaker_boost": False,
-        },
-    }
-
-    try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            resp = await client.post(url, json=payload, headers=headers)
-            if resp.status_code != 200:
-                logger.error("ElevenLabs wellness API error (%s): %s", resp.status_code, resp.text[:200])
-                return JSONResponse(
-                    status_code=502,
-                    content={"error": "Voice generation temporarily unavailable."},
-                )
-            _wellness_audio_cache[today] = resp.content
-            _save_to_disk("wellness", today, resp.content)
-    except httpx.TimeoutException:
-        logger.error("ElevenLabs API timed out for /voice/wellness/generate")
-        return JSONResponse(status_code=504, content={"error": "Voice generation timed out. Try again."})
-    except httpx.HTTPError as exc:
-        logger.error("ElevenLabs wellness HTTP error: %s", exc)
-        return JSONResponse(status_code=502, content={"error": "Voice generation temporarily unavailable."})
-
-    return {"status": "generated", "url": "/voice/wellness/audio", "cached": False}
+    return JSONResponse(status_code=502, content={"error": "Voice generation temporarily unavailable. Using browser voice."})
 
 
 @router.get("/voice/wellness/audio")
 async def voice_wellness_audio():
     """Stream the cached wellness TTS MP3 for today's session."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    # Try memory first, then disk (auto-loads into memory)
+    if today not in _wellness_audio_cache:
+        disk_data = _load_from_disk("wellness", today)
+        if disk_data:
+            _wellness_audio_cache[today] = disk_data
+
     audio = _wellness_audio_cache.get(today)
     if audio is None:
         return JSONResponse(
@@ -1236,6 +1298,6 @@ async def voice_wellness_audio():
         media_type="audio/mpeg",
         headers={
             "Content-Disposition": f'inline; filename="jerome7-wellness-{today}-{_VOICE_SETTINGS_VERSION}.mp3"',
-            "Cache-Control": "no-cache",
+            "Cache-Control": "public, max-age=86400",
         },
     )
