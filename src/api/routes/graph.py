@@ -13,25 +13,31 @@ from src.db.models import User, Streak, Session
 router = APIRouter()
 
 # ── Config ───────────────────────────────────────────────────────────────────
-_WEEKS = 15  # 15 weeks = ~105 days of history
-_CELL = 13
+_WEEKS = 20  # 20 weeks = ~140 days
+_CELL = 11
 _GAP = 3
-_ROWS = 7  # days per week (Mon-Sun)
-_LEFT_PAD = 4
-_TOP_PAD = 24
-_BOTTOM_PAD = 28
+_ROWS = 7
+_LEFT_PAD = 36  # room for day labels
+_TOP_PAD = 36
+_BOTTOM_PAD = 40
 
 _COLOR_EMPTY = "#161b22"
-_COLOR_FILL = "#E85D04"
-_COLOR_TODAY = "#ff8c3a"
 _COLOR_BG = "#0d1117"
+_COLOR_BORDER = "#21262d"
 _COLOR_TEXT = "#484f58"
 _COLOR_TEXT_LIGHT = "#8b949e"
 _COLOR_ACCENT = "#E85D04"
 
+# Intensity scale (like GitHub's green scale)
+_INTENSITY = [
+    "#161b22",  # 0: empty
+    "#E85D04",  # 1: showed up (single session)
+]
+
+_DAY_LABELS = ["Mon", "", "Wed", "", "Fri", "", ""]
+
 
 def _build_graph_svg(
-    name: str,
     jerome_number: int,
     current_streak: int,
     longest_streak: int,
@@ -39,15 +45,39 @@ def _build_graph_svg(
     session_dates: set[date],
 ) -> str:
     today = date.today()
-    # Start from the Monday of (_WEEKS) weeks ago
     start = today - timedelta(days=today.weekday(), weeks=_WEEKS - 1)
 
     grid_w = _WEEKS * (_CELL + _GAP) - _GAP
-    width = grid_w + _LEFT_PAD * 2
+    width = _LEFT_PAD + grid_w + 12
     grid_h = _ROWS * (_CELL + _GAP) - _GAP
     height = _TOP_PAD + grid_h + _BOTTOM_PAD
 
+    # Day labels
+    day_labels = []
+    for i, label in enumerate(_DAY_LABELS):
+        if label:
+            y = _TOP_PAD + i * (_CELL + _GAP) + _CELL - 2
+            day_labels.append(
+                f'<text x="{_LEFT_PAD - 6}" y="{y}" fill="{_COLOR_TEXT}" '
+                f'font-size="9" text-anchor="end">{label}</text>'
+            )
+
+    # Month labels
+    month_labels = []
+    last_month = -1
+    for week in range(_WEEKS):
+        d = start + timedelta(weeks=week)
+        if d.month != last_month:
+            last_month = d.month
+            x = _LEFT_PAD + week * (_CELL + _GAP)
+            month_labels.append(
+                f'<text x="{x}" y="{_TOP_PAD - 8}" fill="{_COLOR_TEXT}" '
+                f'font-size="9">{d.strftime("%b")}</text>'
+            )
+
+    # Grid cells
     cells = []
+    active_days = 0
     for week in range(_WEEKS):
         for day in range(_ROWS):
             d = start + timedelta(weeks=week, days=day)
@@ -57,44 +87,63 @@ def _build_graph_svg(
             y = _TOP_PAD + day * (_CELL + _GAP)
             is_today = d == today
             has_session = d in session_dates
+            if has_session:
+                active_days += 1
+
             if is_today and has_session:
-                color = _COLOR_TODAY
+                color = "#ff8c3a"
+            elif is_today:
+                color = "#30363d"
             elif has_session:
-                color = _COLOR_FILL
+                color = _COLOR_ACCENT
             else:
                 color = _COLOR_EMPTY
-            rx = "2"
+
             cells.append(
                 f'<rect x="{x}" y="{y}" width="{_CELL}" '
-                f'height="{_CELL}" rx="{rx}" fill="{color}">'
-                f"<title>{d.isoformat()}"
+                f'height="{_CELL}" rx="2" fill="{color}">'
+                f'<title>{d.isoformat()}'
                 f'{" - showed up" if has_session else ""}</title></rect>'
             )
 
-    # Stats bar at bottom
-    stats_y = _TOP_PAD + grid_h + 16
-    legend_y = _TOP_PAD + grid_h + 16
+    # Stats
+    stats_y = _TOP_PAD + grid_h + 20
+    header_name = f"Jerome{jerome_number}" if jerome_number else "Jerome?"
 
-    # Header
-    header_name = f"Jerome{jerome_number}"
-    streak_text = f"{current_streak} day streak" if current_streak > 0 else "start today"
+    # Streak flame emoji for active streaks
+    streak_display = ""
+    if current_streak > 0:
+        streak_display = f"{current_streak} day streak"
+    else:
+        streak_display = "start today"
+
+    # Calculate consistency %
+    total_possible = (_WEEKS * 7)
+    consistency = round((active_days / total_possible) * 100) if total_possible > 0 else 0
 
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
   <style>
-    text {{ font-family: -apple-system, 'Segoe UI', monospace; }}
+    text {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }}
   </style>
-  <rect width="{width}" height="{height}" rx="6" fill="{_COLOR_BG}"/>
+  <rect width="{width}" height="{height}" rx="6" fill="{_COLOR_BG}" stroke="{_COLOR_BORDER}" stroke-width="1"/>
 
   <!-- Header -->
-  <text x="{_LEFT_PAD}" y="15" fill="{_COLOR_ACCENT}" font-size="11" font-weight="700">{header_name}</text>
-  <text x="{width - _LEFT_PAD}" y="15" fill="{_COLOR_TEXT_LIGHT}" font-size="10" text-anchor="end">{streak_text}</text>
+  <text x="{_LEFT_PAD}" y="18" fill="{_COLOR_ACCENT}" font-size="12" font-weight="700">{header_name}</text>
+  <text x="{_LEFT_PAD}" y="28" fill="{_COLOR_TEXT_LIGHT}" font-size="9">i breathe before i ship</text>
+  <text x="{width - 10}" y="22" fill="{_COLOR_TEXT_LIGHT}" font-size="10" text-anchor="end">{streak_display}</text>
+
+  <!-- Month labels -->
+  {"".join(month_labels)}
+
+  <!-- Day labels -->
+  {"".join(day_labels)}
 
   <!-- Grid -->
   {"".join(cells)}
 
-  <!-- Footer stats -->
-  <text x="{_LEFT_PAD}" y="{stats_y}" fill="{_COLOR_TEXT}" font-size="9">{total_sessions} sessions</text>
-  <text x="{width - _LEFT_PAD}" y="{legend_y}" fill="{_COLOR_TEXT}" font-size="9" text-anchor="end">jerome7.com</text>
+  <!-- Footer -->
+  <text x="{_LEFT_PAD}" y="{stats_y}" fill="{_COLOR_TEXT}" font-size="9">{total_sessions} sessions  |  {consistency}% consistent  |  longest: {longest_streak}d</text>
+  <text x="{width - 10}" y="{stats_y}" fill="{_COLOR_TEXT}" font-size="9" text-anchor="end">jerome7.com</text>
 </svg>"""
     return svg
 
@@ -103,8 +152,7 @@ def _build_graph_svg(
 def wellness_graph(jerome_number: int, db: DBSession = Depends(get_db)):
     user = db.query(User).filter(User.jerome_number == jerome_number).first()
     if not user:
-        # Render empty graph with CTA
-        svg = _build_graph_svg("builder", 0, 0, 0, 0, set())
+        svg = _build_graph_svg(0, 0, 0, 0, set())
         return Response(
             content=svg,
             media_type="image/svg+xml",
@@ -116,7 +164,6 @@ def wellness_graph(jerome_number: int, db: DBSession = Depends(get_db)):
     longest = streak.longest_streak if streak else 0
     total = streak.total_sessions if streak else 0
 
-    # Fetch session dates for the graph window
     start_date = date.today() - timedelta(weeks=_WEEKS)
     sessions = (
         db.query(Session.logged_at)
@@ -132,7 +179,6 @@ def wellness_graph(jerome_number: int, db: DBSession = Depends(get_db)):
             session_dates.add(logged_at.date())
 
     svg = _build_graph_svg(
-        name=user.name,
         jerome_number=jerome_number,
         current_streak=current,
         longest_streak=longest,
@@ -161,70 +207,64 @@ def graph_page():
   * {{ margin:0; padding:0; box-sizing:border-box; }}
   body {{ background:#0d1117; color:#e6edf3; font-family:'JetBrains Mono',monospace; min-height:100vh; }}
   .container {{ max-width:560px; margin:0 auto; padding:100px 24px 60px; text-align:center; }}
-  h1 {{ font-size:24px; font-weight:700; margin-bottom:8px; letter-spacing:1px; }}
+  h1 {{ font-size:22px; font-weight:700; margin-bottom:4px; letter-spacing:1px; }}
+  .tagline {{ color:#E85D04; font-size:13px; margin-bottom:8px; font-style:italic; }}
   .sub {{ color:#8b949e; font-size:13px; margin-bottom:32px; line-height:1.6; }}
   .graph-preview {{ margin-bottom:24px; }}
-  .graph-preview img {{ width:100%; border-radius:6px; border:1px solid #21262d; }}
-  .num-input {{ display:flex; gap:8px; align-items:center; justify-content:center; margin-bottom:24px; }}
-  .num-input label {{ color:#8b949e; font-size:13px; }}
-  .num-input input {{ width:80px; padding:8px 12px; background:#161b22; border:1px solid #30363d; border-radius:6px; color:#e6edf3; font-family:inherit; font-size:14px; text-align:center; }}
-  .num-input input:focus {{ outline:none; border-color:#E85D04; }}
+  .graph-preview img {{ width:100%; border-radius:6px; }}
   .copy-btn {{ width:100%; padding:14px; background:#E85D04; border:none; border-radius:100px; color:#fff; font-family:inherit; font-size:14px; font-weight:700; letter-spacing:1px; cursor:pointer; margin-bottom:12px; }}
   .copy-btn:hover {{ background:#d14e00; }}
-  .snippet {{ background:#161b22; border:1px solid #30363d; border-radius:6px; padding:12px 16px; font-size:12px; color:#8b949e; word-break:break-all; text-align:left; margin-bottom:24px; }}
+  .snippet {{ background:#161b22; border:1px solid #30363d; border-radius:6px; padding:12px 16px; font-size:11px; color:#8b949e; word-break:break-all; text-align:left; margin-bottom:24px; user-select:all; }}
   .hint {{ color:#484f58; font-size:11px; line-height:1.6; }}
   .toast {{ display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#E85D04; color:#fff; padding:10px 24px; border-radius:100px; font-size:13px; font-weight:700; z-index:9999; }}
-  .start-link {{ display:inline-block; margin-top:24px; color:#E85D04; font-size:13px; text-decoration:none; }}
+  .start-link {{ display:inline-block; margin-top:24px; color:#E85D04; font-size:13px; text-decoration:none; letter-spacing:1px; }}
   .start-link:hover {{ text-decoration:underline; }}
+  .no-jerome {{ margin-top:32px; padding:24px; background:#161b22; border:1px solid #21262d; border-radius:12px; }}
+  .no-jerome h2 {{ font-size:16px; margin-bottom:8px; }}
+  .no-jerome p {{ color:#8b949e; font-size:12px; line-height:1.6; }}
 </style>
 </head>
 <body>
 {nav_html()}
 <div class="container">
   <h1>WELLNESS GRAPH</h1>
-  <p class="sub">Your GitHub profile has a code contribution graph.<br>Now it has a wellness one too.</p>
-
-  <div class="num-input">
-    <label>Your Jerome#</label>
-    <input type="number" id="jnum" min="1" placeholder="7" oninput="updatePreview()">
-  </div>
+  <p class="tagline">i breathe before i ship</p>
+  <p class="sub">Your GitHub profile shows code contributions.<br>Now it shows you take care of yourself too.</p>
 
   <div class="graph-preview">
     <img id="graphImg" src="/graph/0.svg" alt="Wellness contribution graph">
   </div>
 
-  <div class="snippet" id="snippet">![Jerome7](https://jerome7.com/graph/YOUR_NUMBER.svg)</div>
+  <div id="hasJerome" style="display:none">
+    <div class="snippet" id="snippet"></div>
+    <button class="copy-btn" onclick="copySnippet()">COPY FOR GITHUB README</button>
+    <p class="hint">One line in your README. Updated daily. Every visitor sees your streak.</p>
+  </div>
 
-  <button class="copy-btn" onclick="copySnippet()">COPY FOR GITHUB README</button>
-
-  <p class="hint">Paste this one line into your GitHub profile README.<br>Every visitor sees your wellness streak next to your code.</p>
-
-  <a href="/timer" class="start-link">Don't have a Jerome#? Start your first session.</a>
+  <div id="noJerome">
+    <div class="no-jerome">
+      <h2>Get your graph</h2>
+      <p>Complete one 7-minute session.<br>Your Jerome# and graph are assigned automatically.<br>No signup. No login. Just breathe.</p>
+      <a href="/timer" class="start-link">START YOUR 7 MINUTES</a>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast">copied!</div>
 
 <script>
-function getStoredNumber() {{
+window.addEventListener('DOMContentLoaded', function() {{
   try {{
     const u = JSON.parse(localStorage.getItem('jerome7_user') || '{{}}');
-    return u.jeromeNumber || '';
-  }} catch {{ return ''; }}
-}}
-
-window.addEventListener('DOMContentLoaded', function() {{
-  const stored = getStoredNumber();
-  if (stored) {{
-    document.getElementById('jnum').value = stored;
-    updatePreview();
-  }}
+    if (u.jeromeNumber) {{
+      const num = u.jeromeNumber;
+      document.getElementById('graphImg').src = '/graph/' + num + '.svg?t=' + Date.now();
+      document.getElementById('snippet').textContent = '![Jerome7 Wellness](https://jerome7.com/graph/' + num + '.svg)';
+      document.getElementById('hasJerome').style.display = 'block';
+      document.getElementById('noJerome').style.display = 'none';
+    }}
+  }} catch {{}}
 }});
-
-function updatePreview() {{
-  const num = document.getElementById('jnum').value || 'YOUR_NUMBER';
-  document.getElementById('graphImg').src = '/graph/' + (parseInt(num) || 0) + '.svg?t=' + Date.now();
-  document.getElementById('snippet').textContent = '![Jerome7](https://jerome7.com/graph/' + num + '.svg)';
-}}
 
 function copySnippet() {{
   const text = document.getElementById('snippet').textContent;
