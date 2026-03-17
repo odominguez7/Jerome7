@@ -152,16 +152,18 @@ python -m uvicorn src.api.main:app --reload
 
 ---
 
-## Star This Repo
+## ⭐ Star This Repo
 
-Every star tells the next burned-out dev scrolling at 1 AM: *someone built this for you.*
+Every ⭐ tells the next burned-out dev scrolling at 1 AM: *someone built this for you.*
+
+**At 1,000 ⭐ I will personally fund the ElevenLabs AI voice for every session.** Right now sessions use browser voice as fallback. Hit 1,000 ⭐ and every builder on Earth gets a professionally narrated daily reset. No paywall. No catch. I pay for it.
 
 ## Make It Better
 
 - **Open issues** -- tell me what's broken, what's missing, what you need
 - **Submit PRs** -- improve the audio, the agents, the UX, the science
 - **Fork it** -- build your version, we'll learn from each other
-- **Share it** -- X, Reddit, HN, Discord. Wherever builders live.
+- **Share it** -- X, Reddit, HN, Discord. Wherever builders live
 
 **Show your commitment before you commit.**
 
