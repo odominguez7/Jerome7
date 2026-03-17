@@ -83,6 +83,16 @@ AI assistants (Claude, ChatGPT, custom agents) can query your wellness data thro
 
 ## Viral Mechanics (for builders, by builders)
 
+### Wellness Contribution Graph
+
+Your GitHub profile has a code contribution graph. Now it has a wellness one too.
+
+```markdown
+![Jerome7 Graph](https://jerome7.com/graph/YOUR_NUMBER.svg)
+```
+
+One line in your profile README. Every visitor sees it. The visual contrast between a full code graph and an empty wellness graph is the message.
+
 ### GitHub Action: Wellness Gate
 
 Add one YAML file to your repo. PRs won't merge until the author completes their 7 minutes.
