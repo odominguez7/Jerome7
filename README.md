@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://jerome7.com/assets/logo.svg" alt="Jerome7" width="100" />
+<img src="https://jerome7.com/static/favicon.svg" alt="Jerome7" width="100" />
 
 # Jerome7
 
