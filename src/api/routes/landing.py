@@ -215,11 +215,13 @@ async def landing():
 <!-- FOOTER -->
 <footer>
   <div style="margin-bottom:8px">Personally funded. Open source. MIT.</div>
+  <div style="margin-bottom:8px">
+    <a href="https://github.com/odominguez7/Jerome7" target="_blank" rel="noopener noreferrer" style="color:#E85D04;font-size:13px;letter-spacing:0.5px">github.com/odominguez7/Jerome7</a>
+  </div>
   <div>
     <a href="/globe">Globe</a>
     <a href="/privacy">Privacy</a>
     <a href="/terms">Terms</a>
-    <a href="https://github.com/odominguez7/Jerome7" target="_blank" rel="noopener noreferrer">GitHub</a>
   </div>
 </footer>
 
