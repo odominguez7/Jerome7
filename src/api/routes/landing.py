@@ -141,8 +141,13 @@ async def landing():
 
 {nav_html()}
 
+<!-- OPEN SOURCE BANNER -->
+<a href="https://github.com/odominguez7/Jerome7" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;padding:10px 20px;background:#161b22;border-bottom:1px solid #21262d;font-size:12px;color:#8b949e;text-decoration:none;letter-spacing:0.5px;margin-top:57px">
+  Open source. Built by hackers, for hackers. <span style="color:#E85D04;font-weight:700">Star & contribute on GitHub &rarr;</span>
+</a>
+
 <!-- HERO -->
-<div class="hero">
+<div class="hero" style="padding-top:40px">
   <h1><span>7</span> minutes.<br>Before you ship.</h1>
   <div class="tagline">AI-guided breathwork, meditation, and focus for builders. Same session for every builder on Earth, every day.</div>
   <a href="/timer" class="btn btn-primary">START NOW</a>
