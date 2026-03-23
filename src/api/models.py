@@ -9,11 +9,11 @@ from pydantic import BaseModel, Field
 # --- Request schemas ---
 
 class PledgeRequest(BaseModel):
-    name: str
+    name: str = Field(..., min_length=2, max_length=100)
     email: Optional[str] = None
     discord_id: Optional[str] = None
     timezone: str = "UTC"
-    fitness_level: str = "beginner"  # beginner | returning | active
+    fitness_level: str = Field(default="beginner", pattern=r"^(beginner|returning|active)$")
     available_windows: Optional[list[dict]] = None  # [{day, start_hour, end_hour}]
 
     # Demographics — all optional, never required
@@ -34,12 +34,12 @@ class PledgeRequest(BaseModel):
 class LogSessionRequest(BaseModel):
     seven7_title: Optional[str] = None
     blocks_completed: Optional[Union[int, list[dict]]] = None  # int (count) or list of block dicts
-    duration_minutes: int = 7
-    note: Optional[str] = None
+    duration_minutes: int = Field(default=7, ge=1, le=60)
+    note: Optional[str] = Field(None, max_length=1000)
 
 
 class EnergyCheckinRequest(BaseModel):
-    energy: str  # low | medium | high
+    energy: str = Field(..., pattern=r"^(low|medium|high)$")
 
 
 class FeedbackRequest(BaseModel):

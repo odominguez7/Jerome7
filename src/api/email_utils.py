@@ -13,7 +13,9 @@ logger = logging.getLogger("jerome7")
 
 # ── Configuration ────────────────────────────────────────────────────────────
 
-_SECRET = os.getenv("VERIFY_SECRET", "jerome7-dev-secret-change-in-prod")
+_SECRET = os.getenv("VERIFY_SECRET", "")
+if not _SECRET and os.getenv("RAILWAY_ENVIRONMENT"):
+    raise RuntimeError("VERIFY_SECRET must be set in production. Refusing to start with no secret.")
 SITE_URL = os.getenv("SITE_URL", "https://jerome7.com").rstrip("/")
 SMTP_HOST = os.getenv("SMTP_HOST", "")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))

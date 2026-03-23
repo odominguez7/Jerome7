@@ -21,7 +21,9 @@ from src.db.models import User, Session as SessionModel, Streak
 
 logger = logging.getLogger("jerome7")
 
-_SECRET = os.getenv("VERIFY_SECRET", "jerome7-dev-secret-change-in-prod")
+_SECRET = os.getenv("VERIFY_SECRET", "")
+if not _SECRET and os.getenv("RAILWAY_ENVIRONMENT"):
+    raise RuntimeError("VERIFY_SECRET must be set in production.")
 REMINDER_HOUR_UTC = int(os.getenv("REMINDER_HOUR_UTC", "14"))
 
 

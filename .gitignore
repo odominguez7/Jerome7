@@ -22,10 +22,15 @@ env/
 *.swo
 *~
 
-# Environment
+# Environment / Secrets
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+service-account*.json
+secrets/
 
 # Database
 *.db

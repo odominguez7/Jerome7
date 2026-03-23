@@ -1,12 +1,14 @@
 """Jerome 7 Discord Bot — community layer for YU Show Up."""
 
+import logging
 import os
-from datetime import datetime, timedelta, date
 
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 import requests
+
+logger = logging.getLogger("jerome7")
 
 API_URL = os.getenv("YU_API_URL", "http://localhost:8000")
 GUILD_ID = os.getenv("DISCORD_GUILD_ID")
@@ -52,7 +54,7 @@ def _streak_grid(chain: list[str], streak: int) -> str:
 
 @bot.event
 async def on_ready():
-    print(f"[Jerome 7] Bot ready as {bot.user}")
+    logger.info("Bot ready as %s", bot.user)
     if GUILD_ID:
         guild = discord.Object(id=int(GUILD_ID))
         bot.tree.copy_global_to(guild=guild)
@@ -91,16 +93,16 @@ async def pledge_cmd(interaction: discord.Interaction,
 async def seven7_cmd(interaction: discord.Interaction):
     await interaction.response.defer()
     try:
-        user_id = _resolve_user(interaction)
+        _resolve_user(interaction)
         # Get today's universal daily session
         resp = requests.get(f"{API_URL}/daily")
         resp.raise_for_status()
         data = resp.json()
 
         msg = _format_session(data)
-        timer_url = f"https://jerome7.com/timer"
+        timer_url = "https://jerome7.com/timer"
         msg += f"\n\n👉 [**Open timer**]({timer_url}) — follow along in real time"
-        msg += f"\n\nWhen you're done: `/log`"
+        msg += "\n\nWhen you're done: `/log`"
 
         await interaction.followup.send(msg)
     except Exception as e:
@@ -226,7 +228,7 @@ async def pod_cmd(interaction: discord.Interaction):
             # Show each member's streak
             for m in pod["members"]:
                 msg += f"  `{m['current_streak']}d` {m['name']}\n"
-            msg += f"\n*Your crew. Show up together.*"
+            msg += "\n*Your crew. Show up together.*"
             await interaction.followup.send(msg)
             return
 
@@ -323,7 +325,7 @@ async def nudge_check():
             except Exception:
                 continue  # Can't DM this user, skip
     except Exception as e:
-        print(f"[Nudge] Error: {e}")
+        logger.error("Nudge error: %s", e)
 
 
 @nudge_check.before_loop
@@ -369,13 +371,13 @@ async def on_reaction_add(reaction, user):
             "difficulty": difficulty,
         })
     except Exception as e:
-        print(f"[Feedback] Error storing reaction feedback: {e}")
+        logger.error("Feedback error storing reaction: %s", e)
 
 
 def run():
     token = os.getenv("DISCORD_TOKEN")
     if not token:
-        print("[Jerome 7] DISCORD_TOKEN not set.")
+        logger.warning("DISCORD_TOKEN not set.")
         return
     bot.run(token)
 
