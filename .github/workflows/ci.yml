@@ -7,8 +7,10 @@ on:
     branches: [main]
 
 jobs:
-  lint-and-check:
+  test:
     runs-on: ubuntu-latest
+    env:
+      VERIFY_SECRET: ci-test-secret
     steps:
       - uses: actions/checkout@v4
 
@@ -20,19 +22,22 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install ruff
+          pip install ruff pytest
 
-      - name: Lint with Ruff
-        run: ruff check src/ --ignore E501
+      - name: Lint
+        run: ruff check src/ discord_bot/ tests/ --ignore E501
 
-      - name: Check imports
-        run: python -c "from src.api.main import app; print('App imports successfully')"
+      - name: Tests
+        run: pytest tests/ -v
 
-      - name: Verify agent modules
+      - name: Check app imports
+        run: python -c "from src.api.main import app; print('App imports OK')"
+
+      - name: Check agent modules
         run: |
-          python -c "from src.agents.coach import CoachAgent; print('Coach Agent')"
-          python -c "from src.agents.streak import StreakAgent; print('Streak Agent')"
-          python -c "from src.agents.pattern import PatternAgent; print('Pattern Agent')"
+          python -c "from src.agents.coach import CoachAgent; print('Coach OK')"
+          python -c "from src.agents.streak import StreakAgent; print('Streak OK')"
+          python -c "from src.agents.pattern import PatternAgent; print('Pattern OK')"
 
   cli-check:
     runs-on: ubuntu-latest
